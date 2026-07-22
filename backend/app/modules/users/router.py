@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from google.oauth2 import id_token as google_id_token
-from google.auth.transport import requests as google_requests
+from google.oauth2 import id_token as google_id_token  # type: ignore
+from google.auth.transport import requests as google_requests  # type: ignore
 
 from app.core.config import settings
 from app.core.deps import get_db, get_current_user
