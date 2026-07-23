@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:xploria_app/features/auth/presentation/login_screen.dart';
+import 'package:xploria_app/features/auth/presentation/welcome/welcome_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -32,7 +32,7 @@ class MyApp extends StatelessWidget {
         // tested with just a hot reload.
         colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF005CFF)),
       ),
-      home: const LoginScreen(),
+      home: const WelcomeScreen(),
     );
   }
 }
