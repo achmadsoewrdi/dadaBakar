@@ -1,152 +1,734 @@
 import 'package:flutter/material.dart';
 import '../../auth/data/services/auth_storage_service.dart';
 import '../../auth/presentation/welcome/welcome_screen.dart';
+import '../../projects/domain/models/project_model.dart';
+import '../../devices/domain/models/device_profile_model.dart';
+import '../../content/domain/models/learning_module_model.dart';
 
-class DashboardScreen extends StatelessWidget {
+class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
+
+  @override
+  State<DashboardScreen> createState() => _DashboardScreenState();
+}
+
+class _DashboardScreenState extends State<DashboardScreen> {
+  int _currentIndex = 0;
+  late final PageController _pageController;
+
+  // Mock data aligned with ERD tables
+  late List<ProjectModel> _projects;
+  late List<DeviceProfileModel> _deviceProfiles;
+  late List<LearningModuleModel> _learningModules;
+
+  @override
+  void initState() {
+    super.initState();
+    _pageController = PageController(initialPage: 0);
+    _initMockDataFromERD();
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  void _initMockDataFromERD() {
+    final user = AuthStorageService().currentUser;
+    final userId = user?.id ?? 'uuid_demo_user';
+    final now = DateTime.now();
+
+    // 1. PROJECTS Table data (FK owner_id -> USERS.id, device_type: raspberry_pi | orange_pi)
+    _projects = [
+      ProjectModel(
+        id: 'proj_01',
+        ownerId: userId,
+        name: 'Kamera Pintar Robot',
+        workspaceXml: '<xml><block type="rpi_camera"></block></xml>',
+        generatedCode: 'import cv2\nprint("Raspberry Pi Camera Running")',
+        deviceType: 'raspberry_pi',
+        createdAt: now.subtract(const Duration(days: 1)),
+        updatedAt: now.subtract(const Duration(hours: 1)),
+      ),
+      ProjectModel(
+        id: 'proj_02',
+        ownerId: userId,
+        name: 'Kontrol Lampu Otomatis',
+        workspaceXml: '<xml><block type="orangepi_gpio"></block></xml>',
+        generatedCode: 'import OPi.GPIO as GPIO',
+        deviceType: 'orange_pi',
+        createdAt: now.subtract(const Duration(days: 3)),
+        updatedAt: now.subtract(const Duration(days: 1)),
+      ),
+    ];
+
+    // 2. DEVICE_PROFILES Table data (FK owner_id -> USERS.id, protocol: websocket | bluetooth)
+    _deviceProfiles = [
+      DeviceProfileModel(
+        id: 'dev_01',
+        ownerId: userId,
+        label: 'Node Raspberry Pi Lab Utama',
+        protocol: 'websocket',
+        host: '192.168.1.105',
+        port: 8080,
+        useTls: false,
+        createdAt: now.subtract(const Duration(days: 5)),
+      ),
+      DeviceProfileModel(
+        id: 'dev_02',
+        ownerId: userId,
+        label: 'Sensor Robot BLE',
+        protocol: 'bluetooth',
+        macAddress: 'AA:BB:CC:DD:EE:FF',
+        createdAt: now.subtract(const Duration(days: 2)),
+      ),
+    ];
+
+    // 3. LEARNING_MODULES Table data (is_premium_only based on is_premium)
+    _learningModules = [
+      LearningModuleModel(
+        id: 'mod_01',
+        title: 'Dasar Pemrograman Robotik & IoT',
+        description: 'Pelajari dasar-dasar mengontrol pin GPIO, WiFi, dan sensor pada single board computer.',
+        stepsJson: {'steps': 5, 'level': 'Pemula'},
+        isPremiumOnly: false,
+        createdAt: now.subtract(const Duration(days: 10)),
+      ),
+      LearningModuleModel(
+        id: 'mod_02',
+        title: 'Kamera AI & Robotik Raspberry Pi',
+        description: 'Membangun sistem pengenal wajah dan kontrol motor otomatis dengan Raspberry Pi.',
+        stepsJson: {'steps': 8, 'level': 'Lanjutan'},
+        isPremiumOnly: true,
+        createdAt: now.subtract(const Duration(days: 7)),
+      ),
+      LearningModuleModel(
+        id: 'mod_03',
+        title: 'Protokol Komunikasi WebSocket & BLE',
+        description: 'Koneksikan hardware secara langsung ke Flutter App menggunakan WebSocket & Bluetooth.',
+        stepsJson: {'steps': 6, 'level': 'Menengah'},
+        isPremiumOnly: false,
+        createdAt: now.subtract(const Duration(days: 4)),
+      ),
+    ];
+  }
+
+  void _onTabTapped(int index) {
+    if (_currentIndex == index) return;
+    setState(() {
+      _currentIndex = index;
+    });
+    if (_pageController.hasClients) {
+      _pageController.animateToPage(
+        index,
+        duration: const Duration(milliseconds: 280),
+        curve: Curves.fastOutSlowIn,
+      );
+    }
+  }
+
+  /// Create Project Modal matching PROJECTS table schema (device_type)
+  void _showCreateProjectModal(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (context) {
+        return Container(
+          padding: const EdgeInsets.all(28),
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(36),
+              topRight: Radius.circular(36),
+            ),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 48,
+                  height: 5,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade300,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
+              const Text(
+                'Buat Proyek Hardware Baru!',
+                style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.w900,
+                  color: Color(0xFF0A122C),
+                ),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                'Pilih jenis target device (Hardware Platform):',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey.shade600,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              const SizedBox(height: 24),
+
+              // Option 1: Raspberry Pi
+              _buildModalOption(
+                context,
+                title: 'Raspberry Pi 🍓',
+                subtitle: 'Komputer mini untuk robotik & AI kamera',
+                icon: Icons.developer_board_rounded,
+                color: const Color(0xFF00C2FF),
+                onTap: () {
+                  Navigator.pop(context);
+                  _addNewProject('Proyek Raspberry Pi Baru', 'raspberry_pi');
+                },
+              ),
+              const SizedBox(height: 12),
+
+              // Option 3: Orange Pi
+              _buildModalOption(
+                context,
+                title: 'Orange Pi 🍊',
+                subtitle: 'Single board computer performa tinggi',
+                icon: Icons.hardware_rounded,
+                color: const Color(0xFFFF9F1C),
+                onTap: () {
+                  Navigator.pop(context);
+                  _addNewProject('Proyek Orange Pi Baru', 'orange_pi');
+                },
+              ),
+              const SizedBox(height: 24),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  void _addNewProject(String name, String deviceType) {
+    final user = AuthStorageService().currentUser;
+    final now = DateTime.now();
+
+    final newProject = ProjectModel(
+      id: 'proj_${now.millisecondsSinceEpoch}',
+      ownerId: user?.id ?? 'uuid_demo_user',
+      name: name,
+      workspaceXml: '<xml><block type="start"></block></xml>',
+      deviceType: deviceType,
+      createdAt: now,
+      updatedAt: now,
+    );
+
+    setState(() {
+      _projects.insert(0, newProject);
+    });
+
+    _showFeatureSnackbar('Proyek $name ($deviceType) berhasil dibuat! 🚀');
+  }
+
+  void _showFeatureSnackbar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: const Color(0xFF005CFF),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     final user = AuthStorageService().currentUser;
+    final userName = (user?.fullName.isNotEmpty == true) ? user!.fullName : 'Mary';
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
-      appBar: AppBar(
-        backgroundColor: const Color(0xFF0A122C),
-        elevation: 0,
-        automaticallyImplyLeading: false,
-        title: const Text(
-          'Xploria Dashboard',
-          style: TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-            fontSize: 20,
-          ),
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout_rounded, color: Colors.white),
-            tooltip: 'Logout',
-            onPressed: () {
-              AuthStorageService().clearSession();
-              Navigator.pushAndRemoveUntil(
-                context,
-                MaterialPageRoute(builder: (_) => const WelcomeScreen()),
-                (route) => false,
-              );
+      backgroundColor: const Color(0xFFF0F6FF), // Soft bright sky background matching reference
+      body: Stack(
+        children: [
+          // Silky Smooth Animated PageView for Tabs
+          PageView(
+            controller: _pageController,
+            physics: const NeverScrollableScrollPhysics(),
+            onPageChanged: (index) {
+              if (_currentIndex != index) {
+                setState(() {
+                  _currentIndex = index;
+                });
+              }
             },
+            children: [
+              RepaintBoundary(child: _buildHomeDashboard(userName)),
+              RepaintBoundary(child: _buildLearningModulesTab(user)),
+              RepaintBoundary(child: _buildDeviceProfilesTab(user)),
+              RepaintBoundary(child: _buildUserProfileTab(user)),
+            ],
+          ),
+
+          // Bottom Navigation Bar with GPU Caching
+          Positioned(
+            left: 20,
+            right: 20,
+            bottom: 20,
+            child: RepaintBoundary(
+              child: _buildCustomFloatingNavbar(context),
+            ),
           ),
         ],
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24.0),
+    );
+  }
+
+  // --- WAVY PAGE HEADER & CLIPPER (Unified Blue Theme) ---
+  Widget _buildWavyPageHeader({
+    required String title,
+    required String subtitle,
+    List<Color>? gradientColors,
+    Widget? topActionWidget,
+    Widget? categoryPillsWidget,
+  }) {
+    final colors = gradientColors ?? const [Color(0xFF005CFF), Color(0xFF00C2FF)];
+
+    return ClipPath(
+      clipper: WaveHeaderClipper(),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.only(top: 54, left: 24, right: 24, bottom: 44),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: colors,
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: colors.first.withValues(alpha: 0.3),
+              blurRadius: 15,
+              offset: const Offset(0, 8),
+            ),
+          ],
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
           children: [
-            // Welcome Card
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFF005CFF), Color(0xFF00C2FF)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: const TextStyle(
+                          fontSize: 26,
+                          fontWeight: FontWeight.w900,
+                          color: Colors.white,
+                          letterSpacing: -0.5,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        subtitle,
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: Colors.white.withValues(alpha: 0.9),
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-                borderRadius: BorderRadius.circular(24),
-                boxShadow: [
-                  BoxShadow(
-                    color: const Color(0xFF005CFF).withValues(alpha: 0.3),
-                    blurRadius: 15,
-                    offset: const Offset(0, 8),
+                if (topActionWidget != null) topActionWidget,
+              ],
+            ),
+            if (categoryPillsWidget != null) ...[
+              const SizedBox(height: 18),
+              categoryPillsWidget,
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHeaderCategoryPills(List<String> categories, int selectedIndex, ValueChanged<int> onSelect) {
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      physics: const BouncingScrollPhysics(),
+      child: Row(
+        children: List.generate(categories.length, (index) {
+          final isSelected = index == selectedIndex;
+          return GestureDetector(
+            onTap: () => onSelect(index),
+            child: Container(
+              margin: const EdgeInsets.only(right: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+              decoration: BoxDecoration(
+                color: isSelected ? const Color(0xFFFF9F1C) : Colors.white.withValues(alpha: 0.22),
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: isSelected
+                    ? [
+                        BoxShadow(
+                          color: const Color(0xFFFF9F1C).withValues(alpha: 0.4),
+                          blurRadius: 8,
+                          offset: const Offset(0, 4),
+                        ),
+                      ]
+                    : null,
+              ),
+              child: Text(
+                categories[index],
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: isSelected ? FontWeight.w900 : FontWeight.w600,
+                  fontSize: 13,
+                ),
+              ),
+            ),
+          );
+        }),
+      ),
+    );
+  }
+
+  // --- 1. HOME DASHBOARD VIEW (Matching Reference Screen with Wavy Header) ---
+  Widget _buildHomeDashboard(String userName) {
+    final user = AuthStorageService().currentUser;
+
+    return SingleChildScrollView(
+      physics: const BouncingScrollPhysics(),
+      padding: const EdgeInsets.only(bottom: 120),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Wave Header with Title inside (Matching Reference Image)
+          _buildWavyPageHeader(
+            title: 'Hi, $userName 👋',
+            subtitle: 'Selamat datang di Dashboard Xploria!',
+            gradientColors: const [Color(0xFF005CFF), Color(0xFF00C2FF)],
+            topActionWidget: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.25),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.stars_rounded, color: Color(0xFFFF9F1C), size: 18),
+                  const SizedBox(width: 6),
+                  Text(
+                    (user?.isPremium ?? false) ? 'VIP' : '120 Pts',
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w900,
+                      color: Colors.white,
+                    ),
                   ),
                 ],
               ),
-              child: Column(
+            ),
+            categoryPillsWidget: _buildHeaderCategoryPills(
+              ['Semua', 'Proyek', 'Misi', 'Statistik'],
+              0,
+              (idx) {},
+            ),
+          ),
+
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: 12),
+
+                // 2. Level / Progress White Card
+                _buildLevelProgressCard(),
+                const SizedBox(height: 20),
+
+                // 3. Featured Hero Challenge Banner
+                _buildHeroChallengeCard(),
+                const SizedBox(height: 20),
+
+                // 4. Two Big Feature Cards: Lessons & Devices
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildSquareShortcutCard(
+                        title: 'Lessons',
+                        subtitle: '${_learningModules.length} Modul',
+                        icon: Icons.menu_book_rounded,
+                        bgColor: const Color(0xFFE0F2FE),
+                        accentColor: const Color(0xFF005CFF),
+                        onTap: () => _onTabTapped(1),
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: _buildSquareShortcutCard(
+                        title: 'Devices',
+                        subtitle: '${_deviceProfiles.length} Profiles',
+                        icon: Icons.memory_rounded,
+                        bgColor: const Color(0xFFFEF3C7),
+                        accentColor: const Color(0xFFD97706),
+                        onTap: () => _onTabTapped(2),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+
+                // 5. Full-Width Bottom Card: My Projects
+                _buildProjectsFullWidthCard(),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // --- LEVEL PROGRESS CARD (Matching Reference Image Top Card) ---
+  Widget _buildLevelProgressCard() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 15,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    children: [
-                      CircleAvatar(
-                        radius: 28,
-                        backgroundColor: Colors.white,
-                        child: Text(
-                          (user?.fullName.isNotEmpty == true)
-                              ? user!.fullName[0].toUpperCase()
-                              : 'U',
-                          style: const TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF005CFF),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              user?.fullName.isNotEmpty == true
-                                  ? user!.fullName
-                                  : 'Pengguna Xploria',
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              user?.email ?? 'hello@xploria.com',
-                              style: TextStyle(
-                                color: Colors.white.withValues(alpha: 0.8),
-                                fontSize: 14,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
+                  const Text(
+                    'Level 1',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w900,
+                      color: Color(0xFF0A122C),
+                    ),
                   ),
-                  const SizedBox(height: 20),
-                  const Divider(color: Colors.white24, height: 1),
-                  const SizedBox(height: 16),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      _buildUserBadge('Role', user?.role ?? 'user', Icons.badge_outlined),
-                      _buildUserBadge('Status', (user?.isActive ?? true) ? 'Aktif' : 'Non-aktif', Icons.check_circle_outline),
-                      _buildUserBadge('Premium', (user?.isPremium ?? false) ? 'VIP' : 'Gratis', Icons.workspace_premium_outlined),
-                    ],
+                  const SizedBox(height: 4),
+                  Text(
+                    'This is your first step to greatness!',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey.shade500,
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
                 ],
               ),
+              const Icon(Icons.emoji_events_rounded, color: Color(0xFFFF9F1C), size: 30),
+            ],
+          ),
+          const SizedBox(height: 16),
+          // Progress Bar
+          ClipRRect(
+            borderRadius: BorderRadius.circular(10),
+            child: LinearProgressIndicator(
+              value: 0.45,
+              minHeight: 8,
+              backgroundColor: const Color(0xFFF1F5F9),
+              valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFFFF9F1C)),
             ),
-            const SizedBox(height: 28),
+          ),
+        ],
+      ),
+    );
+  }
 
-            const Text(
-              'Status Autentikasi FastApi & PostgreSQL',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF0A122C),
+  // --- HERO CHALLENGE CARD (Matching Reference Image Blue Banner) ---
+  Widget _buildHeroChallengeCard() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(22),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Color(0xFF00C2FF), Color(0xFF005CFF)], // Vibrant Bright Cyan-Blue from Logo
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(28),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF005CFF).withValues(alpha: 0.3),
+            blurRadius: 18,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Stack(
+        children: [
+          // Content Left
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(right: 70.0),
+                child: Text(
+                  'Ready to Start Your Challenge',
+                  style: const TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.w900,
+                    color: Colors.white,
+                    height: 1.2,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: () => _showCreateProjectModal(context),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.white,
+                  foregroundColor: const Color(0xFF005CFF),
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
+                ),
+                child: const Text(
+                  'Next',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w900,
+                    fontSize: 14,
+                  ),
+                ),
+              ),
+            ],
+          ),
+
+          // Cute Robot Mascot (Matching Reference Image Robot on Right)
+          Positioned(
+            right: -5,
+            bottom: -5,
+            child: _buildCuteRobotMascot(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Cute Robot Mascot Widget
+  Widget _buildCuteRobotMascot() {
+    return SizedBox(
+      width: 95,
+      height: 95,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          // Robot Head/Body
+          Container(
+            width: 75,
+            height: 65,
+            decoration: BoxDecoration(
+              color: const Color(0xFF2ED9C3), // Bright Teal from Logo
+              borderRadius: BorderRadius.circular(22),
+              border: Border.all(color: Colors.white, width: 3),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.1),
+                  blurRadius: 10,
+                ),
+              ],
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(width: 10, height: 10, decoration: const BoxDecoration(color: Color(0xFF0A122C), shape: BoxShape.circle)),
+                const SizedBox(width: 14),
+                Container(width: 10, height: 10, decoration: const BoxDecoration(color: Color(0xFF0A122C), shape: BoxShape.circle)),
+              ],
+            ),
+          ),
+          // Robot Antenna
+          Positioned(
+            top: 2,
+            child: Container(
+              width: 8,
+              height: 12,
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                shape: BoxShape.circle,
               ),
             ),
-            const SizedBox(height: 12),
+          ),
+        ],
+      ),
+    );
+  }
 
-            _buildStatusItem(
-              title: 'Access Token (JWT)',
-              subtitle: AuthStorageService().accessToken ?? 'None',
-              icon: Icons.key_rounded,
-              color: Colors.green,
+  // --- SQUARE SHORTCUT CARDS (Matching Lessons & Games in Reference) ---
+  Widget _buildSquareShortcutCard({
+    required String title,
+    required String subtitle,
+    required IconData icon,
+    required Color bgColor,
+    required Color accentColor,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        height: 160,
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: bgColor,
+          borderRadius: BorderRadius.circular(28),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.8),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon, color: accentColor, size: 36),
             ),
-            const SizedBox(height: 12),
-            _buildStatusItem(
-              title: 'Refresh Token',
-              subtitle: AuthStorageService().refreshToken ?? 'None',
-              icon: Icons.refresh_rounded,
-              color: Colors.blue,
+            const Spacer(),
+            Text(
+              title,
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w900,
+                color: const Color(0xFF0A122C),
+              ),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              subtitle,
+              style: TextStyle(
+                fontSize: 12,
+                color: Colors.grey.shade600,
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ],
         ),
@@ -154,78 +736,609 @@ class DashboardScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildUserBadge(String label, String value, IconData icon) {
-    return Column(
-      children: [
-        Row(
-          children: [
-            Icon(icon, color: Colors.white70, size: 16),
-            const SizedBox(width: 4),
-            Text(
-              label,
-              style: const TextStyle(color: Colors.white70, fontSize: 12),
-            ),
-          ],
-        ),
-        const SizedBox(height: 4),
-        Text(
-          value.toUpperCase(),
-          style: const TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-            fontSize: 14,
+  // --- FULL-WIDTH PROJECTS CARD (Matching "Play with Friend" Green Card in Reference) ---
+  Widget _buildProjectsFullWidthCard() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: const Color(0xFFDCFCE7), // Soft Mint Green from Reference
+        borderRadius: BorderRadius.circular(28),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Proyek Saya',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w900,
+                      color: Color(0xFF0A122C),
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    '${_projects.length} Proyek • Raspberry Pi & Orange Pi',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.green.shade800,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+              IconButton(
+                icon: const Icon(Icons.add_circle_rounded, color: Color(0xFF005CFF), size: 32),
+                onPressed: () => _showCreateProjectModal(context),
+              ),
+            ],
           ),
-        ),
-      ],
+          const SizedBox(height: 16),
+          // Project items
+          ..._projects.map((project) => _buildBrightProjectItem(project)),
+        ],
+      ),
     );
   }
 
-  Widget _buildStatusItem({
-    required String title,
-    required String subtitle,
-    required IconData icon,
-    required Color color,
-  }) {
+  Widget _buildBrightProjectItem(ProjectModel project) {
+    Color badgeColor;
+    IconData deviceIcon;
+
+    switch (project.deviceType) {
+      case 'orange_pi':
+        badgeColor = const Color(0xFFFF9F1C);
+        deviceIcon = Icons.hardware_rounded;
+        break;
+      case 'raspberry_pi':
+      default:
+        badgeColor = const Color(0xFF00C2FF);
+        deviceIcon = Icons.developer_board_rounded;
+        break;
+    }
+
     return Container(
-      padding: const EdgeInsets.all(16),
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
+        borderRadius: BorderRadius.circular(20),
       ),
       child: Row(
         children: [
           Container(
-            padding: const EdgeInsets.all(10),
+            padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.1),
-              shape: BoxShape.circle,
+              color: badgeColor.withValues(alpha: 0.15),
+              borderRadius: BorderRadius.circular(12),
             ),
-            child: Icon(icon, color: color, size: 22),
+            child: Icon(deviceIcon, color: badgeColor, size: 22),
           ),
-          const SizedBox(width: 16),
+          const SizedBox(width: 14),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  title,
+                  project.name,
                   style: const TextStyle(
-                    fontWeight: FontWeight.bold,
                     fontSize: 14,
+                    fontWeight: FontWeight.bold,
                     color: Color(0xFF0A122C),
                   ),
                 ),
-                const SizedBox(height: 4),
                 Text(
-                  subtitle,
-                  maxLines: 1,
+                  project.deviceType.toUpperCase(),
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: Colors.grey.shade500,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const Icon(Icons.chevron_right_rounded, color: Colors.grey, size: 20),
+        ],
+      ),
+    );
+  }
+
+  // --- 2. LEARNING MODULES TAB (LEARNING_MODULES Table - Wavy Header) ---
+  Widget _buildLearningModulesTab(dynamic user) {
+    return SingleChildScrollView(
+      physics: const BouncingScrollPhysics(),
+      padding: const EdgeInsets.only(bottom: 120),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Wave Header with Title inside (Matching Reference Image)
+          _buildWavyPageHeader(
+            title: 'Lessons & Modules 📚',
+            subtitle: 'Pelajari koding & IoT dengan seru!',
+            categoryPillsWidget: _buildHeaderCategoryPills(
+              ['Hot 🔥', 'Pemula', 'Menengah', 'VIP'],
+              0,
+              (idx) {},
+            ),
+          ),
+
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: 12),
+                ...List.generate(_learningModules.length, (index) {
+                  final module = _learningModules[index];
+                  final userIsPremium = user?.isPremium ?? false;
+                  final canAccess = !module.isPremiumOnly || userIsPremium;
+
+                  return _buildColorfulModuleCard(
+                    module: module,
+                    index: index,
+                    canAccess: canAccess,
+                    onTap: () {
+                      if (canAccess) {
+                        _showFeatureSnackbar('Membuka modul: ${module.title} 🚀');
+                      } else {
+                        _showFeatureSnackbar('Modul ini khusus pengguna Premium VIP! 🔒');
+                      }
+                    },
+                  );
+                }),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // --- COLORFUL PASTEL MODULE CARD (Matching Reference Image) ---
+  Widget _buildColorfulModuleCard({
+    required LearningModuleModel module,
+    required int index,
+    required bool canAccess,
+    required VoidCallback onTap,
+  }) {
+    // Array of vibrant pastel themes matching reference image
+    final themes = [
+      {
+        'bg': const Color(0xFFDCFCE7), // Soft Green
+        'text': const Color(0xFF14532D),
+        'sub': const Color(0xFF166534),
+        'accent': const Color(0xFF16A34A),
+        'badgeBg': const Color(0xFF166534),
+      },
+      {
+        'bg': const Color(0xFFE0F2FE), // Soft Sky Blue
+        'text': const Color(0xFF0C4A6E),
+        'sub': const Color(0xFF075985),
+        'accent': const Color(0xFF0284C7),
+        'badgeBg': const Color(0xFF075985),
+      },
+      {
+        'bg': const Color(0xFFFEF3C7), // Soft Peach Amber
+        'text': const Color(0xFF7C2D12),
+        'sub': const Color(0xFF9A3412),
+        'accent': const Color(0xFFEA580C),
+        'badgeBg': const Color(0xFF9A3412),
+      },
+      {
+        'bg': const Color(0xFFFCE7F3), // Soft Rose Pink
+        'text': const Color(0xFF831843),
+        'sub': const Color(0xFF9D174D),
+        'accent': const Color(0xFFDB2777),
+        'badgeBg': const Color(0xFF9D174D),
+      },
+      {
+        'bg': const Color(0xFFF3E8FF), // Soft Lavender Purple
+        'text': const Color(0xFF581C87),
+        'sub': const Color(0xFF6B21A8),
+        'accent': const Color(0xFF9333EA),
+        'badgeBg': const Color(0xFF6B21A8),
+      },
+    ];
+
+    final theme = themes[index % themes.length];
+    final bgColor = theme['bg'] as Color;
+    final textColor = theme['text'] as Color;
+    final subColor = theme['sub'] as Color;
+    final accentColor = theme['accent'] as Color;
+    final badgeBg = theme['badgeBg'] as Color;
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      width: double.infinity,
+      padding: const EdgeInsets.all(22),
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(28),
+        boxShadow: [
+          BoxShadow(
+            color: accentColor.withValues(alpha: 0.1),
+            blurRadius: 12,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: Stack(
+        clipBehavior: Clip.hardEdge,
+        children: [
+          // Grassy Mound / Cute Illustration at Bottom Right (Matching Reference)
+          Positioned(
+            right: -10,
+            bottom: -15,
+            child: _buildCuteCardIllustration(index, accentColor),
+          ),
+
+          // Card Content
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Header Row: Title
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.only(right: 60.0),
+                      child: Text(
+                        module.title,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w900,
+                          color: textColor,
+                          height: 1.2,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+
+              // Description Text
+              Padding(
+                padding: const EdgeInsets.only(right: 60.0),
+                child: Text(
+                  module.description ?? '',
+                  maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey.shade600,
-                    fontFamily: 'monospace',
+                    fontSize: 13,
+                    color: subColor.withValues(alpha: 0.9),
+                    fontWeight: FontWeight.w600,
+                    height: 1.3,
                   ),
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              // Action Button / Badge Row
+              Row(
+                children: [
+                  ElevatedButton(
+                    onPressed: onTap,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: canAccess ? accentColor : Colors.grey.shade600,
+                      foregroundColor: Colors.white,
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(18),
+                      ),
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                    ),
+                    child: Text(
+                      canAccess ? 'Mulai Belajar' : 'VIP Locked 🔒',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w900,
+                        fontSize: 13,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: module.isPremiumOnly
+                          ? const Color(0xFFFF9F1C)
+                          : badgeBg.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(
+                      module.isPremiumOnly ? 'VIP' : 'FREE',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w900,
+                        color: module.isPremiumOnly ? Colors.white : badgeBg,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Cute Vector Illustration at bottom right of each card (Matching Reference Image)
+  Widget _buildCuteCardIllustration(int index, Color accentColor) {
+    final icons = [
+      Icons.emoji_objects_rounded, // Bulb / Sensor
+      Icons.smart_toy_rounded,     // Robot
+      Icons.wifi_tethering_rounded,// Radio / Wireless
+      Icons.sports_esports_rounded,// Game controller
+      Icons.auto_awesome_rounded,  // Stars / Wand
+    ];
+    final icon = icons[index % icons.length];
+
+    return SizedBox(
+      width: 100,
+      height: 90,
+      child: Stack(
+        alignment: Alignment.bottomRight,
+        children: [
+          // Green Grassy Mound Curve at bottom right
+          Positioned(
+            right: -20,
+            bottom: -25,
+            child: Container(
+              width: 110,
+              height: 70,
+              decoration: BoxDecoration(
+                color: accentColor.withValues(alpha: 0.25),
+                borderRadius: BorderRadius.circular(50),
+              ),
+            ),
+          ),
+
+          // Floating Cute Mascot / Icon
+          Positioned(
+            right: 12,
+            bottom: 12,
+            child: Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: accentColor.withValues(alpha: 0.2),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Icon(icon, color: accentColor, size: 30),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // --- 3. DEVICE PROFILES TAB (DEVICE_PROFILES Table - Wavy Header) ---
+  Widget _buildDeviceProfilesTab(dynamic user) {
+    return SingleChildScrollView(
+      physics: const BouncingScrollPhysics(),
+      padding: const EdgeInsets.only(bottom: 120),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Wave Header with Title inside
+          _buildWavyPageHeader(
+            title: 'Device Profiles ⚡',
+            subtitle: 'Kelola koneksi hardware WebSocket & BLE',
+            topActionWidget: IconButton(
+              icon: const Icon(Icons.add_link_rounded, color: Colors.white, size: 28),
+              onPressed: () => _showAddDeviceModal(context),
+            ),
+            categoryPillsWidget: _buildHeaderCategoryPills(
+              ['Semua', 'WebSocket', 'Bluetooth'],
+              0,
+              (idx) {},
+            ),
+          ),
+
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: 12),
+                ..._deviceProfiles.map((dev) {
+                  final isWebSocket = dev.protocol == 'websocket';
+
+                  return Container(
+                    margin: const EdgeInsets.only(bottom: 16),
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(24),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.03),
+                          blurRadius: 10,
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: isWebSocket
+                                ? const Color(0xFF005CFF).withValues(alpha: 0.1)
+                                : const Color(0xFF00C2FF).withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: Icon(
+                            isWebSocket ? Icons.wifi_rounded : Icons.bluetooth_rounded,
+                            color: isWebSocket ? const Color(0xFF005CFF) : const Color(0xFF00C2FF),
+                            size: 26,
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                dev.label,
+                                style: const TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFF0A122C),
+                                ),
+                              ),
+                              Text(
+                                isWebSocket ? '${dev.host}:${dev.port}' : (dev.macAddress ?? 'N/A'),
+                                style: TextStyle(fontSize: 12, color: Colors.grey.shade600, fontFamily: 'monospace'),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const Icon(Icons.check_circle_rounded, color: Color(0xFF2ED9C3), size: 24),
+                      ],
+                    ),
+                  );
+                }),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // --- 4. USER PROFILE TAB (Wavy Header Style) ---
+  Widget _buildUserProfileTab(dynamic user) {
+    final userName = (user?.fullName.isNotEmpty == true) ? user!.fullName : 'Young Coder';
+
+    return SingleChildScrollView(
+      physics: const BouncingScrollPhysics(),
+      padding: const EdgeInsets.only(bottom: 120),
+      child: Column(
+        children: [
+          // Wave Header with User Info inside (Matching Reference Image)
+          ClipPath(
+            clipper: WaveHeaderClipper(),
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.only(top: 54, bottom: 44),
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [Color(0xFF005CFF), Color(0xFF00C2FF)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+              ),
+              child: Column(
+                children: [
+                  // Avatar with Cyan Ring
+                  Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: const BoxDecoration(
+                      color: Color(0xFF00C2FF),
+                      shape: BoxShape.circle,
+                    ),
+                    child: CircleAvatar(
+                      radius: 40,
+                      backgroundColor: Colors.white,
+                      child: Text(
+                        userName.isNotEmpty ? userName[0].toUpperCase() : 'Y',
+                        style: const TextStyle(
+                          fontSize: 32,
+                          fontWeight: FontWeight.w900,
+                          color: Color(0xFF005CFF),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    userName,
+                    style: const TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.w900,
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    '🔑 Lv 1  •  🏆 ${(user?.role ?? 'user').toUpperCase()} Dev',
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: Colors.white.withValues(alpha: 0.9),
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+
+          // Menu Options List (Matching Reference Right Screen Items)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24.0),
+            child: Column(
+              children: [
+                _buildProfileMenuItem(
+                  title: 'Account & ERD Details',
+                  subtitle: user?.email ?? 'hello@xploria.com',
+                  icon: Icons.person_outline_rounded,
+                  onTap: () => _showFeatureSnackbar('UUID: ${user?.id}'),
+                ),
+                _buildProfileMenuItem(
+                  title: 'Parental Control & Security',
+                  subtitle: 'Safety and privacy settings',
+                  icon: Icons.shield_outlined,
+                  onTap: () => _showFeatureSnackbar('Pengaturan Keamanan'),
+                ),
+                _buildProfileMenuItem(
+                  title: 'Notifications',
+                  subtitle: 'Manage your alerts',
+                  icon: Icons.notifications_none_rounded,
+                  onTap: () => _showFeatureSnackbar('Notifikasi Ditampilkan'),
+                ),
+                _buildProfileMenuItem(
+                  title: 'Themes & Appearance',
+                  subtitle: 'Change app appearance',
+                  icon: Icons.palette_outlined,
+                  onTap: () => _showFeatureSnackbar('Tema Cerah Aktif'),
+                ),
+                _buildProfileMenuItem(
+                  title: 'Help and support',
+                  subtitle: 'Get help when you need it',
+                  icon: Icons.help_outline_rounded,
+                  onTap: () => _showFeatureSnackbar('Pusat Bantuan Xploria'),
+                ),
+                _buildProfileMenuItem(
+                  title: 'Logout',
+                  subtitle: 'Keluar dari akun',
+                  icon: Icons.logout_rounded,
+                  iconColor: Colors.redAccent,
+                  onTap: () {
+                    AuthStorageService().clearSession();
+                    Navigator.pushAndRemoveUntil(
+                      context,
+                      MaterialPageRoute(builder: (_) => const WelcomeScreen()),
+                      (route) => false,
+                    );
+                  },
                 ),
               ],
             ),
@@ -234,4 +1347,254 @@ class DashboardScreen extends StatelessWidget {
       ),
     );
   }
+
+  Widget _buildProfileMenuItem({
+    required String title,
+    required String subtitle,
+    required IconData icon,
+    Color? iconColor,
+    required VoidCallback onTap,
+  }) {
+    final color = iconColor ?? const Color(0xFF00C2FF);
+
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.02),
+              blurRadius: 8,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.12),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon, color: color, size: 22),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF0A122C),
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    subtitle,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey.shade500,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const Icon(Icons.chevron_right_rounded, color: Colors.grey, size: 20),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // --- CUSTOM FLOATING NAVBAR (Matching Reference Image) ---
+  Widget _buildCustomFloatingNavbar(BuildContext context) {
+    return SizedBox(
+      height: 80,
+      child: Stack(
+        clipBehavior: Clip.none,
+        alignment: Alignment.bottomCenter,
+        children: [
+          // White Pill Container
+          Container(
+            height: 68,
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(40),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.08),
+                  blurRadius: 20,
+                  offset: const Offset(0, 8),
+                ),
+              ],
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                _buildNavbarItem(0, Icons.grid_view_rounded, Icons.grid_view),
+                _buildNavbarItem(1, Icons.chat_bubble_outline_rounded, Icons.chat_bubble_rounded),
+                const SizedBox(width: 48), // Space for center floating button
+                _buildNavbarItem(2, Icons.bar_chart_rounded, Icons.bar_chart_rounded),
+                _buildNavbarItem(3, Icons.person_outline_rounded, Icons.person_rounded),
+              ],
+            ),
+          ),
+
+          // Floating Green Action Button in Top Center (Matching Reference Image "+")
+          Positioned(
+            top: -6,
+            child: GestureDetector(
+              onTap: () => _showCreateProjectModal(context),
+              child: Container(
+                width: 56,
+                height: 56,
+                decoration: BoxDecoration(
+                  color: const Color(0xFF95C956), // Cute Green from reference image
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFF95C956).withValues(alpha: 0.4),
+                      blurRadius: 12,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: const Icon(
+                  Icons.add_rounded,
+                  color: Colors.white,
+                  size: 32,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildNavbarItem(int index, IconData iconUnselected, IconData iconSelected) {
+    final isSelected = _currentIndex == index;
+
+    return GestureDetector(
+      onTap: () => _onTabTapped(index),
+      behavior: HitTestBehavior.opaque,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: isSelected ? const Color(0xFFE2E8F0).withValues(alpha: 0.7) : Colors.transparent,
+          shape: BoxShape.circle,
+        ),
+        child: Icon(
+          isSelected ? iconSelected : iconUnselected,
+          color: isSelected ? const Color(0xFF1E293B) : Colors.grey.shade400,
+          size: 24,
+        ),
+      ),
+    );
+  }
+
+  void _showAddDeviceModal(BuildContext context) {
+    _showFeatureSnackbar('Form Tambah Device Profile (WebSocket / Bluetooth)');
+  }
+
+  Widget _buildModalOption(
+    BuildContext context, {
+    required String title,
+    required String subtitle,
+    required IconData icon,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.08),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: color.withValues(alpha: 0.2)),
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: color,
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Icon(icon, color: Colors.white, size: 24),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: color,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    subtitle,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey.shade600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Icon(Icons.chevron_right_rounded, color: color),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class WaveHeaderClipper extends CustomClipper<Path> {
+  @override
+  Path getClip(Size size) {
+    final path = Path();
+    path.lineTo(0, size.height - 35);
+
+    final firstControlPoint = Offset(size.width * 0.25, size.height);
+    final firstEndPoint = Offset(size.width * 0.5, size.height - 22);
+    path.quadraticBezierTo(
+      firstControlPoint.dx,
+      firstControlPoint.dy,
+      firstEndPoint.dx,
+      firstEndPoint.dy,
+    );
+
+    final secondControlPoint = Offset(size.width * 0.75, size.height - 44);
+    final secondEndPoint = Offset(size.width, size.height - 18);
+    path.quadraticBezierTo(
+      secondControlPoint.dx,
+      secondControlPoint.dy,
+      secondEndPoint.dx,
+      secondEndPoint.dy,
+    );
+
+    path.lineTo(size.width, 0);
+    path.close();
+    return path;
+  }
+
+  @override
+  bool shouldReclip(CustomClipper<Path> oldClipper) => false;
 }
