@@ -500,135 +500,140 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   // --- LEVEL PROGRESS CARD (Matching Reference Image Top Card) ---
   Widget _buildLevelProgressCard() {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
-            blurRadius: 15,
-            offset: const Offset(0, 6),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Level 1',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w900,
-                      color: Color(0xFF0A122C),
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'This is your first step to greatness!',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.grey.shade500,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ],
-              ),
-              const Icon(Icons.emoji_events_rounded, color: Color(0xFFFF9F1C), size: 30),
-            ],
-          ),
-          const SizedBox(height: 16),
-          // Progress Bar
-          ClipRRect(
-            borderRadius: BorderRadius.circular(10),
-            child: LinearProgressIndicator(
-              value: 0.45,
-              minHeight: 8,
-              backgroundColor: const Color(0xFFF1F5F9),
-              valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFFFF9F1C)),
+    return HoverCard(
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(24),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.03),
+              blurRadius: 15,
+              offset: const Offset(0, 6),
             ),
-          ),
-        ],
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Level 1',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w900,
+                        color: Color(0xFF0A122C),
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'This is your first step to greatness!',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey.shade500,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+                const Icon(Icons.emoji_events_rounded, color: Color(0xFFFF9F1C), size: 30),
+              ],
+            ),
+            const SizedBox(height: 16),
+            // Progress Bar
+            ClipRRect(
+              borderRadius: BorderRadius.circular(10),
+              child: LinearProgressIndicator(
+                value: 0.45,
+                minHeight: 8,
+                backgroundColor: const Color(0xFFF1F5F9),
+                valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFFFF9F1C)),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 
   // --- HERO CHALLENGE CARD (Matching Reference Image Blue Banner) ---
   Widget _buildHeroChallengeCard() {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(22),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFF00C2FF), Color(0xFF005CFF)], // Vibrant Bright Cyan-Blue from Logo
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
+    return HoverCard(
+      onTap: () => _showCreateProjectModal(context),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(22),
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            colors: [Color(0xFF00C2FF), Color(0xFF005CFF)], // Vibrant Bright Cyan-Blue from Logo
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(28),
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFF005CFF).withValues(alpha: 0.3),
+              blurRadius: 18,
+              offset: const Offset(0, 8),
+            ),
+          ],
         ),
-        borderRadius: BorderRadius.circular(28),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF005CFF).withValues(alpha: 0.3),
-            blurRadius: 18,
-            offset: const Offset(0, 8),
-          ),
-        ],
-      ),
-      child: Stack(
-        children: [
-          // Content Left
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Padding(
-                padding: const EdgeInsets.only(right: 70.0),
-                child: Text(
-                  'Ready to Start Your Challenge',
-                  style: const TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.w900,
-                    color: Colors.white,
-                    height: 1.2,
+        child: Stack(
+          children: [
+            // Content Left
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(right: 70.0),
+                  child: Text(
+                    'Ready to Start Your Challenge',
+                    style: const TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.w900,
+                      color: Colors.white,
+                      height: 1.2,
+                    ),
                   ),
                 ),
-              ),
-              const SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: () => _showCreateProjectModal(context),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.white,
-                  foregroundColor: const Color(0xFF005CFF),
-                  elevation: 0,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20),
+                const SizedBox(height: 16),
+                ElevatedButton(
+                  onPressed: () => _showCreateProjectModal(context),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.white,
+                    foregroundColor: const Color(0xFF005CFF),
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
                   ),
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
-                ),
-                child: const Text(
-                  'Next',
-                  style: TextStyle(
-                    fontWeight: FontWeight.w900,
-                    fontSize: 14,
+                  child: const Text(
+                    'Next',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w900,
+                      fontSize: 14,
+                    ),
                   ),
                 ),
-              ),
-            ],
-          ),
+              ],
+            ),
 
-          // Cute Robot Mascot (Matching Reference Image Robot on Right)
-          Positioned(
-            right: -5,
-            bottom: -5,
-            child: _buildCuteRobotMascot(),
-          ),
-        ],
+            // Cute Robot Mascot
+            Positioned(
+              right: -5,
+              bottom: -5,
+              child: _buildCuteRobotMascot(),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -646,7 +651,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             width: 75,
             height: 65,
             decoration: BoxDecoration(
-              color: const Color(0xFF2ED9C3), // Bright Teal from Logo
+              color: const Color(0xFF2ED9C3),
               borderRadius: BorderRadius.circular(22),
               border: Border.all(color: Colors.white, width: 3),
               boxShadow: [
@@ -691,7 +696,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     required Color accentColor,
     required VoidCallback onTap,
   }) {
-    return GestureDetector(
+    return HoverCard(
       onTap: onTap,
       child: Container(
         height: 160,
@@ -715,10 +720,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
             const Spacer(),
             Text(
               title,
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w900,
-                color: const Color(0xFF0A122C),
+                color: Color(0xFF0A122C),
               ),
             ),
             const SizedBox(height: 2),
@@ -738,51 +743,53 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   // --- FULL-WIDTH PROJECTS CARD (Matching "Play with Friend" Green Card in Reference) ---
   Widget _buildProjectsFullWidthCard() {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: const Color(0xFFDCFCE7), // Soft Mint Green from Reference
-        borderRadius: BorderRadius.circular(28),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Proyek Saya',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w900,
-                      color: Color(0xFF0A122C),
+    return HoverCard(
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: const Color(0xFFDCFCE7),
+          borderRadius: BorderRadius.circular(28),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Proyek Saya',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w900,
+                        color: Color(0xFF0A122C),
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    '${_projects.length} Proyek • Raspberry Pi & Orange Pi',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.green.shade800,
-                      fontWeight: FontWeight.w600,
+                    const SizedBox(height: 4),
+                    Text(
+                      '${_projects.length} Proyek • Raspberry Pi & Orange Pi',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.green.shade800,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
-                  ),
-                ],
-              ),
-              IconButton(
-                icon: const Icon(Icons.add_circle_rounded, color: Color(0xFF005CFF), size: 32),
-                onPressed: () => _showCreateProjectModal(context),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          // Project items
-          ..._projects.map((project) => _buildBrightProjectItem(project)),
-        ],
+                  ],
+                ),
+                IconButton(
+                  icon: const Icon(Icons.add_circle_rounded, color: Color(0xFF005CFF), size: 32),
+                  onPressed: () => _showCreateProjectModal(context),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            // Project items
+            ..._projects.map((project) => _buildBrightProjectItem(project)),
+          ],
+        ),
       ),
     );
   }
@@ -803,49 +810,52 @@ class _DashboardScreenState extends State<DashboardScreen> {
         break;
     }
 
-    return Container(
+    return HoverCard(
       margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: badgeColor.withValues(alpha: 0.15),
-              borderRadius: BorderRadius.circular(12),
+      onTap: () => _showFeatureSnackbar('Membuka proyek: ${project.name} 💻'),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: badgeColor.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(deviceIcon, color: badgeColor, size: 22),
             ),
-            child: Icon(deviceIcon, color: badgeColor, size: 22),
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  project.name,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF0A122C),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    project.name,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF0A122C),
+                    ),
                   ),
-                ),
-                Text(
-                  project.deviceType.toUpperCase(),
-                  style: TextStyle(
-                    fontSize: 11,
-                    color: Colors.grey.shade500,
-                    fontWeight: FontWeight.w600,
+                  Text(
+                    project.deviceType.toUpperCase(),
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: Colors.grey.shade500,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-          const Icon(Icons.chevron_right_rounded, color: Colors.grey, size: 20),
-        ],
+            const Icon(Icons.chevron_right_rounded, color: Colors.grey, size: 20),
+          ],
+        ),
       ),
     );
   }
@@ -954,21 +964,23 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final accentColor = theme['accent'] as Color;
     final badgeBg = theme['badgeBg'] as Color;
 
-    return Container(
+    return HoverCard(
       margin: const EdgeInsets.only(bottom: 16),
-      width: double.infinity,
-      padding: const EdgeInsets.all(22),
-      decoration: BoxDecoration(
-        color: bgColor,
-        borderRadius: BorderRadius.circular(28),
-        boxShadow: [
-          BoxShadow(
-            color: accentColor.withValues(alpha: 0.1),
-            blurRadius: 12,
-            offset: const Offset(0, 6),
-          ),
-        ],
-      ),
+      onTap: onTap,
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(22),
+        decoration: BoxDecoration(
+          color: bgColor,
+          borderRadius: BorderRadius.circular(28),
+          boxShadow: [
+            BoxShadow(
+              color: accentColor.withValues(alpha: 0.1),
+              blurRadius: 12,
+              offset: const Offset(0, 6),
+            ),
+          ],
+        ),
       child: Stack(
         clipBehavior: Clip.hardEdge,
         children: [
@@ -1070,7 +1082,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ),
         ],
       ),
-    );
+    ),
+  );
   }
 
   // Cute Vector Illustration at bottom right of each card (Matching Reference Image)
@@ -1161,57 +1174,60 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ..._deviceProfiles.map((dev) {
                   final isWebSocket = dev.protocol == 'websocket';
 
-                  return Container(
+                  return HoverCard(
                     margin: const EdgeInsets.only(bottom: 16),
-                    padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(24),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.03),
-                          blurRadius: 10,
-                        ),
-                      ],
-                    ),
-                    child: Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: isWebSocket
-                                ? const Color(0xFF005CFF).withValues(alpha: 0.1)
-                                : const Color(0xFF00C2FF).withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(16),
+                    onTap: () => _showFeatureSnackbar('Profil Perangkat: ${dev.label} ⚡'),
+                    child: Container(
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(24),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.03),
+                            blurRadius: 10,
                           ),
-                          child: Icon(
-                            isWebSocket ? Icons.wifi_rounded : Icons.bluetooth_rounded,
-                            color: isWebSocket ? const Color(0xFF005CFF) : const Color(0xFF00C2FF),
-                            size: 26,
+                        ],
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: isWebSocket
+                                  ? const Color(0xFF005CFF).withValues(alpha: 0.1)
+                                  : const Color(0xFF00C2FF).withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            child: Icon(
+                              isWebSocket ? Icons.wifi_rounded : Icons.bluetooth_rounded,
+                              color: isWebSocket ? const Color(0xFF005CFF) : const Color(0xFF00C2FF),
+                              size: 26,
+                            ),
                           ),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                dev.label,
-                                style: const TextStyle(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.bold,
-                                  color: Color(0xFF0A122C),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  dev.label,
+                                  style: const TextStyle(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.bold,
+                                    color: Color(0xFF0A122C),
+                                  ),
                                 ),
-                              ),
-                              Text(
-                                isWebSocket ? '${dev.host}:${dev.port}' : (dev.macAddress ?? 'N/A'),
-                                style: TextStyle(fontSize: 12, color: Colors.grey.shade600, fontFamily: 'monospace'),
-                              ),
-                            ],
+                                Text(
+                                  isWebSocket ? '${dev.host}:${dev.port}' : (dev.macAddress ?? 'N/A'),
+                                  style: TextStyle(fontSize: 12, color: Colors.grey.shade600, fontFamily: 'monospace'),
+                                ),
+                              ],
+                            ),
                           ),
-                        ),
-                        const Icon(Icons.check_circle_rounded, color: Color(0xFF2ED9C3), size: 24),
-                      ],
+                          const Icon(Icons.check_circle_rounded, color: Color(0xFF2ED9C3), size: 24),
+                        ],
+                      ),
                     ),
                   );
                 }),
@@ -1357,10 +1373,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }) {
     final color = iconColor ?? const Color(0xFF00C2FF);
 
-    return GestureDetector(
+    return HoverCard(
+      margin: const EdgeInsets.only(bottom: 12),
       onTap: onTap,
       child: Container(
-        margin: const EdgeInsets.only(bottom: 12),
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: Colors.white,
@@ -1597,4 +1613,50 @@ class WaveHeaderClipper extends CustomClipper<Path> {
 
   @override
   bool shouldReclip(CustomClipper<Path> oldClipper) => false;
+}
+
+class HoverCard extends StatefulWidget {
+  final Widget child;
+  final VoidCallback? onTap;
+  final BorderRadius? borderRadius;
+  final EdgeInsetsGeometry? margin;
+
+  const HoverCard({
+    super.key,
+    required this.child,
+    this.onTap,
+    this.borderRadius,
+    this.margin,
+  });
+
+  @override
+  State<HoverCard> createState() => _HoverCardState();
+}
+
+class _HoverCardState extends State<HoverCard> {
+  bool _isHovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return MouseRegion(
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
+      cursor: widget.onTap != null ? SystemMouseCursors.click : SystemMouseCursors.basic,
+      child: GestureDetector(
+        onTap: widget.onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          curve: Curves.easeOutCubic,
+          margin: widget.margin,
+          transform: _isHovered ? Matrix4.translationValues(0, -5, 0) : Matrix4.identity(),
+          child: AnimatedScale(
+            scale: _isHovered ? 1.025 : 1.0,
+            duration: const Duration(milliseconds: 200),
+            curve: Curves.easeOutCubic,
+            child: widget.child,
+          ),
+        ),
+      ),
+    );
+  }
 }
