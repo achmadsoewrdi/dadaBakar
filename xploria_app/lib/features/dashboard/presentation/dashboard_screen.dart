@@ -181,7 +181,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               // Option 1: Raspberry Pi
               _buildModalOption(
                 context,
-                title: 'Raspberry Pi 🍓',
+                title: 'Raspberry Pi',
                 subtitle: 'Komputer mini untuk robotik & AI kamera',
                 icon: Icons.developer_board_rounded,
                 color: const Color(0xFF00C2FF),
@@ -195,7 +195,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               // Option 3: Orange Pi
               _buildModalOption(
                 context,
-                title: 'Orange Pi 🍊',
+                title: 'Orange Pi',
                 subtitle: 'Single board computer performa tinggi',
                 icon: Icons.hardware_rounded,
                 color: const Color(0xFFFF9F1C),
@@ -230,7 +230,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       _projects.insert(0, newProject);
     });
 
-    _showFeatureSnackbar('Proyek $name ($deviceType) berhasil dibuat! 🚀');
+    _showFeatureSnackbar('Proyek $name ($deviceType) berhasil dibuat!');
   }
 
   void _showFeatureSnackbar(String message) {
@@ -414,7 +414,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         children: [
           // Wave Header with Title inside (Matching Reference Image)
           _buildWavyPageHeader(
-            title: 'Hi, $userName 👋',
+            title: 'Hi, $userName',
             subtitle: 'Selamat datang di Dashboard Xploria!',
             gradientColors: const [Color(0xFF005CFF), Color(0xFF00C2FF)],
             topActionWidget: Container(
@@ -812,7 +812,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
     return HoverCard(
       margin: const EdgeInsets.only(bottom: 10),
-      onTap: () => _showFeatureSnackbar('Membuka proyek: ${project.name} 💻'),
+      onTap: () => _showFeatureSnackbar('Membuka proyek: ${project.name}'),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         decoration: BoxDecoration(
@@ -870,10 +870,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
         children: [
           // Wave Header with Title inside (Matching Reference Image)
           _buildWavyPageHeader(
-            title: 'Lessons & Modules 📚',
+            title: 'Lessons & Modules',
             subtitle: 'Pelajari koding & IoT dengan seru!',
             categoryPillsWidget: _buildHeaderCategoryPills(
-              ['Hot 🔥', 'Pemula', 'Menengah', 'VIP'],
+              ['Hot', 'Pemula', 'Menengah', 'VIP'],
               0,
               (idx) {},
             ),
@@ -896,9 +896,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     canAccess: canAccess,
                     onTap: () {
                       if (canAccess) {
-                        _showFeatureSnackbar('Membuka modul: ${module.title} 🚀');
+                        _showFeatureSnackbar('Membuka modul: ${module.title}');
                       } else {
-                        _showFeatureSnackbar('Modul ini khusus pengguna Premium VIP! 🔒');
+                        _showFeatureSnackbar('Modul ini khusus pengguna Premium VIP!');
                       }
                     },
                   );
@@ -918,51 +918,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
     required bool canAccess,
     required VoidCallback onTap,
   }) {
-    // Array of vibrant pastel themes matching reference image
-    final themes = [
-      {
-        'bg': const Color(0xFFDCFCE7), // Soft Green
-        'text': const Color(0xFF14532D),
-        'sub': const Color(0xFF166534),
-        'accent': const Color(0xFF16A34A),
-        'badgeBg': const Color(0xFF166534),
-      },
-      {
-        'bg': const Color(0xFFE0F2FE), // Soft Sky Blue
-        'text': const Color(0xFF0C4A6E),
-        'sub': const Color(0xFF075985),
-        'accent': const Color(0xFF0284C7),
-        'badgeBg': const Color(0xFF075985),
-      },
-      {
-        'bg': const Color(0xFFFEF3C7), // Soft Peach Amber
-        'text': const Color(0xFF7C2D12),
-        'sub': const Color(0xFF9A3412),
-        'accent': const Color(0xFFEA580C),
-        'badgeBg': const Color(0xFF9A3412),
-      },
-      {
-        'bg': const Color(0xFFFCE7F3), // Soft Rose Pink
-        'text': const Color(0xFF831843),
-        'sub': const Color(0xFF9D174D),
-        'accent': const Color(0xFFDB2777),
-        'badgeBg': const Color(0xFF9D174D),
-      },
-      {
-        'bg': const Color(0xFFF3E8FF), // Soft Lavender Purple
-        'text': const Color(0xFF581C87),
-        'sub': const Color(0xFF6B21A8),
-        'accent': const Color(0xFF9333EA),
-        'badgeBg': const Color(0xFF6B21A8),
-      },
-    ];
-
-    final theme = themes[index % themes.length];
-    final bgColor = theme['bg'] as Color;
-    final textColor = theme['text'] as Color;
-    final subColor = theme['sub'] as Color;
-    final accentColor = theme['accent'] as Color;
-    final badgeBg = theme['badgeBg'] as Color;
+    const bgColor = Colors.white;
+    const textColor = Color(0xFF0A122C);
+    final subColor = Colors.grey.shade600;
+    const accentColor = Color(0xFF005CFF);
 
     return HoverCard(
       margin: const EdgeInsets.only(bottom: 16),
@@ -975,115 +934,115 @@ class _DashboardScreenState extends State<DashboardScreen> {
           borderRadius: BorderRadius.circular(28),
           boxShadow: [
             BoxShadow(
-              color: accentColor.withValues(alpha: 0.1),
-              blurRadius: 12,
+              color: Colors.black.withValues(alpha: 0.04),
+              blurRadius: 15,
               offset: const Offset(0, 6),
             ),
           ],
         ),
-      child: Stack(
-        clipBehavior: Clip.hardEdge,
-        children: [
-          // Grassy Mound / Cute Illustration at Bottom Right (Matching Reference)
-          Positioned(
-            right: -10,
-            bottom: -15,
-            child: _buildCuteCardIllustration(index, accentColor),
-          ),
+        child: Stack(
+          clipBehavior: Clip.hardEdge,
+          children: [
+            // Grassy Mound / Cute Illustration at Bottom Right
+            Positioned(
+              right: -10,
+              bottom: -15,
+              child: _buildCuteCardIllustration(index, accentColor),
+            ),
 
-          // Card Content
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Header Row: Title
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.only(right: 60.0),
-                      child: Text(
-                        module.title,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w900,
-                          color: textColor,
-                          height: 1.2,
+            // Card Content
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Header Row: Title
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.only(right: 60.0),
+                        child: Text(
+                          module.title,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w900,
+                            color: textColor,
+                            height: 1.2,
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
+                  ],
+                ),
+                const SizedBox(height: 8),
 
-              // Description Text
-              Padding(
-                padding: const EdgeInsets.only(right: 60.0),
-                child: Text(
-                  module.description ?? '',
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: subColor.withValues(alpha: 0.9),
-                    fontWeight: FontWeight.w600,
-                    height: 1.3,
+                // Description Text
+                Padding(
+                  padding: const EdgeInsets.only(right: 60.0),
+                  child: Text(
+                    module.description ?? '',
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: subColor,
+                      fontWeight: FontWeight.w500,
+                      height: 1.3,
+                    ),
                   ),
                 ),
-              ),
-              const SizedBox(height: 16),
+                const SizedBox(height: 16),
 
-              // Action Button / Badge Row
-              Row(
-                children: [
-                  ElevatedButton(
-                    onPressed: onTap,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: canAccess ? accentColor : Colors.grey.shade600,
-                      foregroundColor: Colors.white,
-                      elevation: 0,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(18),
+                // Action Button / Badge Row
+                Row(
+                  children: [
+                    ElevatedButton(
+                      onPressed: onTap,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: canAccess ? accentColor : Colors.grey.shade400,
+                        foregroundColor: Colors.white,
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(18),
+                        ),
+                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                       ),
-                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                    ),
-                    child: Text(
-                      canAccess ? 'Mulai Belajar' : 'VIP Locked 🔒',
-                      style: const TextStyle(
-                        fontWeight: FontWeight.w900,
-                        fontSize: 13,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: module.isPremiumOnly
-                          ? const Color(0xFFFF9F1C)
-                          : badgeBg.withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Text(
-                      module.isPremiumOnly ? 'VIP' : 'FREE',
-                      style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w900,
-                        color: module.isPremiumOnly ? Colors.white : badgeBg,
+                      child: Text(
+                        canAccess ? 'Mulai Belajar' : 'VIP Locked',
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w900,
+                          fontSize: 13,
+                        ),
                       ),
                     ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ],
+                    const SizedBox(width: 10),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: module.isPremiumOnly
+                            ? const Color(0xFFFF9F1C)
+                            : const Color(0xFFE0F2FE),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        module.isPremiumOnly ? 'VIP' : 'FREE',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w900,
+                          color: module.isPremiumOnly ? Colors.white : const Color(0xFF005CFF),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
-    ),
-  );
+    );
   }
 
   // Cute Vector Illustration at bottom right of each card (Matching Reference Image)
@@ -1152,7 +1111,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         children: [
           // Wave Header with Title inside
           _buildWavyPageHeader(
-            title: 'Device Profiles ⚡',
+            title: 'Device Profiles',
             subtitle: 'Kelola koneksi hardware WebSocket & BLE',
             topActionWidget: IconButton(
               icon: const Icon(Icons.add_link_rounded, color: Colors.white, size: 28),
@@ -1176,7 +1135,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
                   return HoverCard(
                     margin: const EdgeInsets.only(bottom: 16),
-                    onTap: () => _showFeatureSnackbar('Profil Perangkat: ${dev.label} ⚡'),
+                    onTap: () => _showFeatureSnackbar('Profil Perangkat: ${dev.label}'),
                     child: Container(
                       padding: const EdgeInsets.all(20),
                       decoration: BoxDecoration(
@@ -1294,7 +1253,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    '🔑 Lv 1  •  🏆 ${(user?.role ?? 'user').toUpperCase()} Dev',
+                    'Lv 1  •  ${(user?.role ?? 'user').toUpperCase()} Dev',
                     style: TextStyle(
                       fontSize: 13,
                       color: Colors.white.withValues(alpha: 0.9),
