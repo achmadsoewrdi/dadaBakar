@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Blockly Workspace</title>
+
+    <!-- Google Fonts for Kids Aesthetic -->
+    <!-- Replaced with Local Nunito Font in style.css -->
+
+    <!-- Core Blockly Engine (CDN) -->
+    <script src="https://unpkg.com/blockly@9.3.3/blockly_compressed.js"></script>
+    <script src="https://unpkg.com/blockly@9.3.3/blocks_compressed.js"></script>
+    <script src="https://unpkg.com/blockly@9.3.3/msg/id.js"></script>
+    <script src="https://unpkg.com/blockly@9.3.3/python_compressed.js"></script>
+
+    <!-- Modular Stylesheets -->
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+
+    <!-- 1. Blockly Canvas Mount Point -->
+    <div id="blocklyDiv"></div>
+
+    <!-- 2. Floating Kid-Friendly Tool Control Bar -->
+    <div class="floating-tools">
+        <button class="tool-btn" onclick="zoomIn()" title="Perbesar Workspace">
+            <svg viewBox="0 0 64 64" fill="none">
+                <defs>
+                    <linearGradient id="lensFillIn" x1="16" y1="14" x2="42" y2="42" gradientUnits="userSpaceOnUse">
+                        <stop offset="0%" stop-color="#9EDCFF"></stop>
+                        <stop offset="100%" stop-color="#6BBEFF"></stop>
+                    </linearGradient>
+                </defs>
+                <circle cx="26" cy="26" r="16" fill="url(#lensFillIn)" stroke="#2D7DD2" stroke-width="3"
+                    stroke-linecap="round" stroke-linejoin="round"></circle>
+                <path d="M18.5 18.5 C20 15.8 22.8 14 26 14" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round"
+                    opacity="0.65"></path>
+                <ellipse cx="33" cy="19" rx="3.2" ry="1.8" fill="#FFFFFF" opacity="0.35" transform="rotate(28 33 19)">
+                </ellipse>
+                <path d="M26 20V32" stroke="#32C36C" stroke-width="3" stroke-linecap="round"></path>
+                <path d="M20 26H32" stroke="#32C36C" stroke-width="3" stroke-linecap="round"></path>
+                <path d="M37.3 37.3L49.5 49.5" stroke="#4F5D75" stroke-width="6" stroke-linecap="round"></path>
+                <circle cx="37.3" cy="37.3" r="3" fill="#4F5D75"></circle>
+            </svg>
+        </button>
+
+        <button class="tool-btn" onclick="zoomOut()" title="Perkecil Workspace">
+            <svg viewBox="0 0 64 64" fill="none">
+                <defs>
+                    <linearGradient id="lensFillOut" x1="16" y1="14" x2="42" y2="42" gradientUnits="userSpaceOnUse">
+                        <stop offset="0%" stop-color="#9EDCFF"></stop>
+                        <stop offset="100%" stop-color="#6BBEFF"></stop>
+                    </linearGradient>
+                </defs>
+                <circle cx="26" cy="26" r="16" fill="url(#lensFillOut)" stroke="#2D7DD2" stroke-width="3"
+                    stroke-linecap="round" stroke-linejoin="round"></circle>
+                <path d="M18.5 18.5 C20 15.8 22.8 14 26 14" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round"
+                    opacity="0.65"></path>
+                <ellipse cx="33" cy="19" rx="3.2" ry="1.8" fill="#FFFFFF" opacity="0.35" transform="rotate(28 33 19)">
+                </ellipse>
+                <path d="M20 26H32" stroke="#F4B400" stroke-width="3" stroke-linecap="round"></path>
+                <path d="M37.3 37.3L49.5 49.5" stroke="#4F5D75" stroke-width="6" stroke-linecap="round"></path>
+                <circle cx="37.3" cy="37.3" r="3" fill="#4F5D75"></circle>
+            </svg>
+        </button>
+
+        <button class="tool-btn" onclick="resetZoom()" title="Reset Tampilan" style="font-size: 20px;">
+            🎯
+        </button>
+
+        <button class="tool-btn danger" onclick="clearWorkspace()" title="Hapus Blok (Semua / Terpilih)">
+            <svg viewBox="0 0 64 64" fill="none">
+                <defs>
+                    <linearGradient id="binFill" x1="18" y1="16" x2="46" y2="52" gradientUnits="userSpaceOnUse">
+                        <stop offset="0%" stop-color="#FF9A8B"></stop>
+                        <stop offset="100%" stop-color="#FF6B5E"></stop>
+                    </linearGradient>
+                </defs>
+                <rect x="18" y="15" width="28" height="7" rx="3.5" fill="#FF7A6A" stroke="#D95B4E" stroke-width="3"
+                    stroke-linejoin="round"></rect>
+                <rect x="28" y="11" width="8" height="4" rx="2" fill="#FF8D7B" stroke="#D95B4E" stroke-width="3"
+                    stroke-linejoin="round"></rect>
+                <path d="M20 22H44L42 49C41.8 52 39.7 54 36.7 54H27.3C24.3 54 22.2 52 22 49L20 22Z" fill="url(#binFill)"
+                    stroke="#D95B4E" stroke-width="3" stroke-linejoin="round"></path>
+                <path d="M25 26C26.2 24.5 28.2 23.5 30.5 23.5" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round"
+                    opacity="0.65"></path>
+                <ellipse cx="34" cy="28" rx="3" ry="1.6" fill="#FFFFFF" opacity="0.28" transform="rotate(24 34 28)">
+                </ellipse>
+                <path d="M28 29V46" stroke="#D95B4E" stroke-width="3" stroke-linecap="round"></path>
+                <path d="M32 29V46" stroke="#D95B4E" stroke-width="3" stroke-linecap="round"></path>
+                <path d="M36 29V46" stroke="#D95B4E" stroke-width="3" stroke-linecap="round"></path>
+            </svg>
+        </button>
+    </div>
+
+    <!-- 3. HTML Custom Slide-Up Bottom Sheet Component -->
+    <div id="bottomSheet" class="bottom-sheet">
+        <div id="sheetHeader" class="sheet-header">
+            <div class="sheet-handle"></div>
+            <div class="sheet-title-container">
+                <div id="sheetTitle" class="sheet-title">Tambah Blok</div>
+                <div id="sheetToggleBtn" class="sheet-toggle-btn">
+                    <svg id="icon-chevron" xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#4f46e5"><path d="M480-344 240-584l56-56 184 184 184-184 56 56-240 240Z"/></svg>
+                    <svg id="icon-close" style="display:none;" xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#4f46e5"><path d="m256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z"/></svg>
+                </div>
+            </div>
+        </div>
+        <div id="sheetContent" class="sheet-content">
+            <!-- Dynamically rendered by bottom_sheet.js -->
+        </div>
+    </div>
+
+    <!-- 4. Modals (Variables & My Blocks) -->
+    <div id="customModalOverlay" class="modal-overlay" style="display: none;">
+        <!-- Variable Modal -->
+        <div id="variableModal" class="custom-modal" style="display: none;">
+            <div class="modal-header">Buat Variabel Baru</div>
+            <div class="modal-body">
+                <input type="text" id="varNameInput" class="modal-input" placeholder="Nama variabel..." />
+            </div>
+            <div class="modal-footer">
+                <button class="btn-cancel" onclick="closeModal()">Batal</button>
+                <button class="btn-save" onclick="saveVariable()">Simpan</button>
+            </div>
+        </div>
+
+        <!-- Make a Block Modal -->
+        <div id="myBlockModal" class="custom-modal" style="display: none;">
+            <div class="modal-header">Buat Blok Baru</div>
+            <div class="modal-body">
+                <input type="text" id="funcNameInput" class="modal-input" placeholder="Nama blok (misal: Lompat)..." />
+                <div class="args-list" id="argsList">
+                    <!-- Arguments will be added here -->
+                </div>
+                <div class="args-buttons">
+                    <button class="btn-add-arg" onclick="addArgument('Number')">+ Angka</button>
+                    <button class="btn-add-arg" onclick="addArgument('String')">+ Teks</button>
+                    <button class="btn-add-arg" onclick="addArgument('Boolean')">+ Boolean</button>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-cancel" onclick="closeModal()">Batal</button>
+                <button class="btn-save" onclick="saveMyBlock()">Simpan</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modular Application Scripts -->
+    <script src="js/custom_blocks.js"></script>
+    <script src="js/categories.js"></script>
+    <script src="js/drag_drop.js"></script>
+    <script src="js/bottom_sheet.js"></script>
+    <script src="js/main.js"></script>
+</body>
+
+</html>
