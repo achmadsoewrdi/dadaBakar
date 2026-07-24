@@ -3,7 +3,18 @@
  */
 
 // Initialize Blockly Workspace
+const myTheme = Blockly.Theme.defineTheme('xploriaTheme', {
+    base: Blockly.Themes.Zelos, // Menggunakan base Zelos (ala Scratch)
+    fontStyle: {
+        "family": "'Nunito', sans-serif",
+        "weight": "700",
+        "size": 15
+    }
+});
+
 const workspace = Blockly.inject('blocklyDiv', {
+    renderer: 'zelos',
+    theme: myTheme,
     scrollbars: true,
     trashcan: false,
     zoom: {

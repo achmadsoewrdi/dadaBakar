@@ -72,7 +72,7 @@ class _BlocklyWorkspaceScreenState extends State<BlocklyWorkspaceScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   const Text(
-                    '🐍 Generated Python Code',
+                    'Generated Python Code',
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                   IconButton(
