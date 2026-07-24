@@ -1,6 +1,14 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
+
+# Import all models to register SQLAlchemy relationships
+import app.modules.users.models
+import app.modules.projects.models
+import app.modules.devices.models
+import app.modules.content.models
+
+from app.modules.users.router import router as users_router
 from app.modules.projects.router import router as projects_router
 
 app = FastAPI(
@@ -19,6 +27,7 @@ app.add_middleware(
 )
 
 # Include API v1 routers
+app.include_router(users_router, prefix=settings.API_V1_STR)
 app.include_router(projects_router, prefix=settings.API_V1_STR)
 
 @app.get("/")
