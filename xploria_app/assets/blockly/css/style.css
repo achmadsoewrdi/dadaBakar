@@ -70,8 +70,8 @@ body {
 
 .tool-btn:hover {
     transform: scale(1.1);
-    border-color: #4f46e5;
-    box-shadow: 0 6px 18px rgba(79, 70, 229, 0.2);
+    border-color: #0284C7;
+    box-shadow: 0 6px 18px rgba(2, 132, 199, 0.2);
 }
 
 .tool-btn:active {
@@ -158,7 +158,7 @@ body {
     justify-content: center;
     width: 32px;
     height: 32px;
-    background: #eeeffe;
+    background: #E0F2FE;
     border-radius: 50%;
     transition: all 0.2s ease;
 }
@@ -237,8 +237,8 @@ body {
 .block-card:active {
     cursor: grabbing;
     transform: scale(0.98);
-    border-color: #4f46e5;
-    background: #eeeffe;
+    border-color: #0284C7;
+    background: #E0F2FE;
 }
 
 .nav-back-btn {
@@ -248,8 +248,8 @@ body {
     width: 40px;
     height: 40px;
     flex-shrink: 0;
-    color: #4f46e5;
-    background: #eeeffe;
+    color: #0284C7;
+    background: #E0F2FE;
     border-radius: 50%;
     cursor: pointer;
     margin-bottom: 8px;
@@ -259,7 +259,7 @@ body {
 
 .nav-back-btn:active {
     transform: scale(0.9);
-    background: #e0e7ff;
+    background: #BAE6FD;
 }
 
 /* Scrollbars inside sheet */
@@ -321,7 +321,7 @@ body {
 }
 
 .modal-header {
-    background: #4f46e5;
+    background: #0284C7;
     color: white;
     padding: 16px 20px;
     font-size: 18px;
@@ -348,7 +348,7 @@ body {
 }
 
 .modal-input:focus {
-    border-color: #4f46e5;
+    border-color: #0284C7;
 }
 
 .args-list {
@@ -388,8 +388,8 @@ body {
 }
 
 .btn-add-arg {
-    background: #eeeffe;
-    color: #4f46e5;
+    background: #E0F2FE;
+    color: #0284C7;
     border: none;
     padding: 8px 12px;
     border-radius: 8px;
@@ -423,6 +423,6 @@ body {
 }
 
 .btn-save {
-    background: #4f46e5;
+    background: #F97316;
     color: white;
 }

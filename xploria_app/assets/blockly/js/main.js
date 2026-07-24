@@ -3,6 +3,8 @@
  */
 
 // Initialize Blockly Workspace
+Blockly.Scrollbar.scrollbarThickness = 6; // Membuat scrollbar lebih tipis
+
 const myTheme = Blockly.Theme.defineTheme('xploriaTheme', {
     base: Blockly.Themes.Zelos, // Menggunakan base Zelos (ala Scratch)
     fontStyle: {

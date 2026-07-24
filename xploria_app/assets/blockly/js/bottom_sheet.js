@@ -68,7 +68,7 @@ function openCategory(index) {
         const createBtn = document.createElement('button');
         createBtn.className = 'btn-save';
         createBtn.style.marginBottom = '12px';
-        createBtn.style.background = '#FF8C1A';
+        createBtn.style.background = '#F97316'; // accent (Orange 500)
         createBtn.innerText = 'Buat Variabel Baru';
         createBtn.onclick = function() {
             document.getElementById('customModalOverlay').style.display = 'flex';
@@ -103,7 +103,7 @@ function openCategory(index) {
         const createBtn = document.createElement('button');
         createBtn.className = 'btn-save';
         createBtn.style.marginBottom = '12px';
-        createBtn.style.background = '#FF6680';
+        createBtn.style.background = '#10B981'; // success (Emerald 500)
         createBtn.innerText = 'Buat Blok Baru';
         createBtn.onclick = function() {
             document.getElementById('customModalOverlay').style.display = 'flex';
