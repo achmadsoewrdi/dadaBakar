@@ -53,7 +53,7 @@ class _RegisterFormContentState extends State<RegisterFormContent> {
 
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Pendaftaran Berhasil! Selamat Datang, ${authResponse.user.fullName} 🎉'),
+              content: Text('Pendaftaran Berhasil! Selamat Datang, ${authResponse.user.fullName}'),
               backgroundColor: const Color(0xFF005CFF),
               behavior: SnackBarBehavior.floating,
               shape: RoundedRectangleBorder(
@@ -106,7 +106,7 @@ class _RegisterFormContentState extends State<RegisterFormContent> {
 
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Google Sign-In Berhasil! Selamat Datang, ${authResponse.user.fullName} 🚀'),
+            content: Text('Google Sign-In Berhasil! Selamat Datang, ${authResponse.user.fullName}'),
             backgroundColor: const Color(0xFF005CFF),
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
