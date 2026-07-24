@@ -25,4 +25,22 @@ abstract class AppColors {
   static const Color warning = Color(0xFFF59E0B); // Amber 500 (Peringatan)
   static const Color danger = Color(0xFFEF4444);  // Red 500 (Error / Hapus)
   static const Color info = Color(0xFF3B82F6);    // Blue 500 (Informasi)
+
+  // --- DASHBOARD PALETTE CONSTANTS ---
+  static const Color primaryBlue = Color(0xFF005CFF);
+  static const Color brightCyan = Color(0xFF00C2FF);
+  static const Color dashboardBg = Color(0xFFF0F6FF);
+
+  static const Color textDark = Color(0xFF0A122C);
+
+  static const Color orangeGold = Color(0xFFFF9F1C);
+  static const Color mascotGreen = Color(0xFF95C956);
+  static const Color mintGreen = Color(0xFF2ED9C3);
+  static const Color amberDark = Color(0xFFD97706);
+
+  static const Color chipBlueBg = Color(0xFFE0F2FE);
+  static const Color chipAmberBg = Color(0xFFFEF3C7);
+  static const Color chipMintBg = Color(0xFFDCFCE7);
+  static const Color trackBg = Color(0xFFF1F5F9);
 }
+
