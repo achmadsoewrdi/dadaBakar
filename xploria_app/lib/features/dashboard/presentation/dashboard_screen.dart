@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../auth/data/services/auth_storage_service.dart';
 import '../../auth/presentation/welcome/welcome_screen.dart';
+import '../../blockly_workspace/presentation/blockly_workspace_screen.dart';
 import '../../projects/domain/models/project_model.dart';
 import '../../devices/domain/models/device_profile_model.dart';
 import '../../content/domain/models/learning_module_model.dart';
@@ -231,6 +232,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
     });
 
     _showFeatureSnackbar('Proyek $name ($deviceType) berhasil dibuat!');
+    
+    // Langsung arahkan ke workspace
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => const BlocklyWorkspaceScreen(),
+      ),
+    );
   }
 
   void _showFeatureSnackbar(String message) {
@@ -812,7 +821,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
     return HoverCard(
       margin: const EdgeInsets.only(bottom: 10),
-      onTap: () => _showFeatureSnackbar('Membuka proyek: ${project.name}'),
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => const BlocklyWorkspaceScreen(),
+          ),
+        );
+      },
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         decoration: BoxDecoration(
