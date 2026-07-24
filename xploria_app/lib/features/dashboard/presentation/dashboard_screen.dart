@@ -5,6 +5,7 @@ import '../../blockly_workspace/presentation/blockly_workspace_screen.dart';
 import '../../projects/domain/models/project_model.dart';
 import '../../devices/domain/models/device_profile_model.dart';
 import '../../content/domain/models/learning_module_model.dart';
+import '../../content/presentation/module_detail_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -15,6 +16,7 @@ class DashboardScreen extends StatefulWidget {
 
 class _DashboardScreenState extends State<DashboardScreen> {
   int _currentIndex = 0;
+  int _selectedModuleCategoryIndex = 0;
   late final PageController _pageController;
 
   // Mock data aligned with ERD tables
@@ -95,6 +97,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
         stepsJson: {'steps': 5, 'level': 'Pemula'},
         isPremiumOnly: false,
         createdAt: now.subtract(const Duration(days: 10)),
+        imageAsset: 'assets/images/modules/robot.png',
+        imageBgColor: '0xFFFFF3E0', // Light orange
       ),
       LearningModuleModel(
         id: 'mod_02',
@@ -103,6 +107,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
         stepsJson: {'steps': 8, 'level': 'Lanjutan'},
         isPremiumOnly: true,
         createdAt: now.subtract(const Duration(days: 7)),
+        imageAsset: 'assets/images/modules/car.png',
+        imageBgColor: '0xFFE0F7FA', // Light cyan
       ),
       LearningModuleModel(
         id: 'mod_03',
@@ -111,6 +117,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
         stepsJson: {'steps': 6, 'level': 'Menengah'},
         isPremiumOnly: false,
         createdAt: now.subtract(const Duration(days: 4)),
+        imageAsset: 'assets/images/modules/board.png',
+        imageBgColor: '0xFFE8F5E9', // Light green
       ),
     ];
   }
@@ -243,6 +251,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   void _showFeatureSnackbar(String message) {
+    // Pesan-pesan ini sengaja dinonaktifkan atas permintaan Anda
+    /*
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
@@ -253,6 +263,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         ),
       ),
     );
+    */
   }
 
   @override
@@ -313,25 +324,26 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final topInset = MediaQuery.of(context).padding.top;
     final topPadding = topInset > 0 ? topInset + 20 : 54.0;
 
-    return ClipPath(
-      clipper: WaveHeaderClipper(),
-      child: Container(
-        width: double.infinity,
-        padding: EdgeInsets.only(top: topPadding, bottom: 44),
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: colors,
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: colors.first.withValues(alpha: 0.3),
-              blurRadius: 15,
-              offset: const Offset(0, 8),
+    return RepaintBoundary(
+      child: ClipPath(
+        clipper: WaveHeaderClipper(),
+        child: Container(
+          width: double.infinity,
+          padding: EdgeInsets.only(top: topPadding, bottom: 44),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: colors,
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
             ),
-          ],
-        ),
+            boxShadow: [
+              BoxShadow(
+                color: colors.first.withValues(alpha: 0.3),
+                blurRadius: 15,
+                offset: const Offset(0, 8),
+              ),
+            ],
+          ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
@@ -377,13 +389,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ],
         ),
       ),
+      ),
     );
   }
 
   Widget _buildHeaderCategoryPills(List<String> categories, int selectedIndex, ValueChanged<int> onSelect) {
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
-      physics: const BouncingScrollPhysics(),
+      physics: const ClampingScrollPhysics(),
       padding: const EdgeInsets.symmetric(horizontal: 24),
       child: Row(
         children: List.generate(categories.length, (index) {
@@ -424,47 +437,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
   // --- 1. HOME DASHBOARD VIEW (Matching Reference Screen with Wavy Header) ---
   Widget _buildHomeDashboard(String userName) {
     final user = AuthStorageService().currentUser;
+    final topInset = MediaQuery.of(context).padding.top;
 
-    return SingleChildScrollView(
-      physics: const BouncingScrollPhysics(),
-      padding: const EdgeInsets.only(bottom: 120),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Wave Header with Title inside (Matching Reference Image)
-          _buildWavyPageHeader(
-            title: 'Hi, $userName',
-            subtitle: 'Selamat datang di Dashboard Xploria!',
-            gradientColors: const [Color(0xFF005CFF), Color(0xFF00C2FF)],
-            topActionWidget: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.25),
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Row(
-                children: [
-                  const Icon(Icons.stars_rounded, color: Color(0xFFFF9F1C), size: 18),
-                  const SizedBox(width: 6),
-                  Text(
-                    (user?.isPremium ?? false) ? 'VIP' : '120 Pts',
-                    style: const TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w900,
-                      color: Colors.white,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            categoryPillsWidget: _buildHeaderCategoryPills(
-              ['Semua', 'Proyek', 'Misi', 'Statistik'],
-              0,
-              (idx) {},
-            ),
-          ),
-
-          Padding(
+    return Stack(
+      children: [
+        SingleChildScrollView(
+          physics: const ClampingScrollPhysics(),
+          padding: EdgeInsets.only(top: topInset + 200, bottom: 120),
+          child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 24.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -512,8 +492,44 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ],
             ),
           ),
-        ],
-      ),
+        ),
+        Positioned(
+          top: 0,
+          left: 0,
+          right: 0,
+          child: _buildWavyPageHeader(
+            title: 'Hi, $userName',
+            subtitle: 'Selamat datang di Dashboard Xploria!',
+            gradientColors: const [Color(0xFF005CFF), Color(0xFF00C2FF)],
+            topActionWidget: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.25),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.stars_rounded, color: Color(0xFFFF9F1C), size: 18),
+                  const SizedBox(width: 6),
+                  Text(
+                    (user?.isPremium ?? false) ? 'VIP' : '120 Pts',
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w900,
+                      color: Colors.white,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            categoryPillsWidget: _buildHeaderCategoryPills(
+              ['Semua', 'Proyek', 'Misi', 'Statistik'],
+              0,
+              (idx) {},
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -888,31 +904,39 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   // --- 2. LEARNING MODULES TAB (LEARNING_MODULES Table - Wavy Header) ---
   Widget _buildLearningModulesTab(dynamic user) {
-    return SingleChildScrollView(
-      physics: const BouncingScrollPhysics(),
-      padding: const EdgeInsets.only(bottom: 120),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Wave Header with Title inside (Matching Reference Image)
-          _buildWavyPageHeader(
-            title: 'Lessons & Modules',
-            subtitle: 'Pelajari koding & IoT dengan seru!',
-            categoryPillsWidget: _buildHeaderCategoryPills(
-              ['Hot', 'Pemula', 'Menengah', 'VIP'],
-              0,
-              (idx) {},
-            ),
-          ),
+    final topInset = MediaQuery.of(context).padding.top;
 
-          Padding(
+    final filteredModules = _learningModules.where((module) {
+      if (_selectedModuleCategoryIndex == 0) return true; // Hot / Semua
+      if (_selectedModuleCategoryIndex == 1) return module.stepsJson?['level'] == 'Pemula';
+      if (_selectedModuleCategoryIndex == 2) return module.stepsJson?['level'] == 'Menengah';
+      if (_selectedModuleCategoryIndex == 3) return module.isPremiumOnly == true;
+      return true;
+    }).toList();
+
+    return Stack(
+      children: [
+        SingleChildScrollView(
+          physics: const ClampingScrollPhysics(),
+          padding: EdgeInsets.only(top: topInset + 200, bottom: 120),
+          child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 24.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const SizedBox(height: 12),
-                ...List.generate(_learningModules.length, (index) {
-                  final module = _learningModules[index];
+                if (filteredModules.isEmpty)
+                  const Padding(
+                    padding: EdgeInsets.only(top: 40.0),
+                    child: Center(
+                      child: Text(
+                        'Belum ada modul di kategori ini.',
+                        style: TextStyle(color: Colors.grey, fontSize: 14),
+                      ),
+                    ),
+                  ),
+                ...List.generate(filteredModules.length, (index) {
+                  final module = filteredModules[index];
                   final userIsPremium = user?.isPremium ?? false;
                   final canAccess = !module.isPremiumOnly || userIsPremium;
 
@@ -922,7 +946,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     canAccess: canAccess,
                     onTap: () {
                       if (canAccess) {
-                        _showFeatureSnackbar('Membuka modul: ${module.title}');
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => ModuleDetailScreen(
+                              module: module,
+                              canAccess: canAccess,
+                            ),
+                          ),
+                        );
                       } else {
                         _showFeatureSnackbar('Modul ini khusus pengguna Premium VIP!');
                       }
@@ -932,12 +964,30 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ],
             ),
           ),
-        ],
-      ),
+        ),
+        Positioned(
+          top: 0,
+          left: 0,
+          right: 0,
+          child: _buildWavyPageHeader(
+            title: 'Lessons & Modules',
+            subtitle: 'Pelajari koding & IoT dengan seru!',
+            categoryPillsWidget: _buildHeaderCategoryPills(
+              ['Hot', 'Pemula', 'Menengah', 'VIP'],
+              _selectedModuleCategoryIndex,
+              (idx) {
+                setState(() {
+                  _selectedModuleCategoryIndex = idx;
+                });
+              },
+            ),
+          ),
+        ),
+      ],
     );
   }
 
-  // --- COLORFUL PASTEL MODULE CARD (Matching Reference Image) ---
+  // --- COLORFUL PASTEL MODULE CARD (Hero Thumbnail Design) ---
   Widget _buildColorfulModuleCard({
     required LearningModuleModel module,
     required int index,
@@ -949,12 +999,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final subColor = Colors.grey.shade600;
     const accentColor = Color(0xFF005CFF);
 
+    final imageBgColor = module.imageBgColor != null
+        ? Color(int.parse(module.imageBgColor!))
+        : const Color(0xFFE0F2FE); // Fallback color
+
     return HoverCard(
       margin: const EdgeInsets.only(bottom: 16),
       onTap: onTap,
       child: Container(
         width: double.infinity,
-        padding: const EdgeInsets.all(22),
+        padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: bgColor,
           borderRadius: BorderRadius.circular(28),
@@ -966,48 +1020,27 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
           ],
         ),
-        child: Stack(
-          clipBehavior: Clip.hardEdge,
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // Grassy Mound / Cute Illustration at Bottom Right
-            Positioned(
-              right: -10,
-              bottom: -15,
-              child: _buildCuteCardIllustration(index, accentColor),
-            ),
-
-            // Card Content
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Header Row: Title
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.only(right: 60.0),
-                        child: Text(
-                          module.title,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w900,
-                            color: textColor,
-                            height: 1.2,
-                          ),
-                        ),
-                      ),
+            // Left Content: Text and Buttons
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    module.title,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w900,
+                      color: textColor,
+                      height: 1.2,
                     ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-
-                // Description Text
-                Padding(
-                  padding: const EdgeInsets.only(right: 60.0),
-                  child: Text(
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
                     module.description ?? '',
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
@@ -1018,52 +1051,73 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       height: 1.3,
                     ),
                   ),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: module.isPremiumOnly
+                              ? const Color(0xFFFF9F1C)
+                              : const Color(0xFFE0F2FE),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          module.isPremiumOnly ? 'VIP' : 'FREE',
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w900,
+                            color: module.isPremiumOnly ? Colors.white : const Color(0xFF005CFF),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      // Level Badge
+                      if (module.stepsJson != null && module.stepsJson!['level'] != null)
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: Colors.grey.shade100,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: Colors.grey.shade300),
+                          ),
+                          child: Text(
+                            module.stepsJson!['level'].toString(),
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                              color: Colors.grey.shade700,
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 16),
+            // Right Content: Hero Thumbnail Image
+            Hero(
+              tag: 'module_img_${module.id}',
+              child: Container(
+                width: 110,
+                height: 120,
+                decoration: BoxDecoration(
+                  color: imageBgColor,
+                  borderRadius: BorderRadius.circular(20),
                 ),
-                const SizedBox(height: 16),
-
-                // Action Button / Badge Row
-                Row(
-                  children: [
-                    ElevatedButton(
-                      onPressed: onTap,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: canAccess ? accentColor : Colors.grey.shade400,
-                        foregroundColor: Colors.white,
-                        elevation: 0,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(18),
+                child: module.imageAsset != null
+                    ? ClipRRect(
+                        borderRadius: BorderRadius.circular(20),
+                        child: Image.asset(
+                          module.imageAsset!,
+                          fit: BoxFit.cover,
                         ),
-                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                      )
+                    : const Center(
+                        child: Icon(Icons.smart_toy_rounded, size: 40, color: Colors.white),
                       ),
-                      child: Text(
-                        canAccess ? 'Mulai Belajar' : 'VIP Locked',
-                        style: const TextStyle(
-                          fontWeight: FontWeight.w900,
-                          fontSize: 13,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                      decoration: BoxDecoration(
-                        color: module.isPremiumOnly
-                            ? const Color(0xFFFF9F1C)
-                            : const Color(0xFFE0F2FE),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Text(
-                        module.isPremiumOnly ? 'VIP' : 'FREE',
-                        style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w900,
-                          color: module.isPremiumOnly ? Colors.white : const Color(0xFF005CFF),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
+              ),
             ),
           ],
         ),
@@ -1129,28 +1183,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   // --- 3. DEVICE PROFILES TAB (DEVICE_PROFILES Table - Wavy Header) ---
   Widget _buildDeviceProfilesTab(dynamic user) {
-    return SingleChildScrollView(
-      physics: const BouncingScrollPhysics(),
-      padding: const EdgeInsets.only(bottom: 120),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Wave Header with Title inside
-          _buildWavyPageHeader(
-            title: 'Device Profiles',
-            subtitle: 'Kelola koneksi hardware WebSocket & BLE',
-            topActionWidget: IconButton(
-              icon: const Icon(Icons.add_link_rounded, color: Colors.white, size: 28),
-              onPressed: () => _showAddDeviceModal(context),
-            ),
-            categoryPillsWidget: _buildHeaderCategoryPills(
-              ['Semua', 'WebSocket', 'Bluetooth'],
-              0,
-              (idx) {},
-            ),
-          ),
+    final topInset = MediaQuery.of(context).padding.top;
 
-          Padding(
+    return Stack(
+      children: [
+        SingleChildScrollView(
+          physics: const ClampingScrollPhysics(),
+          padding: EdgeInsets.only(top: topInset + 200, bottom: 120),
+          child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 24.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -1219,8 +1259,26 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ],
             ),
           ),
-        ],
-      ),
+        ),
+        Positioned(
+          top: 0,
+          left: 0,
+          right: 0,
+          child: _buildWavyPageHeader(
+            title: 'Device Profiles',
+            subtitle: 'Kelola koneksi hardware WebSocket & BLE',
+            topActionWidget: IconButton(
+              icon: const Icon(Icons.add_link_rounded, color: Colors.white, size: 28),
+              onPressed: () => _showAddDeviceModal(context),
+            ),
+            categoryPillsWidget: _buildHeaderCategoryPills(
+              ['Semua', 'WebSocket', 'Bluetooth'],
+              0,
+              (idx) {},
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -1230,13 +1288,68 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final topInset = MediaQuery.of(context).padding.top;
     final topPadding = topInset > 0 ? topInset + 20 : 54.0;
 
-    return SingleChildScrollView(
-      physics: const BouncingScrollPhysics(),
-      padding: const EdgeInsets.only(bottom: 120),
-      child: Column(
-        children: [
-          // Wave Header with User Info inside (Matching Reference Image)
-          ClipPath(
+    return Stack(
+      children: [
+        SingleChildScrollView(
+          physics: const ClampingScrollPhysics(),
+          padding: EdgeInsets.only(top: topInset + 230, bottom: 120),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24.0),
+            child: Column(
+              children: [
+                _buildProfileMenuItem(
+                  title: 'Account & ERD Details',
+                  subtitle: user?.email ?? 'hello@xploria.com',
+                  icon: Icons.person_outline_rounded,
+                  onTap: () => _showFeatureSnackbar('UUID: ${user?.id}'),
+                ),
+                _buildProfileMenuItem(
+                  title: 'Parental Control & Security',
+                  subtitle: 'Safety and privacy settings',
+                  icon: Icons.shield_outlined,
+                  onTap: () => _showFeatureSnackbar('Pengaturan Keamanan'),
+                ),
+                _buildProfileMenuItem(
+                  title: 'Notifications',
+                  subtitle: 'Manage your alerts',
+                  icon: Icons.notifications_none_rounded,
+                  onTap: () => _showFeatureSnackbar('Notifikasi Ditampilkan'),
+                ),
+                _buildProfileMenuItem(
+                  title: 'Themes & Appearance',
+                  subtitle: 'Change app appearance',
+                  icon: Icons.palette_outlined,
+                  onTap: () => _showFeatureSnackbar('Tema Cerah Aktif'),
+                ),
+                _buildProfileMenuItem(
+                  title: 'Help and support',
+                  subtitle: 'Get help when you need it',
+                  icon: Icons.help_outline_rounded,
+                  onTap: () => _showFeatureSnackbar('Pusat Bantuan Xploria'),
+                ),
+                _buildProfileMenuItem(
+                  title: 'Logout',
+                  subtitle: 'Keluar dari akun',
+                  icon: Icons.logout_rounded,
+                  iconColor: Colors.redAccent,
+                  onTap: () {
+                    AuthStorageService().clearSession();
+                    Navigator.pushAndRemoveUntil(
+                      context,
+                      MaterialPageRoute(builder: (_) => const WelcomeScreen()),
+                      (route) => false,
+                    );
+                  },
+                ),
+              ],
+            ),
+          ),
+        ),
+        Positioned(
+          top: 0,
+          left: 0,
+          right: 0,
+          child: ClipPath(
             clipper: WaveHeaderClipper(),
             child: Container(
               width: double.infinity,
@@ -1292,62 +1405,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ),
             ),
           ),
-          const SizedBox(height: 12),
-
-          // Menu Options List (Matching Reference Right Screen Items)
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24.0),
-            child: Column(
-              children: [
-                _buildProfileMenuItem(
-                  title: 'Account & ERD Details',
-                  subtitle: user?.email ?? 'hello@xploria.com',
-                  icon: Icons.person_outline_rounded,
-                  onTap: () => _showFeatureSnackbar('UUID: ${user?.id}'),
-                ),
-                _buildProfileMenuItem(
-                  title: 'Parental Control & Security',
-                  subtitle: 'Safety and privacy settings',
-                  icon: Icons.shield_outlined,
-                  onTap: () => _showFeatureSnackbar('Pengaturan Keamanan'),
-                ),
-                _buildProfileMenuItem(
-                  title: 'Notifications',
-                  subtitle: 'Manage your alerts',
-                  icon: Icons.notifications_none_rounded,
-                  onTap: () => _showFeatureSnackbar('Notifikasi Ditampilkan'),
-                ),
-                _buildProfileMenuItem(
-                  title: 'Themes & Appearance',
-                  subtitle: 'Change app appearance',
-                  icon: Icons.palette_outlined,
-                  onTap: () => _showFeatureSnackbar('Tema Cerah Aktif'),
-                ),
-                _buildProfileMenuItem(
-                  title: 'Help and support',
-                  subtitle: 'Get help when you need it',
-                  icon: Icons.help_outline_rounded,
-                  onTap: () => _showFeatureSnackbar('Pusat Bantuan Xploria'),
-                ),
-                _buildProfileMenuItem(
-                  title: 'Logout',
-                  subtitle: 'Keluar dari akun',
-                  icon: Icons.logout_rounded,
-                  iconColor: Colors.redAccent,
-                  onTap: () {
-                    AuthStorageService().clearSession();
-                    Navigator.pushAndRemoveUntil(
-                      context,
-                      MaterialPageRoute(builder: (_) => const WelcomeScreen()),
-                      (route) => false,
-                    );
-                  },
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
@@ -1461,11 +1520,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 width: 56,
                 height: 56,
                 decoration: BoxDecoration(
-                  color: const Color(0xFF95C956), // Cute Green from reference image
+                  color: const Color(0xFF005CFF), // Blue matching theme
                   shape: BoxShape.circle,
                   boxShadow: [
                     BoxShadow(
-                      color: const Color(0xFF95C956).withValues(alpha: 0.4),
+                      color: const Color(0xFF005CFF).withValues(alpha: 0.4),
                       blurRadius: 12,
                       offset: const Offset(0, 4),
                     ),

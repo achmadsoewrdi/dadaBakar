@@ -5,6 +5,8 @@ class LearningModuleModel {
   final Map<String, dynamic> stepsJson;
   final bool isPremiumOnly;
   final DateTime createdAt;
+  final String? imageAsset;
+  final String? imageBgColor;
 
   LearningModuleModel({
     required this.id,
@@ -13,6 +15,8 @@ class LearningModuleModel {
     required this.stepsJson,
     this.isPremiumOnly = false,
     required this.createdAt,
+    this.imageAsset,
+    this.imageBgColor,
   });
 
   factory LearningModuleModel.fromJson(Map<String, dynamic> json) {
@@ -25,6 +29,8 @@ class LearningModuleModel {
       createdAt: json['created_at'] != null
           ? DateTime.parse(json['created_at'])
           : DateTime.now(),
+      imageAsset: json['image_asset'] as String?,
+      imageBgColor: json['image_bg_color'] as String?,
     );
   }
 
