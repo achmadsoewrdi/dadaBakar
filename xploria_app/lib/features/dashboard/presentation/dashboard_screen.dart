@@ -378,14 +378,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       ],
                     ),
                   ),
-                  if (topActionWidget != null) topActionWidget,
+                  ?topActionWidget,
                 ],
               ),
             ),
-            if (categoryPillsWidget != null) ...[
-              const SizedBox(height: 18),
-              categoryPillsWidget,
-            ],
+            if (categoryPillsWidget != null) const SizedBox(height: 18),
+            ?categoryPillsWidget,
           ],
         ),
       ),
@@ -908,8 +906,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
     final filteredModules = _learningModules.where((module) {
       if (_selectedModuleCategoryIndex == 0) return true; // Hot / Semua
-      if (_selectedModuleCategoryIndex == 1) return module.stepsJson?['level'] == 'Pemula';
-      if (_selectedModuleCategoryIndex == 2) return module.stepsJson?['level'] == 'Menengah';
+      if (_selectedModuleCategoryIndex == 1) return module.stepsJson['level'] == 'Pemula';
+      if (_selectedModuleCategoryIndex == 2) return module.stepsJson['level'] == 'Menengah';
       if (_selectedModuleCategoryIndex == 3) return module.isPremiumOnly == true;
       return true;
     }).toList();
@@ -997,7 +995,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
     const bgColor = Colors.white;
     const textColor = Color(0xFF0A122C);
     final subColor = Colors.grey.shade600;
-    const accentColor = Color(0xFF005CFF);
 
     final imageBgColor = module.imageBgColor != null
         ? Color(int.parse(module.imageBgColor!))
@@ -1073,7 +1070,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       ),
                       const SizedBox(width: 8),
                       // Level Badge
-                      if (module.stepsJson != null && module.stepsJson!['level'] != null)
+                      if (module.stepsJson['level'] != null)
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                           decoration: BoxDecoration(
@@ -1082,7 +1079,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             border: Border.all(color: Colors.grey.shade300),
                           ),
                           child: Text(
-                            module.stepsJson!['level'].toString(),
+                            module.stepsJson['level'].toString(),
                             style: TextStyle(
                               fontSize: 11,
                               fontWeight: FontWeight.w700,
@@ -1125,61 +1122,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  // Cute Vector Illustration at bottom right of each card (Matching Reference Image)
-  Widget _buildCuteCardIllustration(int index, Color accentColor) {
-    final icons = [
-      Icons.emoji_objects_rounded, // Bulb / Sensor
-      Icons.smart_toy_rounded,     // Robot
-      Icons.wifi_tethering_rounded,// Radio / Wireless
-      Icons.sports_esports_rounded,// Game controller
-      Icons.auto_awesome_rounded,  // Stars / Wand
-    ];
-    final icon = icons[index % icons.length];
-
-    return SizedBox(
-      width: 100,
-      height: 90,
-      child: Stack(
-        alignment: Alignment.bottomRight,
-        children: [
-          // Green Grassy Mound Curve at bottom right
-          Positioned(
-            right: -20,
-            bottom: -25,
-            child: Container(
-              width: 110,
-              height: 70,
-              decoration: BoxDecoration(
-                color: accentColor.withValues(alpha: 0.25),
-                borderRadius: BorderRadius.circular(50),
-              ),
-            ),
-          ),
-
-          // Floating Cute Mascot / Icon
-          Positioned(
-            right: 12,
-            bottom: 12,
-            child: Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                shape: BoxShape.circle,
-                boxShadow: [
-                  BoxShadow(
-                    color: accentColor.withValues(alpha: 0.2),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: Icon(icon, color: accentColor, size: 30),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 
   // --- 3. DEVICE PROFILES TAB (DEVICE_PROFILES Table - Wavy Header) ---
   Widget _buildDeviceProfilesTab(dynamic user) {
