@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:xploria_app/features/blockly_workspace/presentation/blockly_workspace_screen.dart';
+import 'package:xploria_app/features/auth/presentation/welcome/welcome_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -17,7 +17,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF005CFF)),
       ),
-      home: const BlocklyWorkspaceScreen(),
+      home: const WelcomeScreen(),
     );
   }
 }
