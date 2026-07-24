@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <defs>
+    <linearGradient id="binFill" x1="18" y1="16" x2="46" y2="52" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#FF9A8B"></stop>
+      <stop offset="100%" stop-color="#FF6B5E"></stop>
+    </linearGradient>
+  </defs>
+
+  <!-- Lid -->
+  <rect x="18" y="15" width="28" height="7" rx="3.5" fill="#FF7A6A" stroke="#D95B4E" stroke-width="3" stroke-linejoin="round"></rect>
+
+  <!-- Handle -->
+  <rect x="28" y="11" width="8" height="4" rx="2" fill="#FF8D7B" stroke="#D95B4E" stroke-width="3" stroke-linejoin="round"></rect>
+
+  <!-- Bin Body -->
+  <path d="M20 22H44L42 49C41.8 52 39.7 54 36.7 54H27.3C24.3 54 22.2 52 22 49L20 22Z" fill="url(#binFill)" stroke="#D95B4E" stroke-width="3" stroke-linejoin="round"></path>
+
+  <!-- Gloss Highlight -->
+  <path d="M25 26C26.2 24.5 28.2 23.5 30.5 23.5" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" opacity="0.65"></path>
+
+  <ellipse cx="34" cy="28" rx="3" ry="1.6" fill="#FFFFFF" opacity="0.28" transform="rotate(24 34 28)"></ellipse>
+
+  <!-- Front Grooves -->
+  <path d="M28 29V46" stroke="#D95B4E" stroke-width="3" stroke-linecap="round"></path>
+
+  <path d="M32 29V46" stroke="#D95B4E" stroke-width="3" stroke-linecap="round"></path>
+
+  <path d="M36 29V46" stroke="#D95B4E" stroke-width="3" stroke-linecap="round"></path>
+</svg>
