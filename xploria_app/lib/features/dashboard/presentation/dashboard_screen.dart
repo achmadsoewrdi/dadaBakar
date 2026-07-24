@@ -6,6 +6,7 @@ import '../../projects/domain/models/project_model.dart';
 import '../../devices/domain/models/device_profile_model.dart';
 import '../../content/domain/models/learning_module_model.dart';
 import '../../content/presentation/module_detail_screen.dart';
+import '../../iot_blynk/presentation/screens/blynk_canvas_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -63,6 +64,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
         deviceType: 'orange_pi',
         createdAt: now.subtract(const Duration(days: 3)),
         updatedAt: now.subtract(const Duration(days: 1)),
+      ),
+      ProjectModel(
+        id: 'proj_03',
+        ownerId: userId,
+        name: 'Smart Agriculture Prototype',
+        workspaceXml: '<xml><block type="sensor_temp"></block></xml>',
+        generatedCode: 'print("Smart Farm IoT")',
+        deviceType: 'arduino',
+        blynkConfigJson: [],
+        createdAt: now.subtract(const Duration(hours: 5)),
+        updatedAt: now.subtract(const Duration(minutes: 15)),
       ),
     ];
 
@@ -201,7 +213,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ),
               const SizedBox(height: 12),
 
-              // Option 3: Orange Pi
+              // Option 2: Orange Pi
               _buildModalOption(
                 context,
                 title: 'Orange Pi',
@@ -845,6 +857,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
         break;
     }
 
+    final hasBlynk = project.blynkConfigJson != null;
+
     return HoverCard(
       margin: const EdgeInsets.only(bottom: 10),
       onTap: () {
@@ -895,6 +909,55 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ],
               ),
             ),
+
+            // Dynamic Blynk IoT Button (ONLY appears if user has created Blynk IoT canvas!)
+            if (hasBlynk) ...[
+              GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => BlynkCanvasScreen(
+                        project: project,
+                        onSaveBlynkConfig: (updatedProject) {
+                          setState(() {
+                            final idx = _projects.indexWhere((p) => p.id == updatedProject.id);
+                            if (idx != -1) {
+                              _projects[idx] = updatedProject;
+                            }
+                          });
+                        },
+                      ),
+                    ),
+                  );
+                },
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF00E3A2).withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: const Color(0xFF00E3A2)),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: const [
+                      Icon(Icons.sensors_rounded, color: Color(0xFF00E3A2), size: 14),
+                      SizedBox(width: 4),
+                      Text(
+                        'Blynk IoT',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF00E3A2),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+            ],
+
             const Icon(Icons.chevron_right_rounded, color: Colors.grey, size: 20),
           ],
         ),
@@ -908,8 +971,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
     final filteredModules = _learningModules.where((module) {
       if (_selectedModuleCategoryIndex == 0) return true; // Hot / Semua
-      if (_selectedModuleCategoryIndex == 1) return module.stepsJson?['level'] == 'Pemula';
-      if (_selectedModuleCategoryIndex == 2) return module.stepsJson?['level'] == 'Menengah';
+      if (_selectedModuleCategoryIndex == 1) return module.stepsJson['level'] == 'Pemula';
+      if (_selectedModuleCategoryIndex == 2) return module.stepsJson['level'] == 'Menengah';
       if (_selectedModuleCategoryIndex == 3) return module.isPremiumOnly == true;
       return true;
     }).toList();
@@ -997,7 +1060,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
     const bgColor = Colors.white;
     const textColor = Color(0xFF0A122C);
     final subColor = Colors.grey.shade600;
-    const accentColor = Color(0xFF005CFF);
 
     final imageBgColor = module.imageBgColor != null
         ? Color(int.parse(module.imageBgColor!))
@@ -1073,7 +1135,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       ),
                       const SizedBox(width: 8),
                       // Level Badge
-                      if (module.stepsJson != null && module.stepsJson!['level'] != null)
+                      if (module.stepsJson.containsKey('level'))
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                           decoration: BoxDecoration(
@@ -1082,7 +1144,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             border: Border.all(color: Colors.grey.shade300),
                           ),
                           child: Text(
-                            module.stepsJson!['level'].toString(),
+                            module.stepsJson['level'].toString(),
                             style: TextStyle(
                               fontSize: 11,
                               fontWeight: FontWeight.w700,
