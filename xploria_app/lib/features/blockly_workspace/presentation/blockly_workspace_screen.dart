@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import '../../../core/theme/app_colors.dart';
@@ -14,7 +15,7 @@ class BlocklyWorkspaceScreen extends StatefulWidget {
 }
 
 class _BlocklyWorkspaceScreenState extends State<BlocklyWorkspaceScreen> {
-  late final WebViewController _controller;
+  WebViewController? _controller;
   WorkspaceState _state = const WorkspaceState();
   String _projectName = 'Project';
 
@@ -95,6 +96,13 @@ class _BlocklyWorkspaceScreenState extends State<BlocklyWorkspaceScreen> {
   }
 
   void _initWebViewController() {
+    if (kIsWeb) {
+      setState(() {
+        _state = _state.copyWith(isLoading: false);
+      });
+      return;
+    }
+
     _controller = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
       ..setBackgroundColor(const Color(0x00000000))
@@ -284,9 +292,41 @@ class _BlocklyWorkspaceScreenState extends State<BlocklyWorkspaceScreen> {
       ),
       body: Stack(
         children: [
-          WebViewWidget(controller: _controller),
-          if (_state.isLoading)
-            const Center(child: CircularProgressIndicator()),
+          if (kIsWeb || _controller == null)
+            Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withValues(alpha: 0.1),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.code_rounded, size: 64, color: AppColors.primary),
+                  ),
+                  const SizedBox(height: 16),
+                  const Text(
+                    'Blockly Workspace (Visual Coding)',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                  ),
+                  const SizedBox(height: 8),
+                  const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 32.0),
+                    child: Text(
+                      'Webview Blockly siap dijalankan di Android & iOS.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: AppColors.textSecondary),
+                    ),
+                  ),
+                ],
+              ),
+            )
+          else ...[
+            WebViewWidget(controller: _controller!),
+            if (_state.isLoading)
+              const Center(child: CircularProgressIndicator()),
+          ],
         ],
       ),
     );
