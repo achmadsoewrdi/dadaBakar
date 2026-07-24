@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../auth/data/services/auth_storage_service.dart';
 import '../../auth/presentation/welcome/welcome_screen.dart';
+import '../../blockly_workspace/presentation/blockly_workspace_screen.dart';
 import '../../projects/domain/models/project_model.dart';
 import '../../devices/domain/models/device_profile_model.dart';
 import '../../content/domain/models/learning_module_model.dart';
@@ -231,6 +232,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
     });
 
     _showFeatureSnackbar('Proyek $name ($deviceType) berhasil dibuat!');
+    
+    // Langsung arahkan ke workspace
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => const BlocklyWorkspaceScreen(),
+      ),
+    );
   }
 
   void _showFeatureSnackbar(String message) {
@@ -253,37 +262,41 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
     return Scaffold(
       backgroundColor: const Color(0xFFF0F6FF), // Soft bright sky background matching reference
-      body: Stack(
-        children: [
-          // Silky Smooth Animated PageView for Tabs
-          PageView(
-            controller: _pageController,
-            physics: const NeverScrollableScrollPhysics(),
-            onPageChanged: (index) {
-              if (_currentIndex != index) {
-                setState(() {
-                  _currentIndex = index;
-                });
-              }
-            },
-            children: [
-              RepaintBoundary(child: _buildHomeDashboard(userName)),
-              RepaintBoundary(child: _buildLearningModulesTab(user)),
-              RepaintBoundary(child: _buildDeviceProfilesTab(user)),
-              RepaintBoundary(child: _buildUserProfileTab(user)),
-            ],
-          ),
-
-          // Bottom Navigation Bar with GPU Caching
-          Positioned(
-            left: 20,
-            right: 20,
-            bottom: 20,
-            child: RepaintBoundary(
-              child: _buildCustomFloatingNavbar(context),
+      body: MediaQuery.removePadding(
+        context: context,
+        removeTop: true,
+        child: Stack(
+          children: [
+            // Silky Smooth Animated PageView for Tabs
+            PageView(
+              controller: _pageController,
+              physics: const NeverScrollableScrollPhysics(),
+              onPageChanged: (index) {
+                if (_currentIndex != index) {
+                  setState(() {
+                    _currentIndex = index;
+                  });
+                }
+              },
+              children: [
+                RepaintBoundary(child: _buildHomeDashboard(userName)),
+                RepaintBoundary(child: _buildLearningModulesTab(user)),
+                RepaintBoundary(child: _buildDeviceProfilesTab(user)),
+                RepaintBoundary(child: _buildUserProfileTab(user)),
+              ],
             ),
-          ),
-        ],
+
+            // Bottom Navigation Bar with GPU Caching
+            Positioned(
+              left: 20,
+              right: 20,
+              bottom: 20,
+              child: RepaintBoundary(
+                child: _buildCustomFloatingNavbar(context),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -297,12 +310,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
     Widget? categoryPillsWidget,
   }) {
     final colors = gradientColors ?? const [Color(0xFF005CFF), Color(0xFF00C2FF)];
+    final topInset = MediaQuery.of(context).padding.top;
+    final topPadding = topInset > 0 ? topInset + 20 : 54.0;
 
     return ClipPath(
       clipper: WaveHeaderClipper(),
       child: Container(
         width: double.infinity,
-        padding: const EdgeInsets.only(top: 54, left: 24, right: 24, bottom: 44),
+        padding: EdgeInsets.only(top: topPadding, bottom: 44),
         decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: colors,
@@ -321,36 +336,39 @@ class _DashboardScreenState extends State<DashboardScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        title,
-                        style: const TextStyle(
-                          fontSize: 26,
-                          fontWeight: FontWeight.w900,
-                          color: Colors.white,
-                          letterSpacing: -0.5,
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          title,
+                          style: const TextStyle(
+                            fontSize: 26,
+                            fontWeight: FontWeight.w900,
+                            color: Colors.white,
+                            letterSpacing: -0.5,
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        subtitle,
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: Colors.white.withValues(alpha: 0.9),
-                          fontWeight: FontWeight.w500,
+                        const SizedBox(height: 4),
+                        Text(
+                          subtitle,
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: Colors.white.withValues(alpha: 0.9),
+                            fontWeight: FontWeight.w500,
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
-                if (topActionWidget != null) topActionWidget,
-              ],
+                  if (topActionWidget != null) topActionWidget,
+                ],
+              ),
             ),
             if (categoryPillsWidget != null) ...[
               const SizedBox(height: 18),
@@ -366,13 +384,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       physics: const BouncingScrollPhysics(),
+      padding: const EdgeInsets.symmetric(horizontal: 24),
       child: Row(
         children: List.generate(categories.length, (index) {
           final isSelected = index == selectedIndex;
           return GestureDetector(
             onTap: () => onSelect(index),
             child: Container(
-              margin: const EdgeInsets.only(right: 10),
+              margin: EdgeInsets.only(right: index == categories.length - 1 ? 0 : 10),
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
               decoration: BoxDecoration(
                 color: isSelected ? const Color(0xFFFF9F1C) : Colors.white.withValues(alpha: 0.22),
@@ -812,7 +831,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
     return HoverCard(
       margin: const EdgeInsets.only(bottom: 10),
-      onTap: () => _showFeatureSnackbar('Membuka proyek: ${project.name}'),
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => const BlocklyWorkspaceScreen(),
+          ),
+        );
+      },
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         decoration: BoxDecoration(
@@ -1201,6 +1227,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
   // --- 4. USER PROFILE TAB (Wavy Header Style) ---
   Widget _buildUserProfileTab(dynamic user) {
     final userName = (user?.fullName.isNotEmpty == true) ? user!.fullName : 'Young Coder';
+    final topInset = MediaQuery.of(context).padding.top;
+    final topPadding = topInset > 0 ? topInset + 20 : 54.0;
 
     return SingleChildScrollView(
       physics: const BouncingScrollPhysics(),
@@ -1212,7 +1240,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             clipper: WaveHeaderClipper(),
             child: Container(
               width: double.infinity,
-              padding: const EdgeInsets.only(top: 54, bottom: 44),
+              padding: EdgeInsets.only(top: topPadding, bottom: 44),
               decoration: const BoxDecoration(
                 gradient: LinearGradient(
                   colors: [Color(0xFF005CFF), Color(0xFF00C2FF)],

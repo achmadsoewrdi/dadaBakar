@@ -35,6 +35,9 @@ dependencies:
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
   http: ^1.2.0
+  webview_flutter: ^4.14.1
+  web_socket_channel: ^3.0.3
+  webview_flutter_web: ^0.2.3+4
 
 dev_dependencies:
   flutter_test:
@@ -88,3 +91,10 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
+
+  assets:
+    - assets/blockly/
+    - assets/blockly/css/
+    - assets/blockly/js/
+    - assets/icons/
+    - assets/fonts/
