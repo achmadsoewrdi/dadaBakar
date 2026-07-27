@@ -75,37 +75,171 @@ function notifyFlutter() {
     
     // Injeksi otomatis import library standar Exploria di baris paling atas
     if (pythonCode.trim() !== "") {
-        const standardImports = 
-            "import time\n" +
-            "import math\n" +
-            "import warnings\n" +
-            "warnings.simplefilter('ignore')\n" +
-            "try:\n" +
-            "    import audio\n" +
-            "    import led\n" +
-            "    import motor\n" +
-            "    import sensor\n" +
-            "    import pin\n" +
-            "    import display\n" +
-            "    import motion\n" +
-            "    import lan\n" +
-            "    import ai\n" +
-            "except ImportError:\n" +
-            "    class MockDevice:\n" +
-            "        def __getattr__(self, name):\n" +
-            "            def method(*args, **kwargs):\n" +
-            "                print(f'[MOCK] Dipanggil: {name}{args}')\n" +
-            "                return 0\n" +
-            "            return method\n" +
-            "    audio = MockDevice()\n" +
-            "    led = MockDevice()\n" +
-            "    motor = MockDevice()\n" +
-            "    sensor = MockDevice()\n" +
-            "    pin = MockDevice()\n" +
-            "    display = MockDevice()\n" +
-            "    motion = MockDevice()\n" +
-            "    lan = MockDevice()\n" +
-            "    ai = MockDevice()\n\n";
+        const standardImports = `import time
+import math
+import sys
+import warnings
+warnings.simplefilter('ignore')
+
+# --- UNIVERSAL HARDWARE ABSTRACTION LAYER ---
+class MockDevice:
+    def __getattr__(self, name):
+        def method(*args, **kwargs):
+            return 0
+        return method
+
+try:
+    _IS_ESP = sys.platform == 'esp32'
+except:
+    _IS_ESP = False
+
+class SensorHAL:
+    def __init__(self):
+        if _IS_ESP:
+            import machine, dht
+            self.machine = machine
+            self.dht = dht
+            self._pins = {}
+        else:
+            try:
+                from gpiozero import DigitalInputDevice, DistanceSensor
+                import adafruit_dht, board
+                self.DigitalInputDevice = DigitalInputDevice
+                self.DistanceSensor = DistanceSensor
+                self.adafruit_dht = adafruit_dht
+                self.board = board
+            except ImportError:
+                pass
+            self._pins = {}
+
+    def _get_digital_in(self, p, pull_up=False):
+        if p not in self._pins:
+            if _IS_ESP:
+                self._pins[p] = self.machine.Pin(p, self.machine.Pin.IN, self.machine.Pin.PULL_UP if pull_up else None)
+            else:
+                self._pins[p] = self.DigitalInputDevice(p, pull_up=pull_up)
+        return self._pins[p]
+
+    def read_gas(self, p):
+        # MQ-9 biasanya active LOW untuk mendeteksi gas
+        if _IS_ESP: return self._get_digital_in(p, True).value() == 0
+        else: return self._get_digital_in(p, True).value == 0
+
+    def read_motion(self, p):
+        # PIR active HIGH saat ada gerakan
+        if _IS_ESP: return self._get_digital_in(p, False).value() == 1
+        else: return self._get_digital_in(p, False).value == 1
+
+    def read_ir_obstacle(self, p):
+        # MH-Sensor IR active LOW/HIGH tergantung setelan, standarnya deteksi = 1 atau 0.
+        # Pada project manual disebut "Active HIGH (True saat ada objek)"
+        if _IS_ESP: return self._get_digital_in(p, True).value() == 1
+        else: return self._get_digital_in(p, True).value == 1
+
+    def read_temperature(self, p):
+        if _IS_ESP:
+            if p not in self._pins: self._pins[p] = self.dht.DHT22(self.machine.Pin(p))
+            try:
+                self._pins[p].measure()
+                return self._pins[p].temperature()
+            except: return 0
+        else:
+            if p not in self._pins:
+                pin_obj = getattr(self.board, f'D{p}')
+                self._pins[p] = self.adafruit_dht.DHT22(pin_obj)
+            try: return self._pins[p].temperature
+            except: return 0
+
+    def read_humidity(self, p):
+        if _IS_ESP:
+            if p not in self._pins: self._pins[p] = self.dht.DHT22(self.machine.Pin(p))
+            try:
+                self._pins[p].measure()
+                return self._pins[p].humidity()
+            except: return 0
+        else:
+            if p not in self._pins:
+                pin_obj = getattr(self.board, f'D{p}')
+                self._pins[p] = self.adafruit_dht.DHT22(pin_obj)
+            try: return self._pins[p].humidity
+            except: return 0
+
+    def read_ultrasonic(self, trig, echo):
+        if _IS_ESP:
+            return 0 # Simplified for ESP32 without hcsr04 lib
+        else:
+            if trig not in self._pins:
+                self._pins[trig] = self.DistanceSensor(echo=echo, trigger=trig, max_distance=2.0)
+            return self._pins[trig].distance * 100
+
+class PinHAL:
+    def __init__(self):
+        if _IS_ESP:
+            import machine
+            self.machine = machine
+        else:
+            try:
+                from gpiozero import DigitalOutputDevice, DigitalInputDevice
+                self.DigitalOutputDevice = DigitalOutputDevice
+                self.DigitalInputDevice = DigitalInputDevice
+            except ImportError:
+                pass
+        self._pins = {}
+
+    def set_digital(self, p, state):
+        val = 1 if state == "HIGH" else 0
+        if p not in self._pins:
+            if _IS_ESP: self._pins[p] = self.machine.Pin(p, self.machine.Pin.OUT)
+            else: self._pins[p] = self.DigitalOutputDevice(p)
+        if _IS_ESP: self._pins[p].value(val)
+        else:
+            if val: self._pins[p].on()
+            else: self._pins[p].off()
+
+class MotorHAL:
+    def __init__(self):
+        if _IS_ESP:
+            import machine
+            self.machine = machine
+        else:
+            try:
+                from gpiozero import Servo
+                self.Servo = Servo
+            except ImportError:
+                pass
+        self._pins = {}
+
+    def set_servo(self, p, degree):
+        if _IS_ESP:
+            if p not in self._pins:
+                self._pins[p] = self.machine.PWM(self.machine.Pin(p), freq=50)
+            duty = int(40 + (degree / 180.0) * 75)
+            self._pins[p].duty(duty)
+        else:
+            if p not in self._pins:
+                self._pins[p] = self.Servo(p)
+            val = (degree - 90) / 90.0
+            self._pins[p].value = val
+
+class LEDHAL(PinHAL):
+    def display_color(self, p, color):
+        # Simplified: On if not black
+        self.set_digital(p, "HIGH" if color != "black" else "LOW")
+    def turn_off(self, p):
+        self.set_digital(p, "LOW")
+
+sensor = SensorHAL()
+pin = PinHAL()
+motor = MotorHAL()
+led = LEDHAL()
+audio = MockDevice()
+display = MockDevice()
+motion = MockDevice()
+lan = MockDevice()
+ai = MockDevice()
+# ----------------------------------------------
+
+\n`;
         pythonCode = standardImports + pythonCode;
     }
 

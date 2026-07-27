@@ -35,19 +35,6 @@ class _LessonsModulesPageState extends State<LessonsModulesPage> {
     }
   }
 
-  void _showFeatureSnackbar(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: const Color(0xFF005CFF),
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
@@ -55,7 +42,6 @@ class _LessonsModulesPageState extends State<LessonsModulesPage> {
     }
 
     final user = AuthStorageService().currentUser;
-    final topInset = MediaQuery.of(context).padding.top;
 
     final filteredModules = _learningModules.where((module) {
       if (_selectedModuleCategoryIndex == 0) return true; // Hot / Semua

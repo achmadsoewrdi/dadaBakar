@@ -245,7 +245,6 @@ class _DeviceConnectionScreenState extends State<DeviceConnectionScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final topInset = MediaQuery.of(context).padding.top;
 
     return ListenableBuilder(
       listenable: DeviceConnectionService.instance,

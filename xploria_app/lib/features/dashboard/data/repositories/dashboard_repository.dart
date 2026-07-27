@@ -38,7 +38,7 @@ class DashboardRepository implements IDashboardRepository {
         workspaceXml: '<xml><block type="sensor_temp"></block></xml>',
         generatedCode: 'print("Smart Farm IoT")',
         deviceType: 'arduino',
-        blynkConfigJson: [],
+        // blynkConfigJson: [],
         createdAt: now.subtract(const Duration(hours: 5)),
         updatedAt: now.subtract(const Duration(minutes: 15)),
       ),
@@ -79,7 +79,8 @@ class DashboardRepository implements IDashboardRepository {
       LearningModuleModel(
         id: 'mod_01',
         title: 'Dasar Pemrograman Robotik & IoT',
-        description: 'Pelajari dasar-dasar mengontrol pin GPIO, WiFi, dan sensor pada single board computer.',
+        description:
+            'Pelajari dasar-dasar mengontrol pin GPIO, WiFi, dan sensor pada single board computer.',
         stepsJson: {'steps': 5, 'level': 'Pemula'},
         isPremiumOnly: false,
         createdAt: now.subtract(const Duration(days: 10)),
@@ -89,7 +90,8 @@ class DashboardRepository implements IDashboardRepository {
       LearningModuleModel(
         id: 'mod_02',
         title: 'Kamera AI & Robotik Raspberry Pi',
-        description: 'Membangun sistem pengenal wajah dan kontrol motor otomatis dengan Raspberry Pi.',
+        description:
+            'Membangun sistem pengenal wajah dan kontrol motor otomatis dengan Raspberry Pi.',
         stepsJson: {'steps': 8, 'level': 'Lanjutan'},
         isPremiumOnly: true,
         createdAt: now.subtract(const Duration(days: 7)),
@@ -99,7 +101,8 @@ class DashboardRepository implements IDashboardRepository {
       LearningModuleModel(
         id: 'mod_03',
         title: 'Protokol Komunikasi WebSocket & BLE',
-        description: 'Koneksikan hardware secara langsung ke Flutter App menggunakan WebSocket & Bluetooth.',
+        description:
+            'Koneksikan hardware secara langsung ke Flutter App menggunakan WebSocket & Bluetooth.',
         stepsJson: {'steps': 6, 'level': 'Menengah'},
         isPremiumOnly: false,
         createdAt: now.subtract(const Duration(days: 4)),

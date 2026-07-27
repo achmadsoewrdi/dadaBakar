@@ -3,7 +3,7 @@ import '../../dashboard/data/repositories/dashboard_repository.dart';
 import '../../dashboard/presentation/widgets/dashboard_shared_widgets.dart';
 import '../domain/models/project_model.dart';
 import '../../blockly_workspace/presentation/blockly_workspace_screen.dart';
-import '../../iot_blynk/presentation/screens/blynk_canvas_screen.dart';
+// import '../../iot_blynk/presentation/screens/blynk_canvas_screen.dart';
 
 class ProjectListScreen extends StatefulWidget {
   const ProjectListScreen({super.key});
@@ -295,37 +295,37 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
                           ),
                         ],
                       ),
-                      if (project.blynkConfigJson != null)
-                        GestureDetector(
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(builder: (context) => BlynkCanvasScreen(project: project)),
-                            );
-                          },
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFF00C2FF).withValues(alpha: 0.15),
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            child: const Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(Icons.cloud_done, size: 12, color: Color(0xFF005CFF)),
-                                SizedBox(width: 4),
-                                Text(
-                                  'Blynk IoT',
-                                  style: TextStyle(
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.bold,
-                                    color: Color(0xFF005CFF),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
+//                       if (project.blynkConfigJson != null)
+//                         GestureDetector(
+//                           onTap: () {
+//                             // Navigator.push(
+//                             //   context,
+//                             //   MaterialPageRoute(builder: (context) => BlynkCanvasScreen(project: project)),
+//                             // );
+//                           },
+//                           child: Container(
+//                             padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+//                             decoration: BoxDecoration(
+//                               color: const Color(0xFF00C2FF).withValues(alpha: 0.15),
+//                               borderRadius: BorderRadius.circular(4),
+//                             ),
+//                             child: const Row(
+//                               mainAxisSize: MainAxisSize.min,
+//                               children: [
+//                                 Icon(Icons.cloud_done, size: 12, color: Color(0xFF005CFF)),
+//                                 SizedBox(width: 4),
+//                                 Text(
+//                                   'Blynk IoT',
+//                                   style: TextStyle(
+//                                     fontSize: 10,
+//                                     fontWeight: FontWeight.bold,
+//                                     color: Color(0xFF005CFF),
+//                                   ),
+//                                 ),
+//                               ],
+//                             ),
+//                           ),
+//                         ),
                     ],
                   ),
                 ],

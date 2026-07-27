@@ -533,7 +533,7 @@ Blockly.Blocks['pin_set_digital'] = {
     init: function () {
         this.appendDummyInput()
             .appendField("🔌 Setel Pin Digital")
-            .appendField(new Blockly.FieldDropdown([["D1", "D1"], ["D2", "D2"], ["D3", "D3"], ["D4", "D4"]]), "PIN")
+            .appendField(new Blockly.FieldNumber(17, 0, 40), "PIN")
             .appendField("menjadi")
             .appendField(new Blockly.FieldDropdown([["Nyala (HIGH)", "HIGH"], ["Mati (LOW)", "LOW"]]), "STATE");
         this.setPreviousStatement(true, null);
@@ -544,7 +544,7 @@ Blockly.Blocks['pin_set_digital'] = {
 Blockly.Python['pin_set_digital'] = function(block) {
     let pin = block.getFieldValue('PIN');
     let state = block.getFieldValue('STATE');
-    return `pin.set_digital("${pin}", "${state}")\n`;
+    return `pin.set_digital(${pin}, "${state}")\n`;
 };
 
 Blockly.Blocks['pin_set_analog'] = {
@@ -552,7 +552,7 @@ Blockly.Blocks['pin_set_analog'] = {
         this.appendValueInput("VAL")
             .setCheck("Number")
             .appendField("🔌 Setel Pin Analog (PWM)")
-            .appendField(new Blockly.FieldDropdown([["D1", "D1"], ["D2", "D2"], ["D3", "D3"], ["D4", "D4"]]), "PIN")
+            .appendField(new Blockly.FieldNumber(18, 0, 40), "PIN")
             .appendField("ke nilai");
         this.setInputsInline(true);
         this.setPreviousStatement(true, null);
@@ -563,35 +563,35 @@ Blockly.Blocks['pin_set_analog'] = {
 Blockly.Python['pin_set_analog'] = function(block) {
     let pin = block.getFieldValue('PIN');
     let val = Blockly.Python.valueToCode(block, 'VAL', Blockly.Python.ORDER_ATOMIC) || "0";
-    return `pin.set_analog("${pin}", ${val})\n`;
+    return `pin.set_analog(${pin}, ${val})\n`;
 };
 
 Blockly.Blocks['pin_read_digital'] = {
     init: function () {
         this.appendDummyInput()
             .appendField("🔌 Baca Pin Digital")
-            .appendField(new Blockly.FieldDropdown([["D1", "D1"], ["D2", "D2"], ["D3", "D3"], ["D4", "D4"]]), "PIN");
+            .appendField(new Blockly.FieldNumber(17, 0, 40), "PIN");
         this.setOutput(true, ["Number", "Boolean"]);
         this.setColour("#FF6347");
     }
 };
 Blockly.Python['pin_read_digital'] = function(block) {
     let pin = block.getFieldValue('PIN');
-    return [`pin.read_digital("${pin}")`, Blockly.Python.ORDER_ATOMIC];
+    return [`pin.read_digital(${pin})`, Blockly.Python.ORDER_ATOMIC];
 };
 
 Blockly.Blocks['pin_read_analog'] = {
     init: function () {
         this.appendDummyInput()
             .appendField("🔌 Baca Pin Analog")
-            .appendField(new Blockly.FieldDropdown([["A1", "A1"], ["A2", "A2"], ["A3", "A3"], ["A4", "A4"]]), "PIN");
+            .appendField(new Blockly.FieldNumber(36, 0, 40), "PIN");
         this.setOutput(true, "Number");
         this.setColour("#FF6347");
     }
 };
 Blockly.Python['pin_read_analog'] = function(block) {
     let pin = block.getFieldValue('PIN');
-    return [`pin.read_analog("${pin}")`, Blockly.Python.ORDER_ATOMIC];
+    return [`pin.read_analog(${pin})`, Blockly.Python.ORDER_ATOMIC];
 };
 
 // ==========================================================================
@@ -602,7 +602,7 @@ Blockly.Blocks['motor_set_servo'] = {
         this.appendValueInput("DEGREE")
             .setCheck("Number")
             .appendField("⚙️ Putar Servo")
-            .appendField(new Blockly.FieldDropdown([["S1", "S1"], ["S2", "S2"], ["D1", "D1"], ["D2", "D2"]]), "PIN")
+            .appendField(new Blockly.FieldNumber(18, 0, 40), "PIN")
             .appendField("ke sudut");
         this.appendDummyInput()
             .appendField("derajat");
@@ -615,7 +615,7 @@ Blockly.Blocks['motor_set_servo'] = {
 Blockly.Python['motor_set_servo'] = function(block) {
     let pin = block.getFieldValue('PIN');
     let deg = Blockly.Python.valueToCode(block, 'DEGREE', Blockly.Python.ORDER_ATOMIC) || "90";
-    return `motor.set_servo("${pin}", ${deg})\n`;
+    return `motor.set_servo(${pin}, ${deg})\n`;
 };
 
 Blockly.Blocks['motor_dc_speed'] = {
@@ -660,23 +660,26 @@ Blockly.Python['motor_dc_stop'] = function(block) {
 Blockly.Blocks['sensor_ultrasonic'] = {
     init: function () {
         this.appendDummyInput()
-            .appendField("🌡️ Jarak dari Ultrasonik di")
-            .appendField(new Blockly.FieldDropdown([["D1", "D1"], ["D2", "D2"], ["D3", "D3"]]), "PIN")
+            .appendField("🌡️ Jarak Ultrasonik Trig")
+            .appendField(new Blockly.FieldNumber(21, 0, 40), "TRIG")
+            .appendField("Echo")
+            .appendField(new Blockly.FieldNumber(20, 0, 40), "ECHO")
             .appendField("(cm)");
         this.setOutput(true, "Number");
         this.setColour("#2E8B57");
     }
 };
 Blockly.Python['sensor_ultrasonic'] = function(block) {
-    let pin = block.getFieldValue('PIN');
-    return [`sensor.read_ultrasonic("${pin}")`, Blockly.Python.ORDER_ATOMIC];
+    let trig = block.getFieldValue('TRIG');
+    let echo = block.getFieldValue('ECHO');
+    return [`sensor.read_ultrasonic(${trig}, ${echo})`, Blockly.Python.ORDER_ATOMIC];
 };
 
 Blockly.Blocks['sensor_line_follower'] = {
     init: function () {
         this.appendDummyInput()
             .appendField("🌡️ Sensor Garis di")
-            .appendField(new Blockly.FieldDropdown([["D1", "D1"], ["D2", "D2"]]), "PIN")
+            .appendField(new Blockly.FieldNumber(5, 0, 40), "PIN")
             .appendField("mendeteksi")
             .appendField(new Blockly.FieldDropdown([["Hitam", "BLACK"], ["Putih", "WHITE"]]), "STATE");
         this.setOutput(true, "Boolean");
@@ -686,35 +689,91 @@ Blockly.Blocks['sensor_line_follower'] = {
 Blockly.Python['sensor_line_follower'] = function(block) {
     let pin = block.getFieldValue('PIN');
     let state = block.getFieldValue('STATE');
-    return [`sensor.read_line("${pin}") == "${state}"`, Blockly.Python.ORDER_LOGICAL_AND];
+    return [`sensor.read_line(${pin}) == "${state}"`, Blockly.Python.ORDER_LOGICAL_AND];
 };
 
 Blockly.Blocks['sensor_light'] = {
     init: function () {
         this.appendDummyInput()
             .appendField("🌡️ Intensitas Cahaya (LDR) % di")
-            .appendField(new Blockly.FieldDropdown([["A1", "A1"], ["A2", "A2"]]), "PIN");
+            .appendField(new Blockly.FieldNumber(27, 0, 40), "PIN");
         this.setOutput(true, "Number");
         this.setColour("#2E8B57");
     }
 };
 Blockly.Python['sensor_light'] = function(block) {
     let pin = block.getFieldValue('PIN');
-    return [`sensor.read_light("${pin}")`, Blockly.Python.ORDER_ATOMIC];
+    return [`sensor.read_light(${pin})`, Blockly.Python.ORDER_ATOMIC];
 };
 
 Blockly.Blocks['sensor_temperature'] = {
     init: function () {
         this.appendDummyInput()
             .appendField("🌡️ Suhu Udara (°C) di")
-            .appendField(new Blockly.FieldDropdown([["D1", "D1"], ["D2", "D2"]]), "PIN");
+            .appendField(new Blockly.FieldNumber(4, 0, 40), "PIN");
         this.setOutput(true, "Number");
         this.setColour("#2E8B57");
     }
 };
 Blockly.Python['sensor_temperature'] = function(block) {
     let pin = block.getFieldValue('PIN');
-    return [`sensor.read_temperature("${pin}")`, Blockly.Python.ORDER_ATOMIC];
+    return [`sensor.read_temperature(${pin})`, Blockly.Python.ORDER_ATOMIC];
+};
+
+Blockly.Blocks['sensor_gas'] = {
+    init: function () {
+        this.appendDummyInput()
+            .appendField("🌡️ Deteksi Gas (MQ-9) di")
+            .appendField(new Blockly.FieldNumber(17, 0, 40), "PIN");
+        this.setOutput(true, "Boolean");
+        this.setColour("#2E8B57");
+    }
+};
+Blockly.Python['sensor_gas'] = function(block) {
+    let pin = block.getFieldValue('PIN');
+    return [`sensor.read_gas(${pin})`, Blockly.Python.ORDER_ATOMIC];
+};
+
+Blockly.Blocks['sensor_motion'] = {
+    init: function () {
+        this.appendDummyInput()
+            .appendField("🌡️ Deteksi Gerakan (PIR) di")
+            .appendField(new Blockly.FieldNumber(22, 0, 40), "PIN");
+        this.setOutput(true, "Boolean");
+        this.setColour("#2E8B57");
+    }
+};
+Blockly.Python['sensor_motion'] = function(block) {
+    let pin = block.getFieldValue('PIN');
+    return [`sensor.read_motion(${pin})`, Blockly.Python.ORDER_ATOMIC];
+};
+
+Blockly.Blocks['sensor_humidity'] = {
+    init: function () {
+        this.appendDummyInput()
+            .appendField("🌡️ Kelembapan Udara (%) di")
+            .appendField(new Blockly.FieldNumber(4, 0, 40), "PIN");
+        this.setOutput(true, "Number");
+        this.setColour("#2E8B57");
+    }
+};
+Blockly.Python['sensor_humidity'] = function(block) {
+    let pin = block.getFieldValue('PIN');
+    return [`sensor.read_humidity(${pin})`, Blockly.Python.ORDER_ATOMIC];
+};
+
+Blockly.Blocks['sensor_ir_obstacle'] = {
+    init: function () {
+        this.appendDummyInput()
+            .appendField("🌡️ Halangan (IR Obstacle) di")
+            .appendField(new Blockly.FieldNumber(5, 0, 40), "PIN");
+        this.setOutput(true, "Boolean");
+        this.setColour("#2E8B57");
+    }
+};
+Blockly.Python['sensor_ir_obstacle'] = function(block) {
+    let pin = block.getFieldValue('PIN');
+    return [`sensor.read_ir_obstacle(${pin})`, Blockly.Python.ORDER_ATOMIC];
 };
 
 // ==========================================================================
@@ -785,4 +844,25 @@ Blockly.Blocks['display_graph'] = {
 Blockly.Python['display_graph'] = function(block) {
     let val = Blockly.Python.valueToCode(block, 'VAL', Blockly.Python.ORDER_ATOMIC) || "0";
     return `display.graph(${val})\n`;
+};
+
+// ==========================================================================
+// ⚙️ CONTROL BLOCKS (Custom Additions)
+// ==========================================================================
+Blockly.Blocks['delay_seconds'] = {
+    init: function () {
+        this.appendValueInput("SECONDS")
+            .setCheck("Number")
+            .appendField("⚙️ Tunggu");
+        this.appendDummyInput()
+            .appendField("detik");
+        this.setInputsInline(true);
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour("#FFAB19");
+    }
+};
+Blockly.Python['delay_seconds'] = function(block) {
+    let seconds = Blockly.Python.valueToCode(block, 'SECONDS', Blockly.Python.ORDER_ATOMIC) || "1";
+    return `time.sleep(${seconds})\n`;
 };

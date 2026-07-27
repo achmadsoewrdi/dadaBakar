@@ -38,7 +38,7 @@ class _LoginFormContentState extends State<LoginFormContent> {
       });
 
       try {
-        final authResponse = await _authRepository.loginWithEmail(
+        await _authRepository.loginWithEmail(
           _emailController.text.trim(),
           _passwordController.text,
         );

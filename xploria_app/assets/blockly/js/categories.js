@@ -87,7 +87,11 @@ const BLOCK_CATEGORIES = [
             { name: 'Jarak Ultrasonik', desc: 'Jarak (cm)', xml: '<block type="sensor_ultrasonic"></block>' },
             { name: 'Sensor Garis', desc: 'Garis Hitam/Putih', xml: '<block type="sensor_line_follower"></block>' },
             { name: 'Intensitas Cahaya', desc: 'LDR (%)', xml: '<block type="sensor_light"></block>' },
-            { name: 'Suhu', desc: 'DHT11 (°C)', xml: '<block type="sensor_temperature"></block>' }
+            { name: 'Suhu', desc: 'DHT22 (°C)', xml: '<block type="sensor_temperature"></block>' },
+            { name: 'Kelembapan', desc: 'DHT22 (%)', xml: '<block type="sensor_humidity"></block>' },
+            { name: 'Deteksi Gas', desc: 'Sensor Gas (MQ-9)', xml: '<block type="sensor_gas"></block>' },
+            { name: 'Deteksi Gerakan', desc: 'Sensor PIR', xml: '<block type="sensor_motion"></block>' },
+            { name: 'Halangan IR', desc: 'Sensor MH-IR', xml: '<block type="sensor_ir_obstacle"></block>' }
         ]
     },
     {
@@ -137,6 +141,7 @@ const BLOCK_CATEGORIES = [
         blocks: [
             { name: 'Tunggu (detik)', desc: 'Jeda program', xml: '<block type="delay_seconds"><value name="SECONDS"><shadow type="math_number"><field name="NUM">1</field></shadow></value></block>' },
             { name: 'Ulangi', desc: 'Loop N kali', xml: '<block type="controls_repeat_ext"><value name="TIMES"><shadow type="math_number"><field name="NUM">10</field></shadow></value></block>' },
+            { name: 'Ulangi Selama', desc: 'Loop While', xml: '<block type="controls_whileUntil"></block>' },
             { name: 'Jika (If)', desc: 'Percabangan', xml: '<block type="controls_if"></block>' }
         ]
     },
@@ -149,6 +154,7 @@ const BLOCK_CATEGORIES = [
             { name: 'Tambah (+)', desc: 'Operasi matematika', xml: '<block type="math_arithmetic"></block>' },
             { name: 'Bandingkan', desc: 'Lebih besar / kecil', xml: '<block type="logic_compare"></block>' },
             { name: 'Dan / Atau', desc: 'Logika boolean', xml: '<block type="logic_operation"></block>' },
+            { name: 'Benar / Salah', desc: 'Nilai logika', xml: '<block type="logic_boolean"></block>' },
             { name: 'Angka', desc: 'Input angka', xml: '<block type="math_number"><field name="NUM">0</field></block>' },
             { name: 'Teks', desc: 'Input teks', xml: '<block type="text"><field name="TEXT"></field></block>' }
         ]
