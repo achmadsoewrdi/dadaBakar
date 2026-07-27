@@ -142,24 +142,32 @@ class DeviceConnectionService extends ChangeNotifier {
     }
   }
 
-  Future<void> connectWifi(String ip, String port) async {
-    if (ip.isEmpty || port.isEmpty) return;
+  Future<void> connectWifi(String address, String port) async {
+    if (address.isEmpty) return;
 
     _isConnecting = true;
-    _statusMessage = "Menghubungkan ke $ip:$port...";
+    _statusMessage = port.isNotEmpty ? "Menghubungkan ke $address:$port..." : "Menghubungkan ke $address...";
     notifyListeners();
 
     try {
-      final wsUrl = Uri.parse('ws://$ip:$port');
+      String urlStr = address;
+      if (!urlStr.startsWith('ws://') && !urlStr.startsWith('wss://')) {
+        urlStr = 'ws://$address';
+      }
+      if (port.isNotEmpty && !urlStr.contains(':$port')) {
+        urlStr = '$urlStr:$port';
+      }
+
+      final wsUrl = Uri.parse(urlStr);
       _webSocketChannel = WebSocketChannel.connect(wsUrl);
       
       await _webSocketChannel!.ready; 
 
       _isConnected = true;
       _isConnecting = false;
-      _connectedIp = ip;
-      _statusMessage = "Berhasil terhubung ke $ip!";
-      addLog("Berhasil terhubung ke Wi-Fi: $ip:$port");
+      _connectedIp = address;
+      _statusMessage = "Berhasil terhubung ke $address!";
+      addLog("Berhasil terhubung ke WebSocket: $urlStr");
       notifyListeners();
 
       _webSocketChannel!.stream.listen((message) {
@@ -211,6 +219,7 @@ class DeviceConnectionService extends ChangeNotifier {
     
     if (!silent) {
       _isConnected = false;
+      _isConnecting = false;
       _statusMessage = "Dibatalkan oleh pengguna";
       notifyListeners();
     }

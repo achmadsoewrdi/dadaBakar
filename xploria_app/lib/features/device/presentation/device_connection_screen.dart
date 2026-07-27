@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../core/services/device_connection_service.dart';
+import '../../dashboard/presentation/widgets/dashboard_shared_widgets.dart';
 
 class DeviceConnectionScreen extends StatefulWidget {
   const DeviceConnectionScreen({super.key});
@@ -9,8 +10,8 @@ class DeviceConnectionScreen extends StatefulWidget {
 }
 
 class _DeviceConnectionScreenState extends State<DeviceConnectionScreen> {
-  final TextEditingController _ipController = TextEditingController(text: "192.168.4.1");
-  final TextEditingController _portController = TextEditingController(text: "9001");
+  final TextEditingController _ipController = TextEditingController();
+  final TextEditingController _portController = TextEditingController();
 
   @override
   void initState() {
@@ -141,14 +142,14 @@ class _DeviceConnectionScreenState extends State<DeviceConnectionScreen> {
                     child: TextField(
                       controller: _ipController,
                       decoration: InputDecoration(
-                        labelText: 'IP Address',
-                        hintText: 'e.g. 192.168.4.1',
+                        labelText: 'IP / Domain',
+                        hintText: '192.168.4.1 atau domain.com',
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(16),
                         ),
-                        prefixIcon: const Icon(Icons.router),
+                        prefixIcon: const Icon(Icons.language_rounded),
                       ),
-                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                      keyboardType: TextInputType.url,
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -157,8 +158,7 @@ class _DeviceConnectionScreenState extends State<DeviceConnectionScreen> {
                     child: TextField(
                       controller: _portController,
                       decoration: InputDecoration(
-                        labelText: 'Port',
-                        hintText: '9001',
+                        labelText: 'Port (Opsional)',
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(16),
                         ),
@@ -216,7 +216,7 @@ class _DeviceConnectionScreenState extends State<DeviceConnectionScreen> {
         service.setConnectionMode(mode);
       },
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         decoration: BoxDecoration(
           color: isSelected ? const Color(0xFF005CFF) : Colors.transparent,
           borderRadius: BorderRadius.circular(12),
@@ -225,13 +225,14 @@ class _DeviceConnectionScreenState extends State<DeviceConnectionScreen> {
           children: [
             Icon(
               icon,
-              size: 20,
+              size: 16,
               color: isSelected ? Colors.white : Colors.grey.shade600,
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: 6),
             Text(
               title,
               style: TextStyle(
+                fontSize: 12,
                 fontWeight: FontWeight.bold,
                 color: isSelected ? Colors.white : Colors.grey.shade600,
               ),
@@ -244,51 +245,26 @@ class _DeviceConnectionScreenState extends State<DeviceConnectionScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final topInset = MediaQuery.of(context).padding.top;
+
     return ListenableBuilder(
       listenable: DeviceConnectionService.instance,
       builder: (context, _) {
         final service = DeviceConnectionService.instance;
-        return Scaffold(
-          backgroundColor: const Color(0xFFF0F6FF),
-          appBar: AppBar(
-            title: const Text('Koneksi Device', style: TextStyle(fontWeight: FontWeight.bold)),
-            backgroundColor: Colors.white,
-            elevation: 0,
-            foregroundColor: const Color(0xFF0A122C),
-          ),
-          body: Center(
-            child: Padding(
-              padding: const EdgeInsets.all(24.0),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  // Toggle Bluetooth vs Wi-Fi
-                  Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: Colors.grey.shade200),
-                    ),
-                    padding: const EdgeInsets.all(4),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        _buildToggleOption(
-                          title: 'Wi-Fi',
-                          icon: Icons.wifi,
-                          mode: ConnectionMode.wifi,
-                          service: service,
-                        ),
-                        _buildToggleOption(
-                          title: 'Bluetooth',
-                          icon: Icons.bluetooth,
-                          mode: ConnectionMode.bluetooth,
-                          service: service,
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 48),
+        return Stack(
+          children: [
+            SingleChildScrollView(
+              physics: const ClampingScrollPhysics(),
+              padding: EdgeInsets.only(
+                top: MediaQuery.textScalerOf(context).scale(236) + 24, 
+                bottom: 120,
+              ),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                  const SizedBox(height: 16),
 
                   // Status Image or Icon
                   Container(
@@ -347,41 +323,61 @@ class _DeviceConnectionScreenState extends State<DeviceConnectionScreen> {
 
                   // Connect / Disconnect Button
                   if (!service.isConnected)
-                    SizedBox(
-                      width: double.infinity,
-                      height: 56,
-                      child: ElevatedButton.icon(
-                        onPressed: service.isConnecting
-                            ? null
-                            : (service.connectionMode == ConnectionMode.bluetooth
-                                ? _showDeviceSelectionModal
-                                : _showWifiConnectionModal),
-                        icon: service.isConnecting
-                            ? const SizedBox(
-                                width: 20,
-                                height: 20,
-                                child: CircularProgressIndicator(
-                                  color: Colors.white,
-                                  strokeWidth: 2,
-                                ),
-                              )
-                            : const Icon(Icons.add_link_rounded),
-                        label: Text(
-                          service.isConnecting ? 'Menghubungkan...' : 'Tambahkan Device',
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
+                    Column(
+                      children: [
+                        SizedBox(
+                          width: double.infinity,
+                          height: 56,
+                          child: ElevatedButton.icon(
+                            onPressed: service.isConnecting
+                                ? null
+                                : (service.connectionMode == ConnectionMode.bluetooth
+                                    ? _showDeviceSelectionModal
+                                    : _showWifiConnectionModal),
+                            icon: service.isConnecting
+                                ? const SizedBox(
+                                    width: 20,
+                                    height: 20,
+                                    child: CircularProgressIndicator(
+                                      color: Colors.white,
+                                      strokeWidth: 2,
+                                    ),
+                                  )
+                                : const Icon(Icons.add_link_rounded),
+                            label: Text(
+                              service.isConnecting ? 'Menghubungkan...' : 'Tambahkan Device',
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF005CFF),
+                              foregroundColor: Colors.white,
+                              elevation: 0,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                            ),
                           ),
                         ),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF005CFF),
-                          foregroundColor: Colors.white,
-                          elevation: 0,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(20),
+                        if (service.isConnecting) ...[
+                          const SizedBox(height: 16),
+                          TextButton(
+                            onPressed: () => service.disconnect(),
+                            style: TextButton.styleFrom(
+                              foregroundColor: Colors.red.shade500,
+                            ),
+                            child: const Text(
+                              'Batal',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
                           ),
-                        ),
-                      ),
+                        ],
+                      ],
                     )
                   else ...[
                     // Send Ping Button
@@ -434,7 +430,48 @@ class _DeviceConnectionScreenState extends State<DeviceConnectionScreen> {
                 ],
               ),
             ),
+          ), // Closing SingleChildScrollView
+          Positioned(
+              top: 0,
+              left: 0,
+              right: 0,
+              child: WavyPageHeader(
+              title: 'Koneksi Device',
+              subtitle: 'Hubungkan Xploria App dengan Robot atau Perangkat IoT Anda.',
+              categoryPillsWidget: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
+                  ),
+                  padding: const EdgeInsets.all(4),
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        _buildToggleOption(
+                          title: 'Wi-Fi',
+                          icon: Icons.wifi,
+                          mode: ConnectionMode.wifi,
+                          service: service,
+                        ),
+                        _buildToggleOption(
+                          title: 'Bluetooth',
+                          icon: Icons.bluetooth,
+                          mode: ConnectionMode.bluetooth,
+                          service: service,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
           ),
+          ],
         );
       }
     );

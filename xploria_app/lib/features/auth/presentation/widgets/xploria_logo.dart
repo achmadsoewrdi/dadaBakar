@@ -59,7 +59,7 @@ class XploriaLogo extends StatelessWidget {
                   child: Container(
                     padding: EdgeInsets.all(4 * scale),
                     decoration: const BoxDecoration(
-                      color: Color(0xFF0A122C), // Cutout matching background
+                      color: Colors.white, // Cutout matching white theme
                       shape: BoxShape.circle,
                     ),
                     child: Icon(
@@ -73,7 +73,7 @@ class XploriaLogo extends StatelessWidget {
             ],
           ),
         ),
-        SizedBox(height: 16 * scale),
+        SizedBox(height: 4 * scale),
 
         // 2. Stylized logo text: "PLORIA" (using custom 'O' with dot)
         Row(
@@ -85,7 +85,7 @@ class XploriaLogo extends StatelessWidget {
               style: TextStyle(
                 fontSize: 34 * scale,
                 fontWeight: FontWeight.w900,
-                color: const Color(0xFF2ED9C3), // Mint green
+                color: Colors.white,
                 letterSpacing: 2.0 * scale,
                 fontFamily: 'Montserrat',
               ),
@@ -97,14 +97,14 @@ class XploriaLogo extends StatelessWidget {
               margin: EdgeInsets.symmetric(horizontal: 4 * scale),
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                border: Border.all(color: const Color(0xFF2ED9C3), width: 3.5 * scale),
+                border: Border.all(color: Colors.white, width: 3.5 * scale),
               ),
               child: Center(
                 child: Container(
-                  width: 5 * scale,
-                  height: 5 * scale,
+                  width: 6 * scale,
+                  height: 6 * scale,
                   decoration: const BoxDecoration(
-                    color: Color(0xFF2ED9C3),
+                    color: Colors.white,
                     shape: BoxShape.circle,
                   ),
                 ),
@@ -115,7 +115,7 @@ class XploriaLogo extends StatelessWidget {
               style: TextStyle(
                 fontSize: 34 * scale,
                 fontWeight: FontWeight.w900,
-                color: const Color(0xFF2ED9C3),
+                color: Colors.white,
                 letterSpacing: 2.0 * scale,
                 fontFamily: 'Montserrat',
               ),
@@ -123,16 +123,16 @@ class XploriaLogo extends StatelessWidget {
           ],
         ),
         SizedBox(height: 6 * scale),
-        // Slogan (hidden when scaled down significantly to avoid overcrowding)
-        if (scale > 0.8)
-          Text(
-            'Explore the fun of learning!',
-            style: TextStyle(
-              fontSize: 14 * scale,
-              color: Colors.white.withOpacity(0.7),
-              fontWeight: FontWeight.w600,
-            ),
+        // 3. Subtitle / Tagline
+        Text(
+          'Hardware & Robotik',
+          style: TextStyle(
+            fontSize: 14 * scale,
+            fontWeight: FontWeight.w600,
+            color: Colors.white.withOpacity(0.9),
+            letterSpacing: 4.0 * scale,
           ),
+        ),
       ],
     );
   }

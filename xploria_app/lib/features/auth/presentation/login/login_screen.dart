@@ -48,16 +48,7 @@ class _LoginFormContentState extends State<LoginFormContent> {
             _isLoading = false;
           });
 
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Login Berhasil! Selamat Datang, ${authResponse.user.fullName}'),
-              backgroundColor: const Color(0xFF005CFF),
-              behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
-            ),
-          );
+
 
           // Navigasi ke Dashboard Utama (Step 14)
           Navigator.pushReplacement(

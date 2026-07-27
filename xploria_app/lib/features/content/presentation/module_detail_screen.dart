@@ -27,19 +27,16 @@ class ModuleDetailScreen extends StatelessWidget {
             left: 0,
             right: 0,
             height: MediaQuery.of(context).size.height * 0.55,
-            child: Hero(
-              tag: 'module_img_${module.id}',
-              child: Container(
-                decoration: BoxDecoration(color: imageBgColor),
-                child: module.imageAsset != null
-                    ? Image.asset(
-                        module.imageAsset!,
-                        fit: BoxFit.cover,
-                      )
-                    : const Center(
-                        child: Icon(Icons.smart_toy_rounded, size: 80, color: Colors.white),
-                      ),
-              ),
+            child: Container(
+              decoration: BoxDecoration(color: imageBgColor),
+              child: module.imageAsset != null
+                  ? Image.asset(
+                      module.imageAsset!,
+                      fit: BoxFit.cover,
+                    )
+                  : const Center(
+                      child: Icon(Icons.smart_toy_rounded, size: 80, color: Colors.white),
+                    ),
             ),
           ),
 

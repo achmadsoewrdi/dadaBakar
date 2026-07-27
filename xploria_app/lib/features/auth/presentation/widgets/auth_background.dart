@@ -15,45 +15,51 @@ class AuthBackground extends StatelessWidget {
 
     return Stack(
       children: [
-        // 1. Premium Dark Navy Background
+        // 1. Vibrant Blue Gradient Background (matches Dashboard)
         Container(
           width: double.infinity,
           height: double.infinity,
-          color: const Color(0xFF0A122C),
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Color(0xFF00C2FF), Color(0xFF005CFF)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
         ),
 
-        // 2. Playful floating circles in logo colors (Blue & Teal)
-        // Top-right light blue/cyan bubble
+        // 2. Playful floating bubbles in semi-transparent white
+        // Top-right bubble
         AnimatedPositioned(
           duration: const Duration(milliseconds: 500),
           curve: Curves.fastOutSlowIn,
           top: dimBubbles ? -100 : -60,
           right: dimBubbles ? -120 : -60,
-          child: _buildBubble(size.width * 0.6, const Color(0xFF00C2FF).withOpacity(dimBubbles ? 0.15 : 0.35)),
+          child: _buildBubble(size.width * 0.6, Colors.white.withOpacity(dimBubbles ? 0.05 : 0.1)),
         ),
-        // Top-left soft teal bubble
+        // Top-left bubble
         AnimatedPositioned(
           duration: const Duration(milliseconds: 500),
           curve: Curves.fastOutSlowIn,
           top: dimBubbles ? 20 : 80,
           left: dimBubbles ? -90 : -50,
-          child: _buildBubble(110, const Color(0xFF00E3A2).withOpacity(0.15)),
+          child: _buildBubble(110, Colors.white.withOpacity(0.08)),
         ),
-        // Center-bottom large blue/violet bubble
+        // Center-bottom large bubble
         AnimatedPositioned(
           duration: const Duration(milliseconds: 500),
           curve: Curves.fastOutSlowIn,
           bottom: dimBubbles ? -size.height * 0.3 : -size.height * 0.1,
           left: -50,
-          child: _buildBubble(size.width * 0.8, const Color(0xFF005CFF).withOpacity(0.12)),
+          child: _buildBubble(size.width * 0.8, Colors.white.withOpacity(0.05)),
         ),
-        // Bottom-right teal/cyan bubble
+        // Bottom-right bubble
         AnimatedPositioned(
           duration: const Duration(milliseconds: 500),
           curve: Curves.fastOutSlowIn,
           bottom: dimBubbles ? -50 : 30,
           right: dimBubbles ? -60 : -20,
-          child: _buildBubble(90, const Color(0xFF00E3A2).withOpacity(dimBubbles ? 0.15 : 0.25)),
+          child: _buildBubble(90, Colors.white.withOpacity(dimBubbles ? 0.05 : 0.1)),
         ),
 
         // Main content
