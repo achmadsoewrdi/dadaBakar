@@ -524,7 +524,7 @@ Blockly.Blocks['event_when_start'] = {
 };
 
 Blockly.Python['event_when_start'] = function (block) {
-    return `def on_start():\n`;
+    return `# Program dimulai\n`;
 };
 // ==========================================================================
 // 🔌 PIN BLOCKS (Hardware I/O)

@@ -2,10 +2,13 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/services/device_connection_service.dart';
+import '../../device/presentation/device_connection_screen.dart';
 import '../data/blockly_bridge.dart';
 import '../domain/workspace_state.dart';
 import '../../projects/domain/models/project_model.dart';
 import '../../iot_blynk/presentation/screens/blynk_canvas_screen.dart';
+import 'python_editor_screen.dart';
 
 class BlocklyWorkspaceScreen extends StatefulWidget {
   final Function(String pythonCode)? onRunCode;
@@ -21,36 +24,11 @@ class _BlocklyWorkspaceScreenState extends State<BlocklyWorkspaceScreen> {
   WorkspaceState _state = const WorkspaceState();
   String _projectName = 'Project';
 
-  // Flag status koneksi device
-  bool _isDeviceConnected = false;
-
-  // TODO: Integrasikan fungsi ini dengan SDK/Package Bluetooth/WiFi nyata nantinya
-  void _connectToDevice() async {
-    // Tampilkan indikator proses menghubungkan
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Mencari dan menghubungkan ke device...'),
-        duration: Duration(seconds: 2),
-      ),
+  void _navigateToConnection() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const DeviceConnectionScreen()),
     );
-
-    // Simulasi delay koneksi (2 detik)
-    await Future.delayed(const Duration(seconds: 2));
-
-    // Update state menjadi terkoneksi
-    if (mounted) {
-      setState(() {
-        _isDeviceConnected = true;
-      });
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Berhasil terhubung ke device!'),
-          backgroundColor: Colors.green,
-          duration: Duration(seconds: 2),
-        ),
-      );
-    }
   }
 
   void _editProjectName() {
@@ -237,62 +215,7 @@ class _BlocklyWorkspaceScreenState extends State<BlocklyWorkspaceScreen> {
       ..loadFlutterAsset('assets/blockly/index.html');
   }
 
-  void _showPythonCodeModal() {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
-      builder: (context) {
-        return Container(
-          padding: const EdgeInsets.all(16),
-          height: MediaQuery.of(context).size.height * 0.4,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    'Generated Python Code',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.close),
-                    onPressed: () => Navigator.pop(context),
-                  ),
-                ],
-              ),
-              const Divider(),
-              Expanded(
-                child: SingleChildScrollView(
-                  child: Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF1E1E1E),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      _state.pythonCode.isEmpty
-                          ? '# Susun blok untuk menghasilkan kode'
-                          : _state.pythonCode,
-                      style: const TextStyle(
-                        fontFamily: 'monospace',
-                        color: Color(0xFF9CDCFE),
-                        fontSize: 13,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -311,7 +234,7 @@ class _BlocklyWorkspaceScreenState extends State<BlocklyWorkspaceScreen> {
               vertical: 6.0,
             ),
             decoration: BoxDecoration(
-              color: AppColors.primaryLight.withOpacity(0.2),
+              color: AppColors.primaryLight.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Row(
@@ -342,60 +265,78 @@ class _BlocklyWorkspaceScreenState extends State<BlocklyWorkspaceScreen> {
           IconButton(
             icon: const Icon(Icons.code, color: Colors.white),
             tooltip: 'Lihat Kode Python',
-            onPressed: _showPythonCodeModal,
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => PythonEditorScreen(
+                    initialCode: _state.pythonCode,
+                  ),
+                ),
+              );
+            },
           ),
           // Tombol Connect atau Run tergantung status koneksi
           Padding(
             padding: const EdgeInsets.only(right: 12.0),
-            child: _isDeviceConnected
-                ? ElevatedButton.icon(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.success,
-                      foregroundColor: Colors.white,
-                      elevation: 0,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                    ),
-                    icon: const Icon(Icons.play_arrow, size: 20),
-                    label: const Text(
-                      'Run',
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    onPressed: _state.pythonCode.trim().isEmpty
-                        ? null
-                        : () {
-                            if (widget.onRunCode != null) {
-                              widget.onRunCode!(_state.pythonCode);
-                            }
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text(
-                                  'Mengirim kode Python ke device...',
-                                ),
-                                duration: Duration(seconds: 2),
-                              ),
-                            );
-                          },
-                  )
-                : ElevatedButton.icon(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.accent,
-                      foregroundColor: Colors.white,
-                      elevation: 0,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                    ),
-                    icon: const Icon(Icons.bluetooth, size: 20),
-                    label: const Text(
-                      'Connect',
-                      style: TextStyle(fontWeight: FontWeight.w900),
-                    ),
-                    onPressed: _connectToDevice,
-                  ),
+            child: ListenableBuilder(
+              listenable: DeviceConnectionService.instance,
+              builder: (context, _) {
+                final isDeviceConnected = DeviceConnectionService.instance.isConnected;
+                return isDeviceConnected
+                    ? ElevatedButton.icon(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.success,
+                          foregroundColor: Colors.white,
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                        ),
+                        icon: const Icon(Icons.play_arrow, size: 20),
+                        label: const Text(
+                          'Run',
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        onPressed: _state.pythonCode.trim().isEmpty
+                            ? null
+                            : () {
+                                if (widget.onRunCode != null) {
+                                  widget.onRunCode!(_state.pythonCode);
+                                }
+                                // Send payload using the shared connection service
+                                DeviceConnectionService.instance.sendData(_state.pythonCode);
+                                
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text(
+                                      'Mengirim kode ke device...',
+                                    ),
+                                    duration: Duration(seconds: 2),
+                                  ),
+                                );
+                              },
+                      )
+                    : ElevatedButton.icon(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.accent,
+                          foregroundColor: Colors.white,
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                        ),
+                        icon: const Icon(Icons.link, size: 20),
+                        label: const Text(
+                          'Connect',
+                          style: TextStyle(fontWeight: FontWeight.w900),
+                        ),
+                        onPressed: _navigateToConnection,
+                      );
+              },
+            ),
           ),
         ],
       ),

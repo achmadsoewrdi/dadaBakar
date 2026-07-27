@@ -4,6 +4,7 @@ import '../../auth/presentation/welcome/welcome_screen.dart';
 import '../../blockly_workspace/presentation/blockly_workspace_screen.dart';
 import '../../projects/domain/models/project_model.dart';
 import '../../devices/domain/models/device_profile_model.dart';
+import '../../device/presentation/device_connection_screen.dart';
 import '../../content/domain/models/learning_module_model.dart';
 import '../../content/presentation/module_detail_screen.dart';
 import '../../iot_blynk/presentation/screens/blynk_canvas_screen.dart';
@@ -304,7 +305,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               children: [
                 RepaintBoundary(child: _buildHomeDashboard(userName)),
                 RepaintBoundary(child: _buildLearningModulesTab(user)),
-                RepaintBoundary(child: _buildDeviceProfilesTab(user)),
+                const RepaintBoundary(child: DeviceConnectionScreen()),
                 RepaintBoundary(child: _buildUserProfileTab(user)),
               ],
             ),
@@ -390,14 +391,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       ],
                     ),
                   ),
-                  if (topActionWidget != null) topActionWidget,
+                  ?topActionWidget,
                 ],
               ),
             ),
-            if (categoryPillsWidget != null) ...[
-              const SizedBox(height: 18),
-              categoryPillsWidget,
-            ],
+            if (categoryPillsWidget != null) const SizedBox(height: 18),
+            ?categoryPillsWidget,
           ],
         ),
       ),
@@ -1135,7 +1134,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       ),
                       const SizedBox(width: 8),
                       // Level Badge
-                      if (module.stepsJson.containsKey('level'))
+                      if (module.stepsJson['level'] != null)
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                           decoration: BoxDecoration(
@@ -1184,163 +1183,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ],
         ),
       ),
-    );
-  }
-
-  // Cute Vector Illustration at bottom right of each card (Matching Reference Image)
-  Widget _buildCuteCardIllustration(int index, Color accentColor) {
-    final icons = [
-      Icons.emoji_objects_rounded, // Bulb / Sensor
-      Icons.smart_toy_rounded,     // Robot
-      Icons.wifi_tethering_rounded,// Radio / Wireless
-      Icons.sports_esports_rounded,// Game controller
-      Icons.auto_awesome_rounded,  // Stars / Wand
-    ];
-    final icon = icons[index % icons.length];
-
-    return SizedBox(
-      width: 100,
-      height: 90,
-      child: Stack(
-        alignment: Alignment.bottomRight,
-        children: [
-          // Green Grassy Mound Curve at bottom right
-          Positioned(
-            right: -20,
-            bottom: -25,
-            child: Container(
-              width: 110,
-              height: 70,
-              decoration: BoxDecoration(
-                color: accentColor.withValues(alpha: 0.25),
-                borderRadius: BorderRadius.circular(50),
-              ),
-            ),
-          ),
-
-          // Floating Cute Mascot / Icon
-          Positioned(
-            right: 12,
-            bottom: 12,
-            child: Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                shape: BoxShape.circle,
-                boxShadow: [
-                  BoxShadow(
-                    color: accentColor.withValues(alpha: 0.2),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: Icon(icon, color: accentColor, size: 30),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // --- 3. DEVICE PROFILES TAB (DEVICE_PROFILES Table - Wavy Header) ---
-  Widget _buildDeviceProfilesTab(dynamic user) {
-    final topInset = MediaQuery.of(context).padding.top;
-
-    return Stack(
-      children: [
-        SingleChildScrollView(
-          physics: const ClampingScrollPhysics(),
-          padding: EdgeInsets.only(top: topInset + 200, bottom: 120),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SizedBox(height: 12),
-                ..._deviceProfiles.map((dev) {
-                  final isWebSocket = dev.protocol == 'websocket';
-
-                  return HoverCard(
-                    margin: const EdgeInsets.only(bottom: 16),
-                    onTap: () => _showFeatureSnackbar('Profil Perangkat: ${dev.label}'),
-                    child: Container(
-                      padding: const EdgeInsets.all(20),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(24),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.03),
-                            blurRadius: 10,
-                          ),
-                        ],
-                      ),
-                      child: Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color: isWebSocket
-                                  ? const Color(0xFF005CFF).withValues(alpha: 0.1)
-                                  : const Color(0xFF00C2FF).withValues(alpha: 0.1),
-                              borderRadius: BorderRadius.circular(16),
-                            ),
-                            child: Icon(
-                              isWebSocket ? Icons.wifi_rounded : Icons.bluetooth_rounded,
-                              color: isWebSocket ? const Color(0xFF005CFF) : const Color(0xFF00C2FF),
-                              size: 26,
-                            ),
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  dev.label,
-                                  style: const TextStyle(
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.bold,
-                                    color: Color(0xFF0A122C),
-                                  ),
-                                ),
-                                Text(
-                                  isWebSocket ? '${dev.host}:${dev.port}' : (dev.macAddress ?? 'N/A'),
-                                  style: TextStyle(fontSize: 12, color: Colors.grey.shade600, fontFamily: 'monospace'),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const Icon(Icons.check_circle_rounded, color: Color(0xFF2ED9C3), size: 24),
-                        ],
-                      ),
-                    ),
-                  );
-                }),
-              ],
-            ),
-          ),
-        ),
-        Positioned(
-          top: 0,
-          left: 0,
-          right: 0,
-          child: _buildWavyPageHeader(
-            title: 'Device Profiles',
-            subtitle: 'Kelola koneksi hardware WebSocket & BLE',
-            topActionWidget: IconButton(
-              icon: const Icon(Icons.add_link_rounded, color: Colors.white, size: 28),
-              onPressed: () => _showAddDeviceModal(context),
-            ),
-            categoryPillsWidget: _buildHeaderCategoryPills(
-              ['Semua', 'WebSocket', 'Bluetooth'],
-              0,
-              (idx) {},
-            ),
-          ),
-        ),
-      ],
     );
   }
 
@@ -1625,10 +1467,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
         ),
       ),
     );
-  }
-
-  void _showAddDeviceModal(BuildContext context) {
-    _showFeatureSnackbar('Form Tambah Device Profile (WebSocket / Bluetooth)');
   }
 
   Widget _buildModalOption(

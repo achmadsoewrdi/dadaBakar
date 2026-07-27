@@ -71,7 +71,44 @@ function clearWorkspace() {
 
 // Flutter WebViewController Bridge Listener
 function notifyFlutter() {
-    const pythonCode = Blockly.Python.workspaceToCode(workspace);
+    let pythonCode = Blockly.Python.workspaceToCode(workspace);
+    
+    // Injeksi otomatis import library standar Exploria di baris paling atas
+    if (pythonCode.trim() !== "") {
+        const standardImports = 
+            "import time\n" +
+            "import math\n" +
+            "import warnings\n" +
+            "warnings.simplefilter('ignore')\n" +
+            "try:\n" +
+            "    import audio\n" +
+            "    import led\n" +
+            "    import motor\n" +
+            "    import sensor\n" +
+            "    import pin\n" +
+            "    import display\n" +
+            "    import motion\n" +
+            "    import lan\n" +
+            "    import ai\n" +
+            "except ImportError:\n" +
+            "    class MockDevice:\n" +
+            "        def __getattr__(self, name):\n" +
+            "            def method(*args, **kwargs):\n" +
+            "                print(f'[MOCK] Dipanggil: {name}{args}')\n" +
+            "                return 0\n" +
+            "            return method\n" +
+            "    audio = MockDevice()\n" +
+            "    led = MockDevice()\n" +
+            "    motor = MockDevice()\n" +
+            "    sensor = MockDevice()\n" +
+            "    pin = MockDevice()\n" +
+            "    display = MockDevice()\n" +
+            "    motion = MockDevice()\n" +
+            "    lan = MockDevice()\n" +
+            "    ai = MockDevice()\n\n";
+        pythonCode = standardImports + pythonCode;
+    }
+
     const xmlDom = Blockly.Xml.workspaceToDom(workspace);
     const xmlText = Blockly.Xml.domToText(xmlDom);
 
