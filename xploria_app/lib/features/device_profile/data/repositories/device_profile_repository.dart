@@ -1,6 +1,6 @@
 import '../../domain/repositories/i_device_profile_repository.dart';
-import '../../../devices/domain/models/device_profile_model.dart';
-import '../../../auth/data/services/auth_storage_service.dart';
+import '../../../device_profile/domain/models/device_profile_model.dart';
+import '../../../auth/data/data_sources/auth_storage_service.dart';
 
 class DeviceProfileRepository implements IDeviceProfileRepository {
   @override
@@ -30,3 +30,4 @@ class DeviceProfileRepository implements IDeviceProfileRepository {
     ];
   }
 }
+

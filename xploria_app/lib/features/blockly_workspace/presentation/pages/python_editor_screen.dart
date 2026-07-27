@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import '../../../core/theme/app_colors.dart';
-import '../../../core/services/device_connection_service.dart';
-import '../../device/presentation/device_connection_screen.dart';
+import '../../../../core/theme/app_colors.dart';
+import '../../../../core/services/device_connection_service.dart';
+import '../../../device/presentation/pages/device_connection_screen.dart';
 
 class PythonEditorScreen extends StatefulWidget {
   final String initialCode;
@@ -316,3 +316,4 @@ class _PythonEditorScreenState extends State<PythonEditorScreen> {
     );
   }
 }
+

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import '../../dashboard/data/repositories/dashboard_repository.dart';
-import '../../dashboard/presentation/widgets/dashboard_shared_widgets.dart';
-import '../domain/models/project_model.dart';
-import '../../blockly_workspace/presentation/blockly_workspace_screen.dart';
+import '../../../dashboard/data/repositories/dashboard_repository.dart';
+import '../../../dashboard/presentation/widgets/dashboard_shared_widgets.dart';
+import '../../domain/models/project_model.dart';
+import '../../../blockly_workspace/presentation/pages/blockly_workspace_screen.dart';
 // import '../../iot_blynk/presentation/screens/blynk_canvas_screen.dart';
 
 class ProjectListScreen extends StatefulWidget {
@@ -338,3 +338,4 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
     );
   }
 }
+

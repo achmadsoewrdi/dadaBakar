@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:xploria_app/features/auth/presentation/welcome/welcome_screen.dart';
+import 'package:xploria_app/features/auth/presentation/pages/welcome_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -107,3 +107,4 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 }
+

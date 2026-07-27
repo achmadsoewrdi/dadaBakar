@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../../auth/data/services/auth_storage_service.dart';
-import '../../../auth/presentation/welcome/welcome_screen.dart';
+import '../../../auth/data/data_sources/auth_storage_service.dart';
+import '../../../auth/presentation/pages/welcome_screen.dart';
 import '../../../auth/domain/models/user_model.dart';
 import '../../../dashboard/presentation/widgets/dashboard_shared_widgets.dart';
 import '../../data/repositories/account_repository.dart';
@@ -121,8 +121,7 @@ class _AccountPageState extends State<AccountPage> {
             clipper: WaveHeaderClipper(),
             child: Container(
               width: double.infinity,
-              height: MediaQuery.textScalerOf(context).scale(236),
-              padding: EdgeInsets.only(top: topPadding - 10, bottom: 30),
+              padding: EdgeInsets.only(top: topPadding - 10, bottom: 50),
               decoration: const BoxDecoration(
                 gradient: LinearGradient(
                   colors: [Color(0xFF005CFF), Color(0xFF00C2FF)],
@@ -244,3 +243,4 @@ class _AccountPageState extends State<AccountPage> {
     );
   }
 }
+

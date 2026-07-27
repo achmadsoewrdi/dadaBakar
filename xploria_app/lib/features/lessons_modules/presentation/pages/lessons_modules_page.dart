@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
-import '../../../auth/data/services/auth_storage_service.dart';
+import '../../../auth/data/data_sources/auth_storage_service.dart';
 import '../../../content/domain/models/learning_module_model.dart';
-import '../../../content/presentation/module_detail_screen.dart';
+import '../../../content/presentation/pages/module_detail_screen.dart';
 import '../../../dashboard/presentation/widgets/dashboard_shared_widgets.dart';
 import '../../data/repositories/lessons_repository.dart';
 
@@ -253,3 +253,4 @@ class _LessonsModulesPageState extends State<LessonsModulesPage> {
     );
   }
 }
+

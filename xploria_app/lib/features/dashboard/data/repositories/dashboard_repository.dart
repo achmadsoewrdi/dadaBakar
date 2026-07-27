@@ -1,8 +1,8 @@
 import '../../domain/repositories/i_dashboard_repository.dart';
 import '../../../projects/domain/models/project_model.dart';
-import '../../../devices/domain/models/device_profile_model.dart';
+import '../../../device_profile/domain/models/device_profile_model.dart';
 import '../../../content/domain/models/learning_module_model.dart';
-import '../../../auth/data/services/auth_storage_service.dart';
+import '../../../auth/data/data_sources/auth_storage_service.dart';
 
 class DashboardRepository implements IDashboardRepository {
   @override
@@ -112,3 +112,4 @@ class DashboardRepository implements IDashboardRepository {
     ];
   }
 }
+

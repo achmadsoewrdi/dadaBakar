@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import '../widgets/xploria_logo.dart';
 import '../widgets/auth_background.dart';
-import '../login/login_screen.dart';
-import '../register/register_screen.dart';
+import '../pages/login_screen.dart';
+import '../pages/register_screen.dart';
 
 enum AuthMode { welcome, login, register }
 
@@ -238,3 +238,4 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
     );
   }
 }
+

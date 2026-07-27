@@ -1,11 +1,11 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
-import '../../../core/theme/app_colors.dart';
-import '../../../core/services/device_connection_service.dart';
-import '../../device/presentation/device_connection_screen.dart';
-import '../data/blockly_bridge.dart';
-import '../domain/workspace_state.dart';
+import '../../../../core/theme/app_colors.dart';
+import '../../../../core/services/device_connection_service.dart';
+import '../../../device/presentation/pages/device_connection_screen.dart';
+import '../../data/blockly_bridge.dart';
+import '../../domain/workspace_state.dart';
 import 'python_editor_screen.dart';
 
 class BlocklyWorkspaceScreen extends StatefulWidget {
@@ -273,3 +273,4 @@ class _BlocklyWorkspaceScreenState extends State<BlocklyWorkspaceScreen> {
     );
   }
 }
+

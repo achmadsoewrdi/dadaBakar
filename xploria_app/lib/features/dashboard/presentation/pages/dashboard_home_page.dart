@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 
-import '../../../blockly_workspace/presentation/blockly_workspace_screen.dart';
+import '../../../blockly_workspace/presentation/pages/blockly_workspace_screen.dart';
 // import '../../../iot_blynk/presentation/screens/blynk_canvas_screen.dart';
 import '../../../projects/domain/models/project_model.dart';
-import '../../../projects/presentation/project_list_screen.dart';
-import '../../../devices/domain/models/device_profile_model.dart';
+import '../../../projects/presentation/pages/project_list_screen.dart';
+import '../../../device_profile/domain/models/device_profile_model.dart';
 import '../../../content/domain/models/learning_module_model.dart';
 import '../../data/repositories/dashboard_repository.dart';
 import '../widgets/dashboard_shared_widgets.dart';
@@ -459,3 +459,4 @@ class _DashboardHomePageState extends State<DashboardHomePage> {
     );
   }
 }
+

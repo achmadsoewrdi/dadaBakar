@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../../core/services/device_connection_service.dart';
-import '../../dashboard/presentation/widgets/dashboard_shared_widgets.dart';
+import '../../../../core/services/device_connection_service.dart';
+import '../../../dashboard/presentation/widgets/dashboard_shared_widgets.dart';
 
 class DeviceConnectionScreen extends StatefulWidget {
   const DeviceConnectionScreen({super.key});

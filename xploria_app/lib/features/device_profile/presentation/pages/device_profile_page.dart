@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../devices/domain/models/device_profile_model.dart';
+import '../../../device_profile/domain/models/device_profile_model.dart';
 import '../../../dashboard/presentation/widgets/dashboard_shared_widgets.dart';
 import '../../data/repositories/device_profile_repository.dart';
 
@@ -153,3 +153,4 @@ class _DeviceProfilePageState extends State<DeviceProfilePage> {
     );
   }
 }
+

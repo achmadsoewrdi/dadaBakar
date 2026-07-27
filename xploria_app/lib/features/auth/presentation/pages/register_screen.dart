@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import '../widgets/custom_text_field.dart';
 import '../widgets/google_sign_in_button.dart';
-import '../welcome/welcome_screen.dart';
-import '../../data/auth_repository_impl.dart';
-import '../../../dashboard/presentation/dashboard_screen.dart';
+import '../pages/welcome_screen.dart';
+import '../../data/repositories/auth_repository_impl.dart';
+import '../../../dashboard/presentation/pages/dashboard_screen.dart';
 
 class RegisterFormContent extends StatefulWidget {
   final VoidCallback onSwitchToLogin;
@@ -367,3 +367,4 @@ class RegisterScreen extends StatelessWidget {
     return const WelcomeScreen(initialMode: AuthMode.register);
   }
 }
+

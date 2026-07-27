@@ -1,5 +1,5 @@
-import '../domain/models/auth_response_model.dart';
-import 'services/auth_api_service.dart';
+import '../../domain/models/auth_response_model.dart';
+import '../data_sources/auth_api_service.dart';
 
 class AuthRepositoryImpl {
   final AuthApiService _apiService = AuthApiService();
@@ -24,3 +24,4 @@ class AuthRepositoryImpl {
     return _apiService.loginWithGoogle(idToken: idToken);
   }
 }
+

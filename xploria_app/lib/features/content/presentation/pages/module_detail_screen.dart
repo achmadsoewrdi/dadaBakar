@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../content/domain/models/learning_module_model.dart';
+import '../../../content/domain/models/learning_module_model.dart';
 
 class ModuleDetailScreen extends StatelessWidget {
   final LearningModuleModel module;

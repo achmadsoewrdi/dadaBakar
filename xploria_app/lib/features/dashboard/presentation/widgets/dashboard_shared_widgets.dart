@@ -104,17 +104,13 @@ class WavyPageHeader extends StatelessWidget {
     final topInset = MediaQuery.of(context).padding.top;
     final topPadding = topInset > 0 ? topInset + 20 : 54.0;
     
-    // Scale wave height dynamically based on user's system font size to prevent overflow
-    final textScaler = MediaQuery.textScalerOf(context);
-    final waveHeight = textScaler.scale(236);
 
     return RepaintBoundary(
       child: ClipPath(
         clipper: WaveHeaderClipper(),
         child: Container(
           width: double.infinity,
-          height: waveHeight,
-          padding: EdgeInsets.only(top: topPadding, bottom: 44),
+          padding: EdgeInsets.only(top: topPadding, bottom: 64),
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: colors,

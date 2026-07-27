@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import '../../auth/data/services/auth_storage_service.dart';
-import '../../blockly_workspace/presentation/blockly_workspace_screen.dart';
+import '../../../auth/data/data_sources/auth_storage_service.dart';
+import '../../../blockly_workspace/presentation/pages/blockly_workspace_screen.dart';
 
-import 'pages/dashboard_home_page.dart';
-import '../../lessons_modules/presentation/pages/lessons_modules_page.dart';
-import '../../device/presentation/device_connection_screen.dart';
-import '../../account/presentation/pages/account_page.dart';
+import '../pages/dashboard_home_page.dart';
+import '../../../lessons_modules/presentation/pages/lessons_modules_page.dart';
+import '../../../device/presentation/pages/device_connection_screen.dart';
+import '../../../account/presentation/pages/account_page.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -327,3 +327,4 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 }
+
