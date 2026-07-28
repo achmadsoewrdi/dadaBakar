@@ -93,6 +93,10 @@ try:
 except:
     _IS_ESP = False
 
+if not _IS_ESP:
+    import os
+    os.environ["GPIOZERO_PIN_FACTORY"] = "lgpio"
+
 class SensorHAL:
     def __init__(self):
         if _IS_ESP:
@@ -109,7 +113,11 @@ class SensorHAL:
                 self.adafruit_dht = adafruit_dht
                 self.board = board
             except ImportError:
-                pass
+                print("\\n[ERROR] Library gpiozero tidak ditemukan!")
+                print("Untuk Orange Pi, pastikan Anda telah menjalankan:")
+                print("sudo apt update && sudo apt install python3-gpiozero python3-lgpio")
+                print("export GPIOZERO_PIN_FACTORY=lgpio\\n")
+                sys.exit(1)
             self._pins = {}
 
     def _get_digital_in(self, p, pull_up=False):
@@ -183,7 +191,11 @@ class PinHAL:
                 self.DigitalOutputDevice = DigitalOutputDevice
                 self.DigitalInputDevice = DigitalInputDevice
             except ImportError:
-                pass
+                print("\\n[ERROR] Library gpiozero tidak ditemukan!")
+                print("Untuk Orange Pi, pastikan Anda telah menjalankan:")
+                print("sudo apt update && sudo apt install python3-gpiozero python3-lgpio")
+                print("export GPIOZERO_PIN_FACTORY=lgpio\\n")
+                sys.exit(1)
         self._pins = {}
 
     def set_digital(self, p, state):
@@ -206,7 +218,11 @@ class MotorHAL:
                 from gpiozero import Servo
                 self.Servo = Servo
             except ImportError:
-                pass
+                print("\\n[ERROR] Library gpiozero tidak ditemukan!")
+                print("Untuk Orange Pi, pastikan Anda telah menjalankan:")
+                print("sudo apt update && sudo apt install python3-gpiozero python3-lgpio")
+                print("export GPIOZERO_PIN_FACTORY=lgpio\\n")
+                sys.exit(1)
         self._pins = {}
 
     def set_servo(self, p, degree):
@@ -240,7 +256,7 @@ ai = MockDevice()
 # ----------------------------------------------
 
 \n`;
-        pythonCode = standardImports + pythonCode;
+        pythonCode = standardImports + pythonCode + "\n# Menjaga program tetap hidup\nwhile True:\n    time.sleep(1)\n";
     }
 
     const xmlDom = Blockly.Xml.workspaceToDom(workspace);

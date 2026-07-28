@@ -78,9 +78,12 @@ class DeviceConnectionService extends ChangeNotifier {
       List<BluetoothDevice> devices = await FlutterBluetoothSerial.instance.getBondedDevices();
       _devicesList = devices;
       for (var dev in devices) {
-        if (dev.name != null && dev.name!.toLowerCase().contains('xploria')) {
-          _selectedDevice = dev;
-          break;
+        if (dev.name != null) {
+          final nameLower = dev.name!.toLowerCase();
+          if (nameLower.contains('xploria') || nameLower.contains('orange') || nameLower.contains('jeruk')) {
+            _selectedDevice = dev;
+            break;
+          }
         }
       }
       notifyListeners();
@@ -150,18 +153,18 @@ class DeviceConnectionService extends ChangeNotifier {
     notifyListeners();
 
     try {
-      String urlStr = address;
+      final cleanAddress = address.trim();
+      final cleanPort = port.trim();
+      String urlStr = cleanAddress;
       if (!urlStr.startsWith('ws://') && !urlStr.startsWith('wss://')) {
-        urlStr = 'ws://$address';
+        urlStr = 'ws://$cleanAddress';
       }
-      if (port.isNotEmpty && !urlStr.contains(':$port')) {
-        urlStr = '$urlStr:$port';
+      if (cleanPort.isNotEmpty && !urlStr.contains(':$cleanPort')) {
+        urlStr = '$urlStr:$cleanPort';
       }
 
       final wsUrl = Uri.parse(urlStr);
       _webSocketChannel = WebSocketChannel.connect(wsUrl);
-      
-      await _webSocketChannel!.ready; 
 
       _isConnected = true;
       _isConnecting = false;
@@ -231,7 +234,7 @@ class DeviceConnectionService extends ChangeNotifier {
     final trimmedCommand = command.trim();
     if (trimmedCommand.isEmpty) return;
 
-    // Wrap the command in a JSON payload matching the Raspberry Pi server
+    // Wrap the command in a JSON payload matching the Raspberry Pi / Orange Pi server
     final String jsonPayload = jsonEncode({
       "type": "run",
       "code": trimmedCommand,

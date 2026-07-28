@@ -126,7 +126,7 @@ class _DashboardHomePageState extends State<DashboardHomePage> {
             subtitle: 'Selamat datang di Dashboard Xploria!',
             gradientColors: const [Color(0xFF005CFF), Color(0xFF00C2FF)],
             categoryPillsWidget: HeaderCategoryPills(
-              categories: const ['Semua', 'Proyek'],
+              categories: const ['Dashboard', 'Proyek'],
               selectedIndex: 0,
               onSelect: (idx) {
                 if (idx == 1) {

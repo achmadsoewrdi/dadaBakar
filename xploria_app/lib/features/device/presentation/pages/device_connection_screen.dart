@@ -3,7 +3,9 @@ import '../../../../core/services/device_connection_service.dart';
 import '../../../dashboard/presentation/widgets/dashboard_shared_widgets.dart';
 
 class DeviceConnectionScreen extends StatefulWidget {
-  const DeviceConnectionScreen({super.key});
+  final bool showBackButton;
+
+  const DeviceConnectionScreen({super.key, this.showBackButton = false});
 
   @override
   State<DeviceConnectionScreen> createState() => _DeviceConnectionScreenState();
@@ -250,227 +252,234 @@ class _DeviceConnectionScreenState extends State<DeviceConnectionScreen> {
       listenable: DeviceConnectionService.instance,
       builder: (context, _) {
         final service = DeviceConnectionService.instance;
-        return Stack(
-          children: [
-            SingleChildScrollView(
-              physics: const ClampingScrollPhysics(),
-              padding: EdgeInsets.only(
-                top: MediaQuery.textScalerOf(context).scale(236) + 24, 
-                bottom: 120,
-              ),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                  const SizedBox(height: 16),
-
-                  // Status Image or Icon
-                  Container(
-                    width: 140,
-                    height: 140,
-                    decoration: BoxDecoration(
-                      color: service.isConnected
-                          ? const Color(0xFFE8F5E9)
-                          : service.isConnecting
-                              ? const Color(0xFFFFF3E0)
-                              : const Color(0xFFE0F2FE),
-                      shape: BoxShape.circle,
-                    ),
-                    child: Center(
-                      child: Icon(
-                        service.isConnected
-                            ? (service.connectionMode == ConnectionMode.bluetooth ? Icons.bluetooth_connected_rounded : Icons.wifi)
-                            : service.isConnecting
-                                ? (service.connectionMode == ConnectionMode.bluetooth ? Icons.bluetooth_searching_rounded : Icons.wifi_find)
-                                : (service.connectionMode == ConnectionMode.bluetooth ? Icons.bluetooth_disabled_rounded : Icons.wifi_off_rounded),
-                        size: 60,
+        return Scaffold(
+          backgroundColor: Colors.white,
+          body: Stack(
+            children: [
+              SingleChildScrollView(
+                physics: const ClampingScrollPhysics(),
+                padding: EdgeInsets.only(
+                  top: MediaQuery.textScalerOf(context).scale(widget.showBackButton ? 266 : 236) + 24, 
+                  bottom: 120,
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                    const SizedBox(height: 16),
+  
+                    // Status Image or Icon
+                    Container(
+                      width: 140,
+                      height: 140,
+                      decoration: BoxDecoration(
                         color: service.isConnected
-                            ? Colors.green
+                            ? const Color(0xFFE8F5E9)
                             : service.isConnecting
-                                ? Colors.orange
-                                : const Color(0xFF005CFF),
+                                ? const Color(0xFFFFF3E0)
+                                : const Color(0xFFE0F2FE),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Center(
+                        child: Icon(
+                          service.isConnected
+                              ? (service.connectionMode == ConnectionMode.bluetooth ? Icons.bluetooth_connected_rounded : Icons.wifi)
+                              : service.isConnecting
+                                  ? (service.connectionMode == ConnectionMode.bluetooth ? Icons.bluetooth_searching_rounded : Icons.wifi_find)
+                                  : (service.connectionMode == ConnectionMode.bluetooth ? Icons.bluetooth_disabled_rounded : Icons.wifi_off_rounded),
+                          size: 60,
+                          color: service.isConnected
+                              ? Colors.green
+                              : service.isConnecting
+                                  ? Colors.orange
+                                  : const Color(0xFF005CFF),
+                        ),
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 32),
-
-                  // Status Text
-                  Text(
-                    service.isConnected
-                        ? "Tersambung ke ${service.connectionMode == ConnectionMode.bluetooth ? service.selectedDevice?.name ?? 'Device' : service.connectedIp}"
-                        : "Belum ada device tersambung",
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w900,
-                      color: Color(0xFF0A122C),
-                      height: 1.2,
+                    const SizedBox(height: 32),
+  
+                    // Status Text
+                    Text(
+                      service.isConnected
+                          ? "Tersambung ke ${service.connectionMode == ConnectionMode.bluetooth ? service.selectedDevice?.name ?? 'Device' : service.connectedIp}"
+                          : "Belum ada device tersambung",
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w900,
+                        color: Color(0xFF0A122C),
+                        height: 1.2,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    service.statusMessage,
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
-                      color: Colors.grey.shade600,
+                    const SizedBox(height: 8),
+                    Text(
+                      service.statusMessage,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.grey.shade600,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 48),
-
-                  // Connect / Disconnect Button
-                  if (!service.isConnected)
-                    Column(
-                      children: [
-                        SizedBox(
-                          width: double.infinity,
-                          height: 56,
-                          child: ElevatedButton.icon(
-                            onPressed: service.isConnecting
-                                ? null
-                                : (service.connectionMode == ConnectionMode.bluetooth
-                                    ? _showDeviceSelectionModal
-                                    : _showWifiConnectionModal),
-                            icon: service.isConnecting
-                                ? const SizedBox(
-                                    width: 20,
-                                    height: 20,
-                                    child: CircularProgressIndicator(
-                                      color: Colors.white,
-                                      strokeWidth: 2,
-                                    ),
-                                  )
-                                : const Icon(Icons.add_link_rounded),
-                            label: Text(
-                              service.isConnecting ? 'Menghubungkan...' : 'Tambahkan Device',
-                              style: const TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
+                    const SizedBox(height: 48),
+  
+                    // Connect / Disconnect Button
+                    if (!service.isConnected)
+                      Column(
+                        children: [
+                          SizedBox(
+                            width: double.infinity,
+                            height: 56,
+                            child: ElevatedButton.icon(
+                              onPressed: service.isConnecting
+                                  ? null
+                                  : (service.connectionMode == ConnectionMode.bluetooth
+                                      ? _showDeviceSelectionModal
+                                      : _showWifiConnectionModal),
+                              icon: service.isConnecting
+                                  ? const SizedBox(
+                                      width: 20,
+                                      height: 20,
+                                      child: CircularProgressIndicator(
+                                        color: Colors.white,
+                                        strokeWidth: 2,
+                                      ),
+                                    )
+                                  : const Icon(Icons.add_link_rounded),
+                              label: Text(
+                                service.isConnecting ? 'Menghubungkan...' : 'Tambahkan Device',
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
-                            ),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF005CFF),
-                              foregroundColor: Colors.white,
-                              elevation: 0,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(20),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFF005CFF),
+                                foregroundColor: Colors.white,
+                                elevation: 0,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
                               ),
                             ),
                           ),
-                        ),
-                        if (service.isConnecting) ...[
-                          const SizedBox(height: 16),
-                          TextButton(
-                            onPressed: () => service.disconnect(),
-                            style: TextButton.styleFrom(
-                              foregroundColor: Colors.red.shade500,
-                            ),
-                            child: const Text(
-                              'Batal',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
+                          if (service.isConnecting) ...[
+                            const SizedBox(height: 16),
+                            TextButton(
+                              onPressed: () => service.disconnect(),
+                              style: TextButton.styleFrom(
+                                foregroundColor: Colors.red.shade500,
+                              ),
+                              child: const Text(
+                                'Batal',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
                             ),
+                          ],
+                        ],
+                      )
+                    else ...[
+                      // Send Ping Button
+                      SizedBox(
+                        width: double.infinity,
+                        height: 56,
+                        child: ElevatedButton.icon(
+                          onPressed: () => service.sendData('{"action":"TEST_PING"}'),
+                          icon: const Icon(Icons.send_rounded),
+                          label: const Text(
+                            'Kirim Data Konfigurasi Test',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFFFF9F1C),
+                            foregroundColor: Colors.white,
+                            elevation: 0,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      // Disconnect Button
+                      SizedBox(
+                        width: double.infinity,
+                        height: 56,
+                        child: TextButton.icon(
+                          onPressed: service.disconnect,
+                          icon: Icon(service.connectionMode == ConnectionMode.bluetooth
+                              ? Icons.bluetooth_disabled_rounded
+                              : Icons.wifi_off_rounded),
+                          label: const Text(
+                            'Putuskan Device',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          style: TextButton.styleFrom(
+                            foregroundColor: Colors.red.shade400,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ), // Closing SingleChildScrollView
+            Positioned(
+                top: 0,
+                left: 0,
+                right: 0,
+                child: WavyPageHeader(
+                title: 'Koneksi Device',
+                subtitle: 'Hubungkan Xploria App dengan Robot atau Perangkat IoT Anda.',
+                showBackButton: widget.showBackButton,
+                categoryPillsWidget: Padding(
+                  padding: EdgeInsets.only(
+                    left: widget.showBackButton ? 84.0 : 24.0, 
+                    right: 24.0
+                  ),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
+                    ),
+                    padding: const EdgeInsets.all(4),
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          _buildToggleOption(
+                            title: 'Wi-Fi',
+                            icon: Icons.wifi,
+                            mode: ConnectionMode.wifi,
+                            service: service,
+                          ),
+                          _buildToggleOption(
+                            title: 'Bluetooth',
+                            icon: Icons.bluetooth,
+                            mode: ConnectionMode.bluetooth,
+                            service: service,
                           ),
                         ],
-                      ],
-                    )
-                  else ...[
-                    // Send Ping Button
-                    SizedBox(
-                      width: double.infinity,
-                      height: 56,
-                      child: ElevatedButton.icon(
-                        onPressed: () => service.sendData('{"action":"TEST_PING"}'),
-                        icon: const Icon(Icons.send_rounded),
-                        label: const Text(
-                          'Kirim Data Konfigurasi Test',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFFFF9F1C),
-                          foregroundColor: Colors.white,
-                          elevation: 0,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                        ),
                       ),
-                    ),
-                    const SizedBox(height: 16),
-                    // Disconnect Button
-                    SizedBox(
-                      width: double.infinity,
-                      height: 56,
-                      child: TextButton.icon(
-                        onPressed: service.disconnect,
-                        icon: Icon(service.connectionMode == ConnectionMode.bluetooth
-                            ? Icons.bluetooth_disabled_rounded
-                            : Icons.wifi_off_rounded),
-                        label: const Text(
-                          'Putuskan Device',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        style: TextButton.styleFrom(
-                          foregroundColor: Colors.red.shade400,
-                        ),
-                      ),
-                    ),
-                  ],
-                ],
-              ),
-            ),
-          ), // Closing SingleChildScrollView
-          Positioned(
-              top: 0,
-              left: 0,
-              right: 0,
-              child: WavyPageHeader(
-              title: 'Koneksi Device',
-              subtitle: 'Hubungkan Xploria App dengan Robot atau Perangkat IoT Anda.',
-              categoryPillsWidget: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
-                  ),
-                  padding: const EdgeInsets.all(4),
-                  child: FittedBox(
-                    fit: BoxFit.scaleDown,
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        _buildToggleOption(
-                          title: 'Wi-Fi',
-                          icon: Icons.wifi,
-                          mode: ConnectionMode.wifi,
-                          service: service,
-                        ),
-                        _buildToggleOption(
-                          title: 'Bluetooth',
-                          icon: Icons.bluetooth,
-                          mode: ConnectionMode.bluetooth,
-                          service: service,
-                        ),
-                      ],
                     ),
                   ),
                 ),
               ),
             ),
+            ],
           ),
-          ],
         );
       }
     );

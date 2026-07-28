@@ -27,7 +27,7 @@ class _BlocklyWorkspaceScreenState extends State<BlocklyWorkspaceScreen> {
   void _navigateToConnection() {
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => const DeviceConnectionScreen()),
+      MaterialPageRoute(builder: (context) => const DeviceConnectionScreen(showBackButton: true)),
     );
   }
 
@@ -240,12 +240,15 @@ class _BlocklyWorkspaceScreenState extends State<BlocklyWorkspaceScreen> {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(
-                  _projectName,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w900,
-                    fontSize: 18,
+                Flexible(
+                  child: Text(
+                    _projectName,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w900,
+                      fontSize: 18,
+                    ),
                   ),
                 ),
                 const SizedBox(width: 8),

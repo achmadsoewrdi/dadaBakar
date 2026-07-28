@@ -18,6 +18,14 @@ class _LessonsModulesPageState extends State<LessonsModulesPage> {
   bool _isLoading = true;
   List<LearningModuleModel> _learningModules = [];
   int _selectedModuleCategoryIndex = 0;
+  String _searchQuery = '';
+  final TextEditingController _searchController = TextEditingController();
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
 
   @override
   void initState() {
@@ -44,11 +52,18 @@ class _LessonsModulesPageState extends State<LessonsModulesPage> {
     final user = AuthStorageService().currentUser;
 
     final filteredModules = _learningModules.where((module) {
-      if (_selectedModuleCategoryIndex == 0) return true; // Hot / Semua
-      if (_selectedModuleCategoryIndex == 1) return module.stepsJson['level'] == 'Pemula';
-      if (_selectedModuleCategoryIndex == 2) return module.stepsJson['level'] == 'Menengah';
-      if (_selectedModuleCategoryIndex == 3) return module.isPremiumOnly == true;
-      return true;
+      bool categoryMatch = true;
+      if (_selectedModuleCategoryIndex == 1) categoryMatch = module.stepsJson['level'] == 'Pemula';
+      else if (_selectedModuleCategoryIndex == 2) categoryMatch = module.stepsJson['level'] == 'Menengah';
+      else if (_selectedModuleCategoryIndex == 3) categoryMatch = module.isPremiumOnly == true;
+
+      bool searchMatch = true;
+      if (_searchQuery.isNotEmpty) {
+        final query = _searchQuery.toLowerCase();
+        searchMatch = module.title.toLowerCase().contains(query) || 
+                      (module.description?.toLowerCase().contains(query) ?? false);
+      }
+      return categoryMatch && searchMatch;
     }).toList();
 
     return Stack(
@@ -65,6 +80,38 @@ class _LessonsModulesPageState extends State<LessonsModulesPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const SizedBox(height: 12),
+                Container(
+                  decoration: BoxDecoration(
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.04),
+                        blurRadius: 15,
+                        offset: const Offset(0, 6),
+                      ),
+                    ],
+                  ),
+                  child: TextField(
+                    controller: _searchController,
+                    onChanged: (value) {
+                      setState(() {
+                        _searchQuery = value;
+                      });
+                    },
+                    decoration: InputDecoration(
+                      hintText: 'Cari modul atau materi...',
+                      hintStyle: TextStyle(color: Colors.grey.shade500),
+                      prefixIcon: Icon(Icons.search_rounded, color: Colors.grey.shade500),
+                      filled: true,
+                      fillColor: Colors.white,
+                      contentPadding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(20),
+                        borderSide: BorderSide.none,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 24),
                 if (filteredModules.isEmpty)
                   const Padding(
                     padding: EdgeInsets.only(top: 40.0),

@@ -110,7 +110,8 @@ class WavyPageHeader extends StatelessWidget {
         clipper: WaveHeaderClipper(),
         child: Container(
           width: double.infinity,
-          padding: EdgeInsets.only(top: topPadding, bottom: 64),
+          height: topPadding + (showBackButton ? 205 : 175),
+          padding: EdgeInsets.only(top: topPadding),
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: colors,

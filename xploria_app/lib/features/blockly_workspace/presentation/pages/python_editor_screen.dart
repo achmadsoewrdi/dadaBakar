@@ -52,7 +52,7 @@ class _PythonEditorScreenState extends State<PythonEditorScreen> {
       );
       Navigator.push(
         context,
-        MaterialPageRoute(builder: (context) => const DeviceConnectionScreen()),
+        MaterialPageRoute(builder: (context) => const DeviceConnectionScreen(showBackButton: true)),
       );
       return;
     }
@@ -140,7 +140,7 @@ class _PythonEditorScreenState extends State<PythonEditorScreen> {
                         onPressed: () {
                           Navigator.push(
                             context,
-                            MaterialPageRoute(builder: (context) => const DeviceConnectionScreen()),
+                            MaterialPageRoute(builder: (context) => const DeviceConnectionScreen(showBackButton: true)),
                           );
                         },
                       ),
