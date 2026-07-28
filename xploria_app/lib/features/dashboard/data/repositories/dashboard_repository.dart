@@ -38,7 +38,7 @@ class DashboardRepository implements IDashboardRepository {
         workspaceXml: '<xml><block type="sensor_temp"></block></xml>',
         generatedCode: 'print("Smart Farm IoT")',
         deviceType: 'arduino',
-        // blynkConfigJson: [],
+        blynkConfigJson: [],
         createdAt: now.subtract(const Duration(hours: 5)),
         updatedAt: now.subtract(const Duration(minutes: 15)),
       ),

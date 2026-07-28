@@ -6,6 +6,8 @@ import '../../../../core/services/device_connection_service.dart';
 import '../../../device/presentation/pages/device_connection_screen.dart';
 import '../../data/blockly_bridge.dart';
 import '../../domain/workspace_state.dart';
+import '../../../projects/domain/models/project_model.dart';
+import '../../../iot_blynk/presentation/screens/blynk_canvas_screen.dart';
 import 'python_editor_screen.dart';
 
 class BlocklyWorkspaceScreen extends StatefulWidget {
@@ -62,6 +64,107 @@ class _BlocklyWorkspaceScreenState extends State<BlocklyWorkspaceScreen> {
               child: const Text('Simpan'),
             ),
           ],
+        );
+      },
+    );
+  }
+
+  // Pop-up validasi konfirmasi sebelum membuat IoT Lab
+  void _confirmAndCreateIotLab() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+          backgroundColor: Colors.white,
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF00E3A2).withValues(alpha: 0.15),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.sensors_rounded, color: Color(0xFF00E3A2), size: 36),
+                ),
+                const SizedBox(height: 16),
+                const Text(
+                  'Buat IoT Lab & Canvas Blynk?',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w900,
+                    color: Color(0xFF0A122C),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  'Kamu akan membuat kanvas baru untuk memantau grafik sensor dan mengontrol alat pada proyek ini. Yakin ingin melanjutkan?',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: Colors.grey.shade600,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: () => Navigator.pop(context),
+                        style: OutlinedButton.styleFrom(
+                          side: BorderSide(color: Colors.grey.shade300),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                        ),
+                        child: Text(
+                          'Batal',
+                          style: TextStyle(color: Colors.grey.shade700, fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: () {
+                          Navigator.pop(context); // Close popup
+                          final demoProject = ProjectModel(
+                            id: 'proj_${DateTime.now().millisecondsSinceEpoch}',
+                            ownerId: 'user_1',
+                            name: _projectName,
+                            workspaceXml: _state.xmlData,
+                            deviceType: 'arduino',
+                            createdAt: DateTime.now(),
+                            updatedAt: DateTime.now(),
+                          );
+
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => BlynkCanvasScreen(project: demoProject),
+                            ),
+                          );
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF005CFF),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                        ),
+                        child: const Text(
+                          'Ya, Buat!',
+                          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
         );
       },
     );
@@ -152,6 +255,12 @@ class _BlocklyWorkspaceScreenState extends State<BlocklyWorkspaceScreen> {
           ),
         ),
         actions: [
+          // Tombol On-Demand Blynk IoT Canvas (dengan Validasi Pop-up)
+          IconButton(
+            icon: const Icon(Icons.sensors_rounded, color: Color(0xFF00E3A2)),
+            tooltip: 'Buka Blynk IoT Canvas',
+            onPressed: _confirmAndCreateIotLab,
+          ),
           // Tombol Lihat Kode Python
           IconButton(
             icon: const Icon(Icons.code, color: Colors.white),

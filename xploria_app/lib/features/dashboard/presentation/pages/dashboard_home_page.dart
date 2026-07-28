@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../blockly_workspace/presentation/pages/blockly_workspace_screen.dart';
-// import '../../../iot_blynk/presentation/screens/blynk_canvas_screen.dart';
+import '../../../iot_blynk/presentation/screens/blynk_canvas_screen.dart';
 import '../../../projects/domain/models/project_model.dart';
 import '../../../projects/presentation/pages/project_list_screen.dart';
 import '../../../device_profile/domain/models/device_profile_model.dart';
@@ -354,7 +354,7 @@ class _DashboardHomePageState extends State<DashboardHomePage> {
         break;
     }
 
-//     final hasBlynk = project.blynkConfigJson != null;
+    final hasBlynk = project.blynkConfigJson != null;
 
     return HoverCard(
       margin: const EdgeInsets.only(bottom: 10),
@@ -406,52 +406,52 @@ class _DashboardHomePageState extends State<DashboardHomePage> {
                 ],
               ),
             ),
-//             if (hasBlynk) ...[
-//               GestureDetector(
-//                 onTap: () {
-//                   // Navigator.push(
-//                   //   context,
-//                   //   MaterialPageRoute(
-//                   //     builder: (_) => BlynkCanvasScreen(
-//                   //       project: project,
-//                   //       onSaveBlynkConfig: (updatedProject) {
-//                   //         setState(() {
-//                   //           final idx = _projects.indexWhere((p) => p.id == updatedProject.id);
-//                   //           if (idx != -1) {
-//                   //             _projects[idx] = updatedProject;
-//                   //           }
-//                   //         });
-//                   //       },
-//                   //     ),
-//                   //   ),
-//                   // );
-//                 },
-//                 child: Container(
-//                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-//                   decoration: BoxDecoration(
-//                     color: const Color(0xFF00E3A2).withValues(alpha: 0.15),
-//                     borderRadius: BorderRadius.circular(12),
-//                     border: Border.all(color: const Color(0xFF00E3A2)),
-//                   ),
-//                   child: Row(
-//                     mainAxisSize: MainAxisSize.min,
-//                     children: const [
-//                       Icon(Icons.sensors_rounded, color: Color(0xFF00E3A2), size: 14),
-//                       SizedBox(width: 4),
-//                       Text(
-//                         'Blynk IoT',
-//                         style: TextStyle(
-//                           fontSize: 11,
-//                           fontWeight: FontWeight.bold,
-//                           color: Color(0xFF00E3A2),
-//                         ),
-//                       ),
-//                     ],
-//                   ),
-//                 ),
-//               ),
-//               const SizedBox(width: 8),
-//             ],
+            if (hasBlynk) ...[
+              GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => BlynkCanvasScreen(
+                        project: project,
+                        onSaveBlynkConfig: (updatedProject) {
+                          setState(() {
+                            final idx = _projects.indexWhere((p) => p.id == updatedProject.id);
+                            if (idx != -1) {
+                              _projects[idx] = updatedProject;
+                            }
+                          });
+                        },
+                      ),
+                    ),
+                  );
+                },
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF00E3A2).withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: const Color(0xFF00E3A2)),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: const [
+                      Icon(Icons.sensors_rounded, color: Color(0xFF00E3A2), size: 14),
+                      SizedBox(width: 4),
+                      Text(
+                        'Blynk IoT',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF00E3A2),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+            ],
             const Icon(Icons.chevron_right_rounded, color: Colors.grey, size: 20),
           ],
         ),
