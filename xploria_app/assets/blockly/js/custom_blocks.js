@@ -137,7 +137,7 @@ function _hal_require_sensor() {
         '    def read_ir_obstacle(self, p):',
         '        chip, offset = _get_gpio(p)',
         '        self._claim_in(chip, offset, p)',
-        '        return _gpio.gpio_read(chip, offset) == 1',
+        '        return _gpio.gpio_read(chip, offset) == 0',
         '',
         '    def read_soil_moisture(self, p):',
         '        chip, offset = _get_gpio(p)',
@@ -1006,6 +1006,62 @@ Blockly.Python['sensor_ultrasonic'] = function(block) {
     return [`sensor.read_ultrasonic(${trig}, ${echo})`, Blockly.Python.ORDER_ATOMIC];
 };
 
+Blockly.Blocks['sensor_ultrasonic_print'] = {
+    init: function () {
+        this.appendDummyInput()
+            .appendField("🌡️ Print Jarak Ultrasonik Trig")
+            .appendField(new Blockly.FieldNumber(21, 0, 40), "TRIG")
+            .appendField("Echo")
+            .appendField(new Blockly.FieldNumber(20, 0, 40), "ECHO");
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour("#2E8B57");
+    }
+};
+Blockly.Python['sensor_ultrasonic_print'] = function(block) {
+    _hal_require_sensor();
+    let trig = block.getFieldValue('TRIG');
+    let echo = block.getFieldValue('ECHO');
+    return `print(f"[INFO] Jarak Ultrasonik: {sensor.read_ultrasonic(${trig}, ${echo}):.2f} cm")\n`;
+};
+
+Blockly.Blocks['sensor_ultrasonic_if'] = {
+    init: function () {
+        this.appendDummyInput()
+            .appendField("🌡️ Jika Jarak Ultrasonik Trig")
+            .appendField(new Blockly.FieldNumber(21, 0, 40), "TRIG")
+            .appendField("Echo")
+            .appendField(new Blockly.FieldNumber(20, 0, 40), "ECHO");
+        this.appendDummyInput()
+            .appendField(new Blockly.FieldDropdown([["< (Kurang dari)", "<"], ["> (Lebih dari)", ">"], ["= (Sama dengan)", "=="]]), "OP")
+            .appendField(new Blockly.FieldNumber(10), "SETPOINT")
+            .appendField("cm");
+        this.appendStatementInput("DO_TRUE")
+            .appendField("maka (DO):");
+        this.appendStatementInput("DO_FALSE")
+            .appendField("selain itu (ELSE):");
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour("#2E8B57");
+    }
+};
+Blockly.Python['sensor_ultrasonic_if'] = function(block) {
+    _hal_require_sensor();
+    let trig = block.getFieldValue('TRIG');
+    let echo = block.getFieldValue('ECHO');
+    let op = block.getFieldValue('OP');
+    let setpoint = block.getFieldValue('SETPOINT');
+    
+    let doTrue = Blockly.Python.statementToCode(block, 'DO_TRUE');
+    let doFalse = Blockly.Python.statementToCode(block, 'DO_FALSE');
+
+    let code = `if sensor.read_ultrasonic(${trig}, ${echo}) ${op} ${setpoint}:\n`;
+    code += doTrue || '    pass\n';
+    code += `else:\n`;
+    code += doFalse || '    pass\n';
+    return code;
+};
+
 Blockly.Blocks['sensor_line_follower'] = {
     init: function () {
         this.appendDummyInput()
@@ -1117,16 +1173,28 @@ Blockly.Python['sensor_humidity'] = function(block) {
 Blockly.Blocks['sensor_ir_obstacle'] = {
     init: function () {
         this.appendDummyInput()
-            .appendField("🌡️ Halangan (IR Obstacle) di")
+            .appendField("🌡️ Deteksi Halangan (IR Obstacle) di")
             .appendField(new Blockly.FieldNumber(5, 0, 40), "PIN");
-        this.setOutput(true, "Boolean");
+        this.appendStatementInput("DO_DETECT")
+            .appendField("jika terdeteksi (LOW):");
+        this.appendStatementInput("DO_SAFE")
+            .appendField("jika aman (HIGH):");
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
         this.setColour("#2E8B57");
     }
 };
 Blockly.Python['sensor_ir_obstacle'] = function(block) {
     _hal_require_sensor();
     let pin = block.getFieldValue('PIN');
-    return [`sensor.read_ir_obstacle(${pin})`, Blockly.Python.ORDER_ATOMIC];
+    let doDetect = Blockly.Python.statementToCode(block, 'DO_DETECT');
+    let doSafe   = Blockly.Python.statementToCode(block, 'DO_SAFE');
+
+    let code = `if sensor.read_ir_obstacle(${pin}):  # True = terdeteksi (0/LOW)\n`;
+    code += doDetect || '    pass\n';
+    code += `else:\n`;
+    code += doSafe   || '    pass\n';
+    return code;
 };
 
 // ==========================================================================

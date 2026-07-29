@@ -85,6 +85,8 @@ const BLOCK_CATEGORIES = [
         desc: 'Sensor lingkungan',
         blocks: [
             { name: 'Jarak Ultrasonik', desc: 'Jarak (cm)', xml: '<block type="sensor_ultrasonic"></block>' },
+            { name: 'Print Jarak Ultrasonik', desc: 'Print Jarak (cm)', xml: '<block type="sensor_ultrasonic_print"></block>' },
+            { name: 'Jika Jarak Ultrasonik', desc: 'Logika Jarak', xml: '<block type="sensor_ultrasonic_if"></block>' },
             { name: 'Sensor Garis', desc: 'Garis Hitam/Putih', xml: '<block type="sensor_line_follower"></block>' },
             { name: 'Intensitas Cahaya', desc: 'LDR (%)', xml: '<block type="sensor_light"></block>' },
             { name: 'Suhu', desc: 'DHT22 (°C)', xml: '<block type="sensor_temperature"></block>' },
