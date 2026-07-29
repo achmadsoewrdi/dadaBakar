@@ -5,24 +5,27 @@ from uuid import UUID
 from app.modules.projects.models import Project
 from app.modules.projects.schemas import ProjectCreate, ProjectUpdate
 
+
 async def create_project(db: AsyncSession, project_in: ProjectCreate, owner_id: UUID) -> Project:
     project = Project(
         owner_id=owner_id,
         name=project_in.name,
         workspace_xml=project_in.workspace_xml,
         generated_code=project_in.generated_code,
-        device_type=project_in.device_type,
+        device_profile_id=project_in.device_profile_id,
     )
     db.add(project)
     await db.commit()
     await db.refresh(project)
     return project
 
+
 async def get_active_projects(db: AsyncSession, owner_id: UUID) -> list[Project]:
     result = await db.execute(
         select(Project).where(Project.owner_id == owner_id, Project.deleted_at.is_(None))
     )
     return list(result.scalars().all())
+
 
 async def soft_delete_project(db: AsyncSession, project_id: UUID, owner_id: UUID) -> bool:
     result = await db.execute(
@@ -34,6 +37,7 @@ async def soft_delete_project(db: AsyncSession, project_id: UUID, owner_id: UUID
     project.deleted_at = datetime.utcnow()
     await db.commit()
     return True
+
 
 async def restore_project(db: AsyncSession, project_id: UUID, owner_id: UUID) -> bool:
     result = await db.execute(

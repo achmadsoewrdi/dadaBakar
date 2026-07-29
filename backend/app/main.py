@@ -7,9 +7,16 @@ import app.modules.users.models
 import app.modules.projects.models
 import app.modules.devices.models
 import app.modules.content.models
+import app.modules.hardware_types.models
+import app.modules.subscriptions.models
+import app.modules.gamification.models
+import app.modules.blocks.models
 
 from app.modules.users.router import router as users_router
 from app.modules.projects.router import router as projects_router
+from app.modules.hardware_types.router import router as hardware_types_router
+from app.modules.blocks.router import router as blocks_router
+from app.modules.gamification.router import router as gamification_router
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
@@ -29,6 +36,9 @@ app.add_middleware(
 # Include API v1 routers
 app.include_router(users_router, prefix=settings.API_V1_STR)
 app.include_router(projects_router, prefix=settings.API_V1_STR)
+app.include_router(hardware_types_router, prefix=settings.API_V1_STR)
+app.include_router(blocks_router, prefix=settings.API_V1_STR)
+app.include_router(gamification_router, prefix=settings.API_V1_STR)
 
 @app.get("/")
 async def root():
@@ -41,4 +51,3 @@ async def root():
 @app.get("/health")
 async def health_check():
     return {"status": "ok", "service": settings.PROJECT_NAME}
-
