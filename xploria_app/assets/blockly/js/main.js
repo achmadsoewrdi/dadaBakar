@@ -106,7 +106,7 @@ function closeModal() {
     document.getElementById('customModalOverlay').style.display = 'none';
     document.getElementById('variableModal').style.display = 'none';
     document.getElementById('myBlockModal').style.display = 'none';
-    
+
     // Clear inputs
     document.getElementById('varNameInput').value = '';
     document.getElementById('funcNameInput').value = '';
@@ -131,16 +131,16 @@ let argCounter = 1;
 function addArgument(type) {
     const argsList = document.getElementById('argsList');
     const argId = 'arg_' + argCounter++;
-    
+
     const argDiv = document.createElement('div');
     argDiv.className = 'arg-item';
     argDiv.id = argId;
-    
+
     let label = '';
     if (type === 'Number') label = '🔢 (Angka)';
     else if (type === 'String') label = '💬 (Teks)';
     else if (type === 'Boolean') label = '❓ (Boolean)';
-    
+
     argDiv.innerHTML = `
         <span style="font-size: 14px;">${label}</span>
         <input type="text" placeholder="nama_input" class="arg-name-input" />
@@ -152,29 +152,29 @@ function addArgument(type) {
 function saveMyBlock() {
     const funcName = document.getElementById('funcNameInput').value.trim();
     if (!funcName) return;
-    
+
     // Gather arguments
     const argsList = document.getElementById('argsList');
     const argInputs = argsList.getElementsByClassName('arg-name-input');
-    
+
     let mutationXml = '';
     if (argInputs.length > 0) {
         mutationXml = '<mutation>';
         for (let i = 0; i < argInputs.length; i++) {
-            const argName = argInputs[i].value.trim() || ('input_' + (i+1));
+            const argName = argInputs[i].value.trim() || ('input_' + (i + 1));
             mutationXml += `<arg name="${argName}"></arg>`;
         }
         mutationXml += '</mutation>';
     }
-    
+
     // Create the definition block XML
     const xmlString = `<xml><block type="procedures_defnoreturn" x="100" y="100">${mutationXml}<field name="NAME">${funcName}</field></block></xml>`;
-    
+
     // Inject to workspace
     const parser = new DOMParser();
     const xmlDoc = parser.parseFromString(xmlString, "text/xml");
     Blockly.Xml.domToWorkspace(xmlDoc.documentElement, workspace);
-    
+
     closeModal();
     // Refresh the current category view
     if (selectedCategoryIndex !== null) {
