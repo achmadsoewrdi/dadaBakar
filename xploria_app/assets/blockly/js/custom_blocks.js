@@ -139,6 +139,11 @@ function _hal_require_sensor() {
         '        self._claim_in(chip, offset, p)',
         '        return _gpio.gpio_read(chip, offset) == 1',
         '',
+        '    def read_soil_moisture(self, p):',
+        '        chip, offset = _get_gpio(p)',
+        '        self._claim_in(chip, offset, p)',
+        '        return _gpio.gpio_read(chip, offset) == 0',
+        '',
         '    def read_temperature(self, p):',
         '        try:',
         '            import adafruit_dht, board',
@@ -225,8 +230,37 @@ function _hal_require_motor() {
         '        else:',
         '            _gpio.tx_servo(chip, offset, pulse_us)',
         '',
-        '    def run_dc(self, motor, speed): pass',
-        '    def stop_dc(self, motor): pass',
+        '    def run_dc(self, motor, speed):',
+        '        pins = {"M1": (11, 13, 15), "M2": (19, 21, 23)}',
+        '        if motor not in pins: return',
+        '        in1, in2, ena = pins[motor]',
+        '        c1, o1 = _get_gpio(in1)',
+        '        c2, o2 = _get_gpio(in2)',
+        '        ce, oe = _get_gpio(ena)',
+        '        try:',
+        '            _gpio.gpio_claim_output(c1, o1)',
+        '            _gpio.gpio_claim_output(c2, o2)',
+        '        except: pass',
+        '        speed = max(-100, min(100, int(speed)))',
+        '        if speed > 0:',
+        '            _gpio.gpio_write(c1, o1, 1)',
+        '            _gpio.gpio_write(c2, o2, 0)',
+        '            _gpio.tx_pwm(ce, oe, 100, speed)',
+        '        elif speed < 0:',
+        '            _gpio.gpio_write(c1, o1, 0)',
+        '            _gpio.gpio_write(c2, o2, 1)',
+        '            _gpio.tx_pwm(ce, oe, 100, -speed)',
+        '        else:',
+        '            _gpio.gpio_write(c1, o1, 0)',
+        '            _gpio.gpio_write(c2, o2, 0)',
+        '            _gpio.tx_pwm(ce, oe, 100, 0)',
+        '',
+        '    def stop_dc(self, motor):',
+        '        if motor == "ALL":',
+        '            self.run_dc("M1", 0)',
+        '            self.run_dc("M2", 0)',
+        '        else:',
+        '            self.run_dc(motor, 0)',
         '',
         'motor = MotorHAL()',
     ].join('\n');
@@ -1023,7 +1057,7 @@ Blockly.Python['sensor_temperature'] = function(block) {
 Blockly.Blocks['sensor_gas'] = {
     init: function () {
         this.appendDummyInput()
-            .appendField("🌡️ Deteksi Gas (MQ-9) di")
+            .appendField("🌡️ Deteksi Gas (Digital) di")
             .appendField(new Blockly.FieldNumber(17, 0, 40), "PIN");
         this.setOutput(true, "Boolean");
         this.setColour("#2E8B57");
@@ -1033,6 +1067,21 @@ Blockly.Python['sensor_gas'] = function(block) {
     _hal_require_sensor();
     let pin = block.getFieldValue('PIN');
     return [`sensor.read_gas(${pin})`, Blockly.Python.ORDER_ATOMIC];
+};
+
+Blockly.Blocks['sensor_soil_moisture'] = {
+    init: function () {
+        this.appendDummyInput()
+            .appendField("🌱 Deteksi Kelembapan Tanah (Digital) di")
+            .appendField(new Blockly.FieldNumber(24, 0, 40), "PIN");
+        this.setOutput(true, "Boolean");
+        this.setColour("#2E8B57");
+    }
+};
+Blockly.Python['sensor_soil_moisture'] = function(block) {
+    _hal_require_sensor();
+    let pin = block.getFieldValue('PIN');
+    return [`sensor.read_soil_moisture(${pin})`, Blockly.Python.ORDER_ATOMIC];
 };
 
 Blockly.Blocks['sensor_motion'] = {
