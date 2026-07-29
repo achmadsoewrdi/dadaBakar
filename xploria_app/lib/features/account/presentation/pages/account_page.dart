@@ -121,7 +121,8 @@ class _AccountPageState extends State<AccountPage> {
             clipper: WaveHeaderClipper(),
             child: Container(
               width: double.infinity,
-              padding: EdgeInsets.only(top: topPadding - 10, bottom: 50),
+              height: topPadding + 175,
+              padding: EdgeInsets.only(top: topPadding - 10),
               decoration: const BoxDecoration(
                 gradient: LinearGradient(
                   colors: [Color(0xFF005CFF), Color(0xFF00C2FF)],
@@ -160,14 +161,6 @@ class _AccountPageState extends State<AccountPage> {
                     ),
                   ),
                   const SizedBox(height: 4),
-                  Text(
-                    'Lv 1  •  ${(_user?.role ?? 'user').toUpperCase()} Dev',
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: Colors.white.withValues(alpha: 0.9),
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
                 ],
               ),
             ),

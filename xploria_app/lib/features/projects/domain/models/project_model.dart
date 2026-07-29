@@ -5,6 +5,7 @@ class ProjectModel {
   final String workspaceXml;
   final String? generatedCode;
   final String deviceType; // 'raspberry_pi' | 'orange_pi'
+  final List<Map<String, dynamic>>? blynkConfigJson; // Blynk IoT widget layout configuration
   final DateTime createdAt;
   final DateTime updatedAt;
   final DateTime? deletedAt;
@@ -16,6 +17,7 @@ class ProjectModel {
     required this.workspaceXml,
     this.generatedCode,
     required this.deviceType,
+    this.blynkConfigJson,
     required this.createdAt,
     required this.updatedAt,
     this.deletedAt,
@@ -29,6 +31,9 @@ class ProjectModel {
       workspaceXml: json['workspace_xml'] as String? ?? '',
       generatedCode: json['generated_code'] as String?,
       deviceType: json['device_type'] as String? ?? 'raspberry_pi',
+      blynkConfigJson: (json['blynk_config_json'] as List?)
+          ?.map((e) => Map<String, dynamic>.from(e as Map))
+          .toList(),
       createdAt: json['created_at'] != null
           ? DateTime.parse(json['created_at'])
           : DateTime.now(),
@@ -49,9 +54,36 @@ class ProjectModel {
       'workspace_xml': workspaceXml,
       'generated_code': generatedCode,
       'device_type': deviceType,
+      'blynk_config_json': blynkConfigJson,
       'created_at': createdAt.toIso8601String(),
       'updated_at': updatedAt.toIso8601String(),
       'deleted_at': deletedAt?.toIso8601String(),
     };
+  }
+
+  ProjectModel copyWith({
+    String? id,
+    String? ownerId,
+    String? name,
+    String? workspaceXml,
+    String? generatedCode,
+    String? deviceType,
+    List<Map<String, dynamic>>? blynkConfigJson,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+    DateTime? deletedAt,
+  }) {
+    return ProjectModel(
+      id: id ?? this.id,
+      ownerId: ownerId ?? this.ownerId,
+      name: name ?? this.name,
+      workspaceXml: workspaceXml ?? this.workspaceXml,
+      generatedCode: generatedCode ?? this.generatedCode,
+      deviceType: deviceType ?? this.deviceType,
+      blynkConfigJson: blynkConfigJson ?? this.blynkConfigJson,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      deletedAt: deletedAt ?? this.deletedAt,
+    );
   }
 }
