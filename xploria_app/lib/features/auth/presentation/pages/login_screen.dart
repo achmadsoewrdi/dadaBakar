@@ -92,16 +92,7 @@ class _LoginFormContentState extends State<LoginFormContent> {
           _isGoogleLoading = false;
         });
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Google Sign-In Berhasil! Selamat Datang, ${authResponse.user.fullName}'),
-            backgroundColor: const Color(0xFF005CFF),
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-            ),
-          ),
-        );
+
 
         // Navigasi ke Dashboard Utama (Step 14)
         Navigator.pushReplacement(
