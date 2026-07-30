@@ -31,7 +31,11 @@ function _hal_require_pin() {
     Blockly.Python.definitions_['import_lgpio'] = 'import lgpio as _gpio';
     Blockly.Python.definitions_['import_atexit'] = 'import atexit';
     Blockly.Python.definitions_['hal_gpio_chip'] = [
-        '_PIN_MAP = {3:35, 5:34, 7:36, 11:32, 12:37, 13:33, 15:139, 19:130, 21:131, 22:96, 23:129, 24:128, 26:132, 27:357, 28:356, 29:140, 31:141, 32:97, 33:99, 35:38, 36:98, 37:100, 38:40, 40:39}',
+        // Mapping untuk Orange Pi (dibiarkan jika nanti butuh)
+        // '_PIN_MAP = {3:35, 5:34, 7:36, 11:32, 12:37, 13:33, 15:139, 19:130, 21:131, 22:96, 23:129, 24:128, 26:132, 27:357, 28:356, 29:140, 31:141, 32:97, 33:99, 35:38, 36:98, 37:100, 38:40, 40:39}',
+        // Mapping untuk Raspberry Pi (Physical Pin -> BCM GPIO)
+        // '_PIN_MAP = {3: 2, 5: 3, 7: 4, 8: 14, 10: 15, 11: 17, 12: 18, 13: 27, 15: 22, 16: 23, 18: 24, 19: 10, 21: 9, 22: 25, 23: 11, 24: 8, 26: 7, 27: 0, 28: 1, 29: 5, 31: 6, 32: 12, 33: 13, 35: 19, 36: 16, 37: 26, 38: 20, 40: 21}',
+        '_PIN_MAP = {}', // Dikosongkan agar angka di Blockly langsung dianggap BCM GPIO
         '_chips = {}',
         'def _get_gpio(p):',
         '    gpio = _PIN_MAP.get(int(p), int(p))',
@@ -104,7 +108,7 @@ function _hal_require_sensor() {
         'signal.signal(signal.SIGTERM, lambda s, f: (_gpio_cleanup(), exit(0)))',
         'signal.signal(signal.SIGINT,  lambda s, f: (_gpio_cleanup(), exit(0)))',
     ].join('\n');
-    
+
     Blockly.Python.definitions_['hal_SensorHAL'] = [
         'class SensorHAL:',
         '    def __init__(self):',
@@ -127,7 +131,7 @@ function _hal_require_sensor() {
         '    def read_gas(self, p):',
         '        chip, offset = _get_gpio(p)',
         '        self._claim_in(chip, offset, p)',
-        '        return _gpio.gpio_read(chip, offset) == 0',
+        '        return _gpio.gpio_read(chip, offset) == 1',
         '',
         '    def read_motion(self, p):',
         '        chip, offset = _get_gpio(p)',
@@ -149,7 +153,8 @@ function _hal_require_sensor() {
         '            import adafruit_dht, board',
         '            if p not in self._dht_pins:',
         "                self._dht_pins[p] = adafruit_dht.DHT22(getattr(board, f'D{p}'))",
-        '            return self._dht_pins[p].temperature',
+        '            val = self._dht_pins[p].temperature',
+        '            return val if val is not None else 0',
         '        except: return 0',
         '',
         '    def read_humidity(self, p):',
@@ -157,7 +162,8 @@ function _hal_require_sensor() {
         '            import adafruit_dht, board',
         '            if p not in self._dht_pins:',
         "                self._dht_pins[p] = adafruit_dht.DHT22(getattr(board, f'D{p}'))",
-        '            return self._dht_pins[p].humidity',
+        '            val = self._dht_pins[p].humidity',
+        '            return val if val is not None else 0',
         '        except: return 0',
         '',
         '    def read_ultrasonic(self, trig, echo):',
@@ -320,7 +326,7 @@ Blockly.Blocks['audio_play_until_done'] = {
         this.setColour("#D65CD6");
     }
 };
-Blockly.Python['audio_play_until_done'] = function(block) { _hal_require_audio(); return `audio.play_until_done("${block.getFieldValue('SOUND')}")\n`; };
+Blockly.Python['audio_play_until_done'] = function (block) { _hal_require_audio(); return `audio.play_until_done("${block.getFieldValue('SOUND')}")\n`; };
 
 Blockly.Blocks['audio_play_sound'] = {
     init: function () {
@@ -332,7 +338,7 @@ Blockly.Blocks['audio_play_sound'] = {
         this.setColour("#D65CD6");
     }
 };
-Blockly.Python['audio_play_sound'] = function(block) { _hal_require_audio(); return `audio.play("${block.getFieldValue('SOUND')}")\n`; };
+Blockly.Python['audio_play_sound'] = function (block) { _hal_require_audio(); return `audio.play("${block.getFieldValue('SOUND')}")\n`; };
 
 Blockly.Blocks['audio_start_recording'] = {
     init: function () {
@@ -342,7 +348,7 @@ Blockly.Blocks['audio_start_recording'] = {
         this.setColour("#D65CD6");
     }
 };
-Blockly.Python['audio_start_recording'] = function(block) { _hal_require_audio(); return `audio.start_recording()\n`; };
+Blockly.Python['audio_start_recording'] = function (block) { _hal_require_audio(); return `audio.start_recording()\n`; };
 
 Blockly.Blocks['audio_stop_recording'] = {
     init: function () {
@@ -352,7 +358,7 @@ Blockly.Blocks['audio_stop_recording'] = {
         this.setColour("#D65CD6");
     }
 };
-Blockly.Python['audio_stop_recording'] = function(block) { _hal_require_audio(); return `audio.stop_recording()\n`; };
+Blockly.Python['audio_stop_recording'] = function (block) { _hal_require_audio(); return `audio.stop_recording()\n`; };
 
 Blockly.Blocks['audio_play_recording_until_done'] = {
     init: function () {
@@ -362,7 +368,7 @@ Blockly.Blocks['audio_play_recording_until_done'] = {
         this.setColour("#D65CD6");
     }
 };
-Blockly.Python['audio_play_recording_until_done'] = function(block) { _hal_require_audio(); return `audio.play_recording_until_done()\n`; };
+Blockly.Python['audio_play_recording_until_done'] = function (block) { _hal_require_audio(); return `audio.play_recording_until_done()\n`; };
 
 Blockly.Blocks['audio_play_recording'] = {
     init: function () {
@@ -372,7 +378,7 @@ Blockly.Blocks['audio_play_recording'] = {
         this.setColour("#D65CD6");
     }
 };
-Blockly.Python['audio_play_recording'] = function(block) { _hal_require_audio(); return `audio.play_recording()\n`; };
+Blockly.Python['audio_play_recording'] = function (block) { _hal_require_audio(); return `audio.play_recording()\n`; };
 
 Blockly.Blocks['audio_play_note'] = {
     init: function () {
@@ -385,7 +391,7 @@ Blockly.Blocks['audio_play_note'] = {
         this.setColour("#D65CD6");
     }
 };
-Blockly.Python['audio_play_note'] = function(block) {
+Blockly.Python['audio_play_note'] = function (block) {
     _hal_require_audio();
     let note = Blockly.Python.valueToCode(block, 'NOTE', Blockly.Python.ORDER_ATOMIC) || "60";
     let beat = Blockly.Python.valueToCode(block, 'BEAT', Blockly.Python.ORDER_ATOMIC) || "0.25";
@@ -404,7 +410,7 @@ Blockly.Blocks['audio_play_drum'] = {
         this.setColour("#D65CD6");
     }
 };
-Blockly.Python['audio_play_drum'] = function(block) {
+Blockly.Python['audio_play_drum'] = function (block) {
     _hal_require_audio();
     let drum = block.getFieldValue('DRUM');
     let beat = Blockly.Python.valueToCode(block, 'BEAT', Blockly.Python.ORDER_ATOMIC) || "0.25";
@@ -421,7 +427,7 @@ Blockly.Blocks['audio_increase_speed'] = {
         this.setColour("#D65CD6");
     }
 };
-Blockly.Python['audio_increase_speed'] = function(block) {
+Blockly.Python['audio_increase_speed'] = function (block) {
     _hal_require_audio();
     let speed = Blockly.Python.valueToCode(block, 'SPEED', Blockly.Python.ORDER_ATOMIC) || "10";
     return `audio.increase_speed(${speed})\n`;
@@ -437,7 +443,7 @@ Blockly.Blocks['audio_set_speed'] = {
         this.setColour("#D65CD6");
     }
 };
-Blockly.Python['audio_set_speed'] = function(block) {
+Blockly.Python['audio_set_speed'] = function (block) {
     _hal_require_audio();
     let speed = Blockly.Python.valueToCode(block, 'SPEED', Blockly.Python.ORDER_ATOMIC) || "100";
     return `audio.set_speed(${speed})\n`;
@@ -450,7 +456,7 @@ Blockly.Blocks['audio_speed_reporter'] = {
         this.setColour("#D65CD6");
     }
 };
-Blockly.Python['audio_speed_reporter'] = function(block) { _hal_require_audio(); return [`audio.get_speed()`, Blockly.Python.ORDER_ATOMIC]; };
+Blockly.Python['audio_speed_reporter'] = function (block) { _hal_require_audio(); return [`audio.get_speed()`, Blockly.Python.ORDER_ATOMIC]; };
 
 Blockly.Blocks['audio_increase_volume'] = {
     init: function () {
@@ -462,7 +468,7 @@ Blockly.Blocks['audio_increase_volume'] = {
         this.setColour("#D65CD6");
     }
 };
-Blockly.Python['audio_increase_volume'] = function(block) {
+Blockly.Python['audio_increase_volume'] = function (block) {
     _hal_require_audio();
     let vol = Blockly.Python.valueToCode(block, 'VOL', Blockly.Python.ORDER_ATOMIC) || "10";
     return `audio.increase_volume(${vol})\n`;
@@ -478,7 +484,7 @@ Blockly.Blocks['audio_set_volume'] = {
         this.setColour("#D65CD6");
     }
 };
-Blockly.Python['audio_set_volume'] = function(block) {
+Blockly.Python['audio_set_volume'] = function (block) {
     _hal_require_audio();
     let vol = Blockly.Python.valueToCode(block, 'VOL', Blockly.Python.ORDER_ATOMIC) || "30";
     return `audio.set_volume(${vol})\n`;
@@ -491,7 +497,7 @@ Blockly.Blocks['audio_volume_reporter'] = {
         this.setColour("#D65CD6");
     }
 };
-Blockly.Python['audio_volume_reporter'] = function(block) { _hal_require_audio(); return [`audio.get_volume()`, Blockly.Python.ORDER_ATOMIC]; };
+Blockly.Python['audio_volume_reporter'] = function (block) { _hal_require_audio(); return [`audio.get_volume()`, Blockly.Python.ORDER_ATOMIC]; };
 
 Blockly.Blocks['audio_play_sound_hz_for'] = {
     init: function () {
@@ -504,7 +510,7 @@ Blockly.Blocks['audio_play_sound_hz_for'] = {
         this.setColour("#D65CD6");
     }
 };
-Blockly.Python['audio_play_sound_hz_for'] = function(block) {
+Blockly.Python['audio_play_sound_hz_for'] = function (block) {
     _hal_require_audio();
     let hz = Blockly.Python.valueToCode(block, 'HZ', Blockly.Python.ORDER_ATOMIC) || "700";
     let secs = Blockly.Python.valueToCode(block, 'SECS', Blockly.Python.ORDER_ATOMIC) || "1";
@@ -521,7 +527,7 @@ Blockly.Blocks['audio_play_sound_hz'] = {
         this.setColour("#D65CD6");
     }
 };
-Blockly.Python['audio_play_sound_hz'] = function(block) {
+Blockly.Python['audio_play_sound_hz'] = function (block) {
     _hal_require_audio();
     let hz = Blockly.Python.valueToCode(block, 'HZ', Blockly.Python.ORDER_ATOMIC) || "700";
     return `audio.play_hz(${hz})\n`;
@@ -535,7 +541,7 @@ Blockly.Blocks['audio_stop_all'] = {
         this.setColour("#D65CD6");
     }
 };
-Blockly.Python['audio_stop_all'] = function(block) { _hal_require_audio(); return `audio.stop_all()\n`; };
+Blockly.Python['audio_stop_all'] = function (block) { _hal_require_audio(); return `audio.stop_all()\n`; };
 
 // ==========================================================================
 // 💡 LED BLOCKS
@@ -551,7 +557,7 @@ Blockly.Blocks['led_play_animation_until_done'] = {
         this.setColour("#8A2BE2");
     }
 };
-Blockly.Python['led_play_animation_until_done'] = function(block) { _hal_require_led(); return `led.play_animation("${block.getFieldValue('ANIMATION')}")\n`; };
+Blockly.Python['led_play_animation_until_done'] = function (block) { _hal_require_led(); return `led.play_animation("${block.getFieldValue('ANIMATION')}")\n`; };
 
 Blockly.Blocks['led_display_5'] = {
     init: function () {
@@ -578,7 +584,7 @@ Blockly.Blocks['led_display_5'] = {
         this.setColour("#8A2BE2");
     }
 };
-Blockly.Python['led_display_5'] = function(block) {
+Blockly.Python['led_display_5'] = function (block) {
     _hal_require_led();
     let c1 = block.getFieldValue('C1');
     let c2 = block.getFieldValue('C2');
@@ -598,7 +604,7 @@ Blockly.Blocks['led_roll_right'] = {
         this.setColour("#8A2BE2");
     }
 };
-Blockly.Python['led_roll_right'] = function(block) {
+Blockly.Python['led_roll_right'] = function (block) {
     _hal_require_led();
     let num = Blockly.Python.valueToCode(block, 'NUM', Blockly.Python.ORDER_ATOMIC) || "1";
     return `led.roll_right(${num})\n`;
@@ -630,7 +636,7 @@ Blockly.Blocks['led_display_color_for'] = {
         this.setColour("#8A2BE2");
     }
 };
-Blockly.Python['led_display_color_for'] = function(block) {
+Blockly.Python['led_display_color_for'] = function (block) {
     _hal_require_led();
     let target = block.getFieldValue('TARGET');
     let color = block.getFieldValue('COLOR');
@@ -661,7 +667,7 @@ Blockly.Blocks['led_display_color'] = {
         this.setColour("#8A2BE2");
     }
 };
-Blockly.Python['led_display_color'] = function(block) {
+Blockly.Python['led_display_color'] = function (block) {
     _hal_require_led();
     let target = block.getFieldValue('TARGET');
     let color = block.getFieldValue('COLOR');
@@ -685,7 +691,7 @@ Blockly.Blocks['led_display_rgb_for'] = {
         this.setColour("#8A2BE2");
     }
 };
-Blockly.Python['led_display_rgb_for'] = function(block) {
+Blockly.Python['led_display_rgb_for'] = function (block) {
     _hal_require_led();
     let target = block.getFieldValue('TARGET');
     let r = Blockly.Python.valueToCode(block, 'R', Blockly.Python.ORDER_ATOMIC) || "255";
@@ -710,7 +716,7 @@ Blockly.Blocks['led_display_rgb'] = {
         this.setColour("#8A2BE2");
     }
 };
-Blockly.Python['led_display_rgb'] = function(block) {
+Blockly.Python['led_display_rgb'] = function (block) {
     _hal_require_led();
     let target = block.getFieldValue('TARGET');
     let r = Blockly.Python.valueToCode(block, 'R', Blockly.Python.ORDER_ATOMIC) || "255";
@@ -729,7 +735,7 @@ Blockly.Blocks['led_increase_brightness'] = {
         this.setColour("#8A2BE2");
     }
 };
-Blockly.Python['led_increase_brightness'] = function(block) {
+Blockly.Python['led_increase_brightness'] = function (block) {
     _hal_require_led();
     let b = Blockly.Python.valueToCode(block, 'BRIGHTNESS', Blockly.Python.ORDER_ATOMIC) || "10";
     return `led.increase_brightness(${b})\n`;
@@ -745,7 +751,7 @@ Blockly.Blocks['led_set_brightness'] = {
         this.setColour("#8A2BE2");
     }
 };
-Blockly.Python['led_set_brightness'] = function(block) {
+Blockly.Python['led_set_brightness'] = function (block) {
     _hal_require_led();
     let b = Blockly.Python.valueToCode(block, 'BRIGHTNESS', Blockly.Python.ORDER_ATOMIC) || "30";
     return `led.set_brightness(${b})\n`;
@@ -758,7 +764,7 @@ Blockly.Blocks['led_brightness_reporter'] = {
         this.setColour("#8A2BE2");
     }
 };
-Blockly.Python['led_brightness_reporter'] = function(block) { _hal_require_led(); return [`led.get_brightness()`, Blockly.Python.ORDER_ATOMIC]; };
+Blockly.Python['led_brightness_reporter'] = function (block) { _hal_require_led(); return [`led.get_brightness()`, Blockly.Python.ORDER_ATOMIC]; };
 
 Blockly.Blocks['led_turn_off'] = {
     init: function () {
@@ -770,7 +776,7 @@ Blockly.Blocks['led_turn_off'] = {
         this.setColour("#8A2BE2");
     }
 };
-Blockly.Python['led_turn_off'] = function(block) {
+Blockly.Python['led_turn_off'] = function (block) {
     _hal_require_led();
     let target = block.getFieldValue('TARGET');
     return `led.turn_off("${target}")\n`;
@@ -864,7 +870,7 @@ Blockly.Blocks['pin_set_digital'] = {
         this.setColour("#FF6347");
     }
 };
-Blockly.Python['pin_set_digital'] = function(block) {
+Blockly.Python['pin_set_digital'] = function (block) {
     _hal_require_pin();
     let pin = block.getFieldValue('PIN');
     let state = block.getFieldValue('STATE');
@@ -884,7 +890,7 @@ Blockly.Blocks['pin_set_analog'] = {
         this.setColour("#FF6347");
     }
 };
-Blockly.Python['pin_set_analog'] = function(block) {
+Blockly.Python['pin_set_analog'] = function (block) {
     _hal_require_pin();
     let pin = block.getFieldValue('PIN');
     let val = Blockly.Python.valueToCode(block, 'VAL', Blockly.Python.ORDER_ATOMIC) || "0";
@@ -900,7 +906,7 @@ Blockly.Blocks['pin_read_digital'] = {
         this.setColour("#FF6347");
     }
 };
-Blockly.Python['pin_read_digital'] = function(block) {
+Blockly.Python['pin_read_digital'] = function (block) {
     _hal_require_pin();
     let pin = block.getFieldValue('PIN');
     return [`pin.read_digital(${pin})`, Blockly.Python.ORDER_ATOMIC];
@@ -915,7 +921,7 @@ Blockly.Blocks['pin_read_analog'] = {
         this.setColour("#FF6347");
     }
 };
-Blockly.Python['pin_read_analog'] = function(block) {
+Blockly.Python['pin_read_analog'] = function (block) {
     _hal_require_pin();
     let pin = block.getFieldValue('PIN');
     return [`pin.read_analog(${pin})`, Blockly.Python.ORDER_ATOMIC];
@@ -939,7 +945,7 @@ Blockly.Blocks['motor_set_servo'] = {
         this.setColour("#4169E1");
     }
 };
-Blockly.Python['motor_set_servo'] = function(block) {
+Blockly.Python['motor_set_servo'] = function (block) {
     _hal_require_motor();
     let pin = block.getFieldValue('PIN');
     let deg = Blockly.Python.valueToCode(block, 'DEGREE', Blockly.Python.ORDER_ATOMIC) || "90";
@@ -961,7 +967,7 @@ Blockly.Blocks['motor_dc_speed'] = {
         this.setColour("#4169E1");
     }
 };
-Blockly.Python['motor_dc_speed'] = function(block) {
+Blockly.Python['motor_dc_speed'] = function (block) {
     _hal_require_motor();
     let motor = block.getFieldValue('MOTOR');
     let speed = Blockly.Python.valueToCode(block, 'SPEED', Blockly.Python.ORDER_ATOMIC) || "100";
@@ -978,7 +984,7 @@ Blockly.Blocks['motor_dc_stop'] = {
         this.setColour("#4169E1");
     }
 };
-Blockly.Python['motor_dc_stop'] = function(block) {
+Blockly.Python['motor_dc_stop'] = function (block) {
     _hal_require_motor();
     let motor = block.getFieldValue('MOTOR');
     return `motor.stop_dc("${motor}")\n`;
@@ -999,7 +1005,7 @@ Blockly.Blocks['sensor_ultrasonic'] = {
         this.setColour("#2E8B57");
     }
 };
-Blockly.Python['sensor_ultrasonic'] = function(block) {
+Blockly.Python['sensor_ultrasonic'] = function (block) {
     _hal_require_sensor();
     let trig = block.getFieldValue('TRIG');
     let echo = block.getFieldValue('ECHO');
@@ -1018,7 +1024,7 @@ Blockly.Blocks['sensor_ultrasonic_print'] = {
         this.setColour("#2E8B57");
     }
 };
-Blockly.Python['sensor_ultrasonic_print'] = function(block) {
+Blockly.Python['sensor_ultrasonic_print'] = function (block) {
     _hal_require_sensor();
     let trig = block.getFieldValue('TRIG');
     let echo = block.getFieldValue('ECHO');
@@ -1045,13 +1051,13 @@ Blockly.Blocks['sensor_ultrasonic_if'] = {
         this.setColour("#2E8B57");
     }
 };
-Blockly.Python['sensor_ultrasonic_if'] = function(block) {
+Blockly.Python['sensor_ultrasonic_if'] = function (block) {
     _hal_require_sensor();
     let trig = block.getFieldValue('TRIG');
     let echo = block.getFieldValue('ECHO');
     let op = block.getFieldValue('OP');
     let setpoint = block.getFieldValue('SETPOINT');
-    
+
     let doTrue = Blockly.Python.statementToCode(block, 'DO_TRUE');
     let doFalse = Blockly.Python.statementToCode(block, 'DO_FALSE');
 
@@ -1073,7 +1079,7 @@ Blockly.Blocks['sensor_line_follower'] = {
         this.setColour("#2E8B57");
     }
 };
-Blockly.Python['sensor_line_follower'] = function(block) {
+Blockly.Python['sensor_line_follower'] = function (block) {
     _hal_require_sensor();
     let pin = block.getFieldValue('PIN');
     let state = block.getFieldValue('STATE');
@@ -1089,7 +1095,7 @@ Blockly.Blocks['sensor_light'] = {
         this.setColour("#2E8B57");
     }
 };
-Blockly.Python['sensor_light'] = function(block) {
+Blockly.Python['sensor_light'] = function (block) {
     _hal_require_sensor();
     let pin = block.getFieldValue('PIN');
     return [`sensor.read_light(${pin})`, Blockly.Python.ORDER_ATOMIC];
@@ -1104,7 +1110,7 @@ Blockly.Blocks['sensor_temperature'] = {
         this.setColour("#2E8B57");
     }
 };
-Blockly.Python['sensor_temperature'] = function(block) {
+Blockly.Python['sensor_temperature'] = function (block) {
     _hal_require_sensor();
     let pin = block.getFieldValue('PIN');
     return [`sensor.read_temperature(${pin})`, Blockly.Python.ORDER_ATOMIC];
@@ -1115,14 +1121,26 @@ Blockly.Blocks['sensor_gas'] = {
         this.appendDummyInput()
             .appendField("🌡️ Deteksi Gas (Digital) di")
             .appendField(new Blockly.FieldNumber(17, 0, 40), "PIN");
-        this.setOutput(true, "Boolean");
+        this.appendStatementInput("DO_DETECT")
+            .appendField("jika terdeteksi gas:");
+        this.appendStatementInput("DO_SAFE")
+            .appendField("jika aman:");
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
         this.setColour("#2E8B57");
     }
 };
-Blockly.Python['sensor_gas'] = function(block) {
+Blockly.Python['sensor_gas'] = function (block) {
     _hal_require_sensor();
     let pin = block.getFieldValue('PIN');
-    return [`sensor.read_gas(${pin})`, Blockly.Python.ORDER_ATOMIC];
+    let doDetect = Blockly.Python.statementToCode(block, 'DO_DETECT');
+    let doSafe = Blockly.Python.statementToCode(block, 'DO_SAFE');
+
+    let code = `if sensor.read_gas(${pin}):\n`;
+    code += doDetect || '    pass\n';
+    code += `else:\n`;
+    code += doSafe || '    pass\n';
+    return code;
 };
 
 Blockly.Blocks['sensor_soil_moisture'] = {
@@ -1134,7 +1152,7 @@ Blockly.Blocks['sensor_soil_moisture'] = {
         this.setColour("#2E8B57");
     }
 };
-Blockly.Python['sensor_soil_moisture'] = function(block) {
+Blockly.Python['sensor_soil_moisture'] = function (block) {
     _hal_require_sensor();
     let pin = block.getFieldValue('PIN');
     return [`sensor.read_soil_moisture(${pin})`, Blockly.Python.ORDER_ATOMIC];
@@ -1145,29 +1163,156 @@ Blockly.Blocks['sensor_motion'] = {
         this.appendDummyInput()
             .appendField("🌡️ Deteksi Gerakan (PIR) di")
             .appendField(new Blockly.FieldNumber(22, 0, 40), "PIN");
-        this.setOutput(true, "Boolean");
+        this.appendStatementInput("DO_DETECT")
+            .appendField("jika ada gerakan:");
+        this.appendStatementInput("DO_SAFE")
+            .appendField("jika aman:");
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
         this.setColour("#2E8B57");
     }
 };
-Blockly.Python['sensor_motion'] = function(block) {
+Blockly.Python['sensor_motion'] = function (block) {
     _hal_require_sensor();
     let pin = block.getFieldValue('PIN');
-    return [`sensor.read_motion(${pin})`, Blockly.Python.ORDER_ATOMIC];
+    let doDetect = Blockly.Python.statementToCode(block, 'DO_DETECT');
+    let doSafe = Blockly.Python.statementToCode(block, 'DO_SAFE');
+
+    let code = `if sensor.read_motion(${pin}):\n`;
+    code += doDetect || '    pass\n';
+    code += `else:\n`;
+    code += doSafe || '    pass\n';
+    return code;
 };
 
-Blockly.Blocks['sensor_humidity'] = {
+Blockly.Blocks['sensor_temperature'] = {
     init: function () {
         this.appendDummyInput()
-            .appendField("🌡️ Kelembapan Udara (%) di")
+            .appendField("🌡️ Suhu Udara (°C) di")
             .appendField(new Blockly.FieldNumber(4, 0, 40), "PIN");
         this.setOutput(true, "Number");
         this.setColour("#2E8B57");
     }
 };
-Blockly.Python['sensor_humidity'] = function(block) {
+Blockly.Python['sensor_temperature'] = function (block) {
+    _hal_require_sensor();
+    let pin = block.getFieldValue('PIN');
+    return [`sensor.read_temperature(${pin})`, Blockly.Python.ORDER_ATOMIC];
+};
+
+Blockly.Blocks['sensor_humidity'] = {
+    init: function () {
+        this.appendDummyInput()
+            .appendField("💧 Kelembapan Udara (%) di")
+            .appendField(new Blockly.FieldNumber(4, 0, 40), "PIN");
+        this.setOutput(true, "Number");
+        this.setColour("#2E8B57");
+    }
+};
+Blockly.Python['sensor_humidity'] = function (block) {
     _hal_require_sensor();
     let pin = block.getFieldValue('PIN');
     return [`sensor.read_humidity(${pin})`, Blockly.Python.ORDER_ATOMIC];
+};
+
+Blockly.Blocks['sensor_temperature_if'] = {
+    init: function () {
+        this.appendDummyInput()
+            .appendField("🌡️ Jika Suhu Udara di")
+            .appendField(new Blockly.FieldNumber(4, 0, 40), "PIN");
+        this.appendDummyInput()
+            .appendField(new Blockly.FieldDropdown([["< (Kurang dari)", "<"], ["> (Lebih dari)", ">"], ["= (Sama dengan)", "=="]]), "OP")
+            .appendField(new Blockly.FieldNumber(30), "SETPOINT")
+            .appendField("°C");
+        this.appendStatementInput("DO_TRUE")
+            .appendField("maka (DO):");
+        this.appendStatementInput("DO_FALSE")
+            .appendField("selain itu (ELSE):");
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour("#2E8B57");
+    }
+};
+Blockly.Python['sensor_temperature_if'] = function (block) {
+    _hal_require_sensor();
+    let pin = block.getFieldValue('PIN');
+    let op = block.getFieldValue('OP');
+    let setpoint = block.getFieldValue('SETPOINT');
+
+    let doTrue = Blockly.Python.statementToCode(block, 'DO_TRUE');
+    let doFalse = Blockly.Python.statementToCode(block, 'DO_FALSE');
+
+    let code = `if sensor.read_temperature(${pin}) ${op} ${setpoint}:\n`;
+    code += doTrue || '    pass\n';
+    code += `else:\n`;
+    code += doFalse || '    pass\n';
+    return code;
+};
+
+Blockly.Blocks['sensor_humidity_if'] = {
+    init: function () {
+        this.appendDummyInput()
+            .appendField("💧 Jika Kelembapan Udara di")
+            .appendField(new Blockly.FieldNumber(4, 0, 40), "PIN");
+        this.appendDummyInput()
+            .appendField(new Blockly.FieldDropdown([["< (Kurang dari)", "<"], ["> (Lebih dari)", ">"], ["= (Sama dengan)", "=="]]), "OP")
+            .appendField(new Blockly.FieldNumber(60), "SETPOINT")
+            .appendField("%");
+        this.appendStatementInput("DO_TRUE")
+            .appendField("maka (DO):");
+        this.appendStatementInput("DO_FALSE")
+            .appendField("selain itu (ELSE):");
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour("#2E8B57");
+    }
+};
+Blockly.Python['sensor_humidity_if'] = function (block) {
+    _hal_require_sensor();
+    let pin = block.getFieldValue('PIN');
+    let op = block.getFieldValue('OP');
+    let setpoint = block.getFieldValue('SETPOINT');
+
+    let doTrue = Blockly.Python.statementToCode(block, 'DO_TRUE');
+    let doFalse = Blockly.Python.statementToCode(block, 'DO_FALSE');
+
+    let code = `if sensor.read_humidity(${pin}) ${op} ${setpoint}:\n`;
+    code += doTrue || '    pass\n';
+    code += `else:\n`;
+    code += doFalse || '    pass\n';
+    return code;
+};
+
+Blockly.Blocks['sensor_temperature_print'] = {
+    init: function () {
+        this.appendDummyInput()
+            .appendField("🌡️ Print Suhu Udara (°C) di")
+            .appendField(new Blockly.FieldNumber(4, 0, 40), "PIN");
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour("#2E8B57");
+    }
+};
+Blockly.Python['sensor_temperature_print'] = function (block) {
+    _hal_require_sensor();
+    let pin = block.getFieldValue('PIN');
+    return `print(f"[INFO] Suhu Udara: {sensor.read_temperature(${pin}):.1f} °C")\n`;
+};
+
+Blockly.Blocks['sensor_humidity_print'] = {
+    init: function () {
+        this.appendDummyInput()
+            .appendField("💧 Print Kelembapan Udara (%) di")
+            .appendField(new Blockly.FieldNumber(4, 0, 40), "PIN");
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour("#2E8B57");
+    }
+};
+Blockly.Python['sensor_humidity_print'] = function (block) {
+    _hal_require_sensor();
+    let pin = block.getFieldValue('PIN');
+    return `print(f"[INFO] Kelembapan Udara: {sensor.read_humidity(${pin}):.1f} %")\n`;
 };
 
 Blockly.Blocks['sensor_ir_obstacle'] = {
@@ -1184,16 +1329,16 @@ Blockly.Blocks['sensor_ir_obstacle'] = {
         this.setColour("#2E8B57");
     }
 };
-Blockly.Python['sensor_ir_obstacle'] = function(block) {
+Blockly.Python['sensor_ir_obstacle'] = function (block) {
     _hal_require_sensor();
     let pin = block.getFieldValue('PIN');
     let doDetect = Blockly.Python.statementToCode(block, 'DO_DETECT');
-    let doSafe   = Blockly.Python.statementToCode(block, 'DO_SAFE');
+    let doSafe = Blockly.Python.statementToCode(block, 'DO_SAFE');
 
     let code = `if sensor.read_ir_obstacle(${pin}):  # True = terdeteksi (0/LOW)\n`;
     code += doDetect || '    pass\n';
     code += `else:\n`;
-    code += doSafe   || '    pass\n';
+    code += doSafe || '    pass\n';
     return code;
 };
 
@@ -1213,7 +1358,7 @@ Blockly.Blocks['display_print'] = {
         this.setColour("#8B008B");
     }
 };
-Blockly.Python['display_print'] = function(block) {
+Blockly.Python['display_print'] = function (block) {
     _hal_require_display();
     let text = Blockly.Python.valueToCode(block, 'TEXT', Blockly.Python.ORDER_ATOMIC) || '""';
     return `display.print(${text})\n`;
@@ -1233,7 +1378,7 @@ Blockly.Blocks['display_print_size'] = {
         this.setColour("#8B008B");
     }
 };
-Blockly.Python['display_print_size'] = function(block) {
+Blockly.Python['display_print_size'] = function (block) {
     _hal_require_display();
     let text = Blockly.Python.valueToCode(block, 'TEXT', Blockly.Python.ORDER_ATOMIC) || '""';
     let size = block.getFieldValue('SIZE');
@@ -1249,7 +1394,7 @@ Blockly.Blocks['display_clear'] = {
         this.setColour("#8B008B");
     }
 };
-Blockly.Python['display_clear'] = function(block) {
+Blockly.Python['display_clear'] = function (block) {
     _hal_require_display();
     return `display.clear()\n`;
 };
@@ -1265,7 +1410,7 @@ Blockly.Blocks['display_graph'] = {
         this.setColour("#8B008B");
     }
 };
-Blockly.Python['display_graph'] = function(block) {
+Blockly.Python['display_graph'] = function (block) {
     _hal_require_display();
     let val = Blockly.Python.valueToCode(block, 'VAL', Blockly.Python.ORDER_ATOMIC) || "0";
     return `display.graph(${val})\n`;
@@ -1287,7 +1432,7 @@ Blockly.Blocks['delay_seconds'] = {
         this.setColour("#FFAB19");
     }
 };
-Blockly.Python['delay_seconds'] = function(block) {
+Blockly.Python['delay_seconds'] = function (block) {
     let seconds = Blockly.Python.valueToCode(block, 'SECONDS', Blockly.Python.ORDER_ATOMIC) || "1";
     return `time.sleep(${seconds})\n`;
 };
