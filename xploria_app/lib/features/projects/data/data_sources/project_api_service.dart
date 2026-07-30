@@ -10,7 +10,7 @@ class ProjectApiService {
 
   final String baseUrl = 'http://192.168.1.68:8000/api/v1';
 
-  Future<Map<String, String>> _getHeaders() FIX [DEVICE CONNECTION]: perbaikan ui modal bluetooth mencegah overflow dan mengubah alur auto-connect menjadi koneksi manualasync {
+  Future<Map<String, String>> _getHeaders() async {
     final token = AuthStorageService().accessToken;
     if (token == null || token.isEmpty) {
       throw Exception('Tidak ada akses token. Silakan login kembali.');
