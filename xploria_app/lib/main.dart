@@ -1,23 +1,33 @@
 import 'package:flutter/material.dart';
 import 'package:xploria_app/features/auth/presentation/pages/welcome_screen.dart';
+import 'package:xploria_app/features/dashboard/presentation/pages/dashboard_screen.dart';
+import 'package:xploria_app/features/auth/data/data_sources/auth_storage_service.dart';
 
-void main() {
-  runApp(const MyApp());
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  
+  // Inisialisasi AuthStorageService untuk load token dari secure storage
+  final authStorage = AuthStorageService();
+  await authStorage.init();
+
+  runApp(MyApp(isAuthenticated: authStorage.isAuthenticated));
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  final bool isAuthenticated;
+  
+  const MyApp({super.key, required this.isAuthenticated});
 
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'Xploria App',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF005CFF)),
       ),
-      home: const WelcomeScreen(),
+      home: isAuthenticated ? const DashboardScreen() : const WelcomeScreen(),
     );
   }
 }
