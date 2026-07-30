@@ -191,7 +191,11 @@ function _hal_require_sensor() {
         '        self._claim_in(chip, offset, p)',
         "        return 'BLACK' if _gpio.gpio_read(chip, offset) == 0 else 'WHITE'",
         '',
-        '    def read_light(self, p): return 0',
+        '    def read_light(self, p):',
+        '        chip, offset = _get_gpio(p)',
+        '        self._claim_in(chip, offset, p)',
+        '        val = _gpio.gpio_read(chip, offset)',
+        '        return 100 if val == 0 else 0',
         '',
         'sensor = SensorHAL()',
     ].join('\n');
@@ -1099,6 +1103,56 @@ Blockly.Python['sensor_light'] = function (block) {
     _hal_require_sensor();
     let pin = block.getFieldValue('PIN');
     return [`sensor.read_light(${pin})`, Blockly.Python.ORDER_ATOMIC];
+};
+
+Blockly.Blocks['sensor_light_print'] = {
+    init: function () {
+        this.appendDummyInput()
+            .appendField("🌡️ Print Intensitas Cahaya (LDR) di")
+            .appendField(new Blockly.FieldNumber(27, 0, 40), "PIN");
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour("#2E8B57");
+    }
+};
+Blockly.Python['sensor_light_print'] = function(block) {
+    _hal_require_sensor();
+    let pin = block.getFieldValue('PIN');
+    return `print(f"[INFO] Intensitas Cahaya LDR: {sensor.read_light(${pin}):.2f} %")\n`;
+};
+
+Blockly.Blocks['sensor_light_if'] = {
+    init: function () {
+        this.appendDummyInput()
+            .appendField("🌡️ Jika Intensitas Cahaya (LDR) di")
+            .appendField(new Blockly.FieldNumber(27, 0, 40), "PIN");
+        this.appendDummyInput()
+            .appendField(new Blockly.FieldDropdown([["< (Kurang dari)", "<"], ["> (Lebih dari)", ">"], ["= (Sama dengan)", "=="]]), "OP")
+            .appendField(new Blockly.FieldNumber(50), "SETPOINT")
+            .appendField("%");
+        this.appendStatementInput("DO_TRUE")
+            .appendField("maka (DO):");
+        this.appendStatementInput("DO_FALSE")
+            .appendField("selain itu (ELSE):");
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour("#2E8B57");
+    }
+};
+Blockly.Python['sensor_light_if'] = function(block) {
+    _hal_require_sensor();
+    let pin = block.getFieldValue('PIN');
+    let op = block.getFieldValue('OP');
+    let setpoint = block.getFieldValue('SETPOINT');
+    
+    let doTrue = Blockly.Python.statementToCode(block, 'DO_TRUE');
+    let doFalse = Blockly.Python.statementToCode(block, 'DO_FALSE');
+
+    let code = `if sensor.read_light(${pin}) ${op} ${setpoint}:\n`;
+    code += doTrue || '    pass\n';
+    code += `else:\n`;
+    code += doFalse || '    pass\n';
+    return code;
 };
 
 Blockly.Blocks['sensor_temperature'] = {
