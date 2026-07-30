@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import '../../../auth/data/data_sources/auth_storage_service.dart';
 import '../../../auth/presentation/pages/welcome_screen.dart';
 import '../../../auth/domain/models/user_model.dart';
@@ -100,13 +101,20 @@ class _AccountPageState extends State<AccountPage> {
                   subtitle: 'Keluar dari akun',
                   icon: Icons.logout_rounded,
                   iconColor: Colors.redAccent,
-                  onTap: () {
-                    AuthStorageService().clearSession();
-                    Navigator.pushAndRemoveUntil(
-                      context,
-                      MaterialPageRoute(builder: (_) => const WelcomeScreen()),
-                      (route) => false,
-                    );
+                  onTap: () async {
+                    await AuthStorageService().clearSession();
+                    try {
+                      // Hapus sesi Google Sign In agar user bisa memilih akun lain saat login berikutnya
+                      await GoogleSignIn().signOut();
+                    } catch (_) {}
+                    
+                    if (context.mounted) {
+                      Navigator.pushAndRemoveUntil(
+                        context,
+                        MaterialPageRoute(builder: (_) => const WelcomeScreen()),
+                        (route) => false,
+                      );
+                    }
                   },
                 ),
               ],

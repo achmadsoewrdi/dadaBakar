@@ -181,3 +181,16 @@ function saveMyBlock() {
         openCategory(selectedCategoryIndex);
     }
 }
+
+// Function to load workspace from XML string (called from Flutter)
+function loadWorkspaceXml(xmlText) {
+    if (!xmlText || xmlText.trim() === '') return;
+    try {
+        workspace.clear();
+        const xmlDom = Blockly.Xml.textToDom(xmlText);
+        Blockly.Xml.domToWorkspace(xmlDom, workspace);
+    } catch (e) {
+        console.error("Error loading workspace XML: ", e);
+    }
+}
+

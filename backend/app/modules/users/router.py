@@ -19,7 +19,7 @@ from app.modules.users.service import (
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
 
-@router.post("/register", response_model=UserOut, status_code=status.HTTP_201_CREATED)
+@router.post("/register", response_model=Token, status_code=status.HTTP_201_CREATED)
 async def register_user(
     user_in: UserCreate,
     db: AsyncSession = Depends(get_db)
@@ -38,7 +38,16 @@ async def register_user(
         )
     
     new_user = await create_user(db, user_in=user_in)
-    return new_user
+    
+    access_token = create_access_token(subject=new_user.id)
+    refresh_token = create_refresh_token(subject=new_user.id)
+    
+    return Token(
+        access_token=access_token,
+        refresh_token=refresh_token,
+        token_type="bearer",
+        user=new_user
+    )
 
 
 @router.post("/login", response_model=Token)
@@ -71,7 +80,8 @@ async def login_user(
     return Token(
         access_token=access_token,
         refresh_token=refresh_token,
-        token_type="bearer"
+        token_type="bearer",
+        user=user
     )
 
 
@@ -143,5 +153,6 @@ async def google_login(
     return Token(
         access_token=access_token,
         refresh_token=refresh_token,
-        token_type="bearer"
+        token_type="bearer",
+        user=user
     )

@@ -9,7 +9,7 @@ class AuthApiService {
   factory AuthApiService() => _instance;
   AuthApiService._internal();
 
-  final String baseUrl = 'http://localhost:8000/api/v1';
+  final String baseUrl = 'http://192.168.1.73:8000/api/v1';
 
   /// Option A: Login with Email & Password
   /// Sequence Diagram Steps 1-5: POST /auth/login (email, password)
@@ -59,10 +59,7 @@ class AuthApiService {
 
       return _handleAuthResponse(response);
     } catch (e) {
-      return _simulateAuthSuccess(
-        email: email,
-        fullName: fullName,
-      );
+      rethrow;
     }
   }
 
@@ -84,19 +81,15 @@ class AuthApiService {
 
       return _handleAuthResponse(response);
     } catch (e) {
-      return _simulateAuthSuccess(
-        email: 'user.google@xploria.com',
-        fullName: 'Google User',
-        googleSub: 'google_sub_${DateTime.now().millisecondsSinceEpoch}',
-      );
+      rethrow;
     }
   }
 
-  AuthResponseModel _handleAuthResponse(http.Response response) {
+  Future<AuthResponseModel> _handleAuthResponse(http.Response response) async {
     if (response.statusCode == 200 || response.statusCode == 201) {
       final json = jsonDecode(response.body) as Map<String, dynamic>;
       final authResponse = AuthResponseModel.fromJson(json);
-      AuthStorageService().saveAuthSession(authResponse);
+      await AuthStorageService().saveAuthSession(authResponse);
       return authResponse;
     } else if (response.statusCode == 401) {
       throw Exception('Email atau password salah (401 Unauthorized)');
@@ -133,7 +126,7 @@ class AuthApiService {
         updatedAt: now,
       ),
     );
-    AuthStorageService().saveAuthSession(authResponse);
+    AuthStorageService().saveAuthSession(authResponse); // Simulating without await
     return authResponse;
   }
 }

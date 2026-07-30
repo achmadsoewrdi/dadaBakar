@@ -51,3 +51,25 @@ async def restore_project(db: AsyncSession, project_id: UUID, owner_id: UUID) ->
     project.deleted_at = None
     await db.commit()
     return True
+
+async def update_project(db: AsyncSession, project_id: UUID, owner_id: UUID, project_update: ProjectUpdate) -> Project | None:
+    result = await db.execute(
+        select(Project).where(Project.id == project_id, Project.owner_id == owner_id, Project.deleted_at.is_(None))
+    )
+    project = result.scalar_one_or_none()
+    if not project:
+        return None
+    
+    if project_update.name is not None:
+        project.name = project_update.name
+    if project_update.workspace_xml is not None:
+        project.workspace_xml = project_update.workspace_xml
+    if project_update.generated_code is not None:
+        project.generated_code = project_update.generated_code
+    if project_update.device_profile_id is not None:
+        project.device_profile_id = project_update.device_profile_id
+    
+    project.updated_at = datetime.utcnow()
+    await db.commit()
+    await db.refresh(project)
+    return project

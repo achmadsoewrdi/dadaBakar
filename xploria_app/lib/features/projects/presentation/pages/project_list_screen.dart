@@ -217,7 +217,7 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
       onTap: () {
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => const BlocklyWorkspaceScreen()),
+          MaterialPageRoute(builder: (context) => BlocklyWorkspaceScreen(project: project)),
         );
       },
       child: Container(
