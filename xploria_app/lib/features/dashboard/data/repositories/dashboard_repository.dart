@@ -3,46 +3,18 @@ import '../../../projects/domain/models/project_model.dart';
 import '../../../device_profile/domain/models/device_profile_model.dart';
 import '../../../content/domain/models/learning_module_model.dart';
 import '../../../auth/data/data_sources/auth_storage_service.dart';
+import '../../../projects/data/repositories/project_repository_impl.dart';
 
 class DashboardRepository implements IDashboardRepository {
   @override
   Future<List<ProjectModel>> getRecentProjects() async {
-    final user = AuthStorageService().currentUser;
-    final userId = user?.id ?? 'uuid_demo_user';
-    final now = DateTime.now();
-    return [
-      ProjectModel(
-        id: 'proj_01',
-        ownerId: userId,
-        name: 'Kamera Pintar Robot',
-        workspaceXml: '<xml><block type="rpi_camera"></block></xml>',
-        generatedCode: 'import cv2\nprint("Raspberry Pi Camera Running")',
-        deviceType: 'raspberry_pi',
-        createdAt: now.subtract(const Duration(days: 1)),
-        updatedAt: now.subtract(const Duration(hours: 1)),
-      ),
-      ProjectModel(
-        id: 'proj_02',
-        ownerId: userId,
-        name: 'Kontrol Lampu Otomatis',
-        workspaceXml: '<xml><block type="orangepi_gpio"></block></xml>',
-        generatedCode: 'import OPi.GPIO as GPIO',
-        deviceType: 'orange_pi',
-        createdAt: now.subtract(const Duration(days: 3)),
-        updatedAt: now.subtract(const Duration(days: 1)),
-      ),
-      ProjectModel(
-        id: 'proj_03',
-        ownerId: userId,
-        name: 'Smart Agriculture Prototype',
-        workspaceXml: '<xml><block type="sensor_temp"></block></xml>',
-        generatedCode: 'print("Smart Farm IoT")',
-        deviceType: 'arduino',
-        blynkConfigJson: [],
-        createdAt: now.subtract(const Duration(hours: 5)),
-        updatedAt: now.subtract(const Duration(minutes: 15)),
-      ),
-    ];
+    try {
+      final repo = ProjectRepositoryImpl();
+      return await repo.getProjects();
+    } catch (e) {
+      // Return empty list if error or fallback to dummy if needed
+      return [];
+    }
   }
 
   @override

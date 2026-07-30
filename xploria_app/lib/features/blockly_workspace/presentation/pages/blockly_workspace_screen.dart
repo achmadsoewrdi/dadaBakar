@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
@@ -7,13 +8,15 @@ import '../../../device/presentation/pages/device_connection_screen.dart';
 import '../../data/blockly_bridge.dart';
 import '../../domain/workspace_state.dart';
 import '../../../projects/domain/models/project_model.dart';
+import '../../../projects/data/repositories/project_repository_impl.dart';
 import '../../../iot_blynk/presentation/screens/blynk_canvas_screen.dart';
 import 'python_editor_screen.dart';
 
 class BlocklyWorkspaceScreen extends StatefulWidget {
+  final ProjectModel? project;
   final Function(String pythonCode)? onRunCode;
 
-  const BlocklyWorkspaceScreen({super.key, this.onRunCode});
+  const BlocklyWorkspaceScreen({super.key, this.project, this.onRunCode});
 
   @override
   State<BlocklyWorkspaceScreen> createState() => _BlocklyWorkspaceScreenState();
@@ -23,6 +26,9 @@ class _BlocklyWorkspaceScreenState extends State<BlocklyWorkspaceScreen> {
   WebViewController? _controller;
   WorkspaceState _state = const WorkspaceState();
   String _projectName = 'Project';
+  ProjectModel? _currentProject;
+  Timer? _debounce;
+  bool _isSaving = false;
 
   void _navigateToConnection() {
     Navigator.push(
@@ -60,6 +66,7 @@ class _BlocklyWorkspaceScreenState extends State<BlocklyWorkspaceScreen> {
                       : 'Project';
                 });
                 Navigator.pop(context);
+                _autoSaveProject(); // Simpan saat nama diubah
               },
               child: const Text('Simpan'),
             ),
@@ -173,7 +180,37 @@ class _BlocklyWorkspaceScreenState extends State<BlocklyWorkspaceScreen> {
   @override
   void initState() {
     super.initState();
+    if (widget.project != null) {
+      _currentProject = widget.project;
+      _projectName = widget.project!.name;
+    }
     _initWebViewController();
+  }
+
+  @override
+  void dispose() {
+    _debounce?.cancel();
+    super.dispose();
+  }
+
+  void _autoSaveProject() {
+    if (_debounce?.isActive ?? false) _debounce!.cancel();
+    _debounce = Timer(const Duration(seconds: 2), () async {
+      setState(() => _isSaving = true);
+      try {
+        final repo = ProjectRepositoryImpl();
+        if (_currentProject == null) {
+          final newProj = await repo.createProject(_projectName, workspaceXml: _state.xmlData);
+          _currentProject = newProj;
+        } else {
+          await repo.updateProject(_currentProject!.id, name: _projectName, workspaceXml: _state.xmlData, generatedCode: _state.pythonCode);
+        }
+      } catch (_) {
+        // Abaikan error background autosave
+      } finally {
+        if (mounted) setState(() => _isSaving = false);
+      }
+    });
   }
 
   void _initWebViewController() {
@@ -200,6 +237,7 @@ class _BlocklyWorkspaceScreenState extends State<BlocklyWorkspaceScreen> {
                 xmlData: bridgeMsg.xmlData,
               );
             });
+            _autoSaveProject();
           }
         },
       )
@@ -209,6 +247,11 @@ class _BlocklyWorkspaceScreenState extends State<BlocklyWorkspaceScreen> {
             setState(() {
               _state = _state.copyWith(isLoading: false);
             });
+            // Jika ada xml data, muat saat page finish
+            if (_currentProject != null) {
+               final xml = _currentProject!.workspaceXml.replaceAll('"', '\\"').replaceAll('\n', '');
+               _controller?.runJavaScript('loadWorkspaceXml("$xml")');
+            }
           },
         ),
       )
@@ -241,15 +284,27 @@ class _BlocklyWorkspaceScreenState extends State<BlocklyWorkspaceScreen> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Flexible(
-                  child: Text(
-                    _projectName,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w900,
-                      fontSize: 18,
-                    ),
-                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Flexible(
+                        child: Text(
+                          _projectName,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w900,
+                            fontSize: 18,
+                          ),
+                        ),
+                      ),
+                      if (_isSaving)
+                         const Padding(
+                           padding: EdgeInsets.only(left: 8.0),
+                           child: SizedBox(width: 12, height: 12, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)),
+                         )
+                    ]
+                  )
                 ),
                 const SizedBox(width: 8),
                 const Icon(Icons.edit, size: 18, color: Colors.white),

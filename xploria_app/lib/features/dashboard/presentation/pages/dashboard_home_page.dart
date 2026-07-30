@@ -7,25 +7,24 @@ import '../../../projects/presentation/pages/project_list_screen.dart';
 import '../../../device_profile/domain/models/device_profile_model.dart';
 import '../../../content/domain/models/learning_module_model.dart';
 import '../../data/repositories/dashboard_repository.dart';
+import '../../../projects/data/repositories/project_repository_impl.dart';
 import '../widgets/dashboard_shared_widgets.dart';
 
 class DashboardHomePage extends StatefulWidget {
   final String userName;
   final Function(int) onTabTapped;
-  final VoidCallback onCreateProjectTapped;
 
   const DashboardHomePage({
     super.key,
     required this.userName,
     required this.onTabTapped,
-    required this.onCreateProjectTapped,
   });
 
   @override
-  State<DashboardHomePage> createState() => _DashboardHomePageState();
+  State<DashboardHomePage> createState() => DashboardHomePageState();
 }
 
-class _DashboardHomePageState extends State<DashboardHomePage> {
+class DashboardHomePageState extends State<DashboardHomePage> {
   final DashboardRepository _repository = DashboardRepository();
   bool _isLoading = true;
   List<ProjectModel> _projects = [];
@@ -51,6 +50,172 @@ class _DashboardHomePageState extends State<DashboardHomePage> {
         _isLoading = false;
       });
     }
+  }
+
+  Future<void> _addNewProject(String name, String deviceType) async {
+    showDialog(
+      context: context, 
+      barrierDismissible: false, 
+      builder: (_) => const Center(child: CircularProgressIndicator())
+    );
+    try {
+      final repo = ProjectRepositoryImpl();
+      final newProj = await repo.createProject(name); // DeviceType isn't currently used in the API request, but you can pass it if supported later
+      if (mounted) Navigator.pop(context); // Tutup loading
+      
+      if (mounted) {
+        await Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => BlocklyWorkspaceScreen(project: newProj),
+          ),
+        );
+        _loadData();
+      }
+    } catch (e) {
+      if (mounted) {
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Gagal membuat proyek: $e')));
+      }
+    }
+  }
+
+  void showCreateProjectModal(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (context) {
+        return Container(
+          padding: const EdgeInsets.all(28),
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(36),
+              topRight: Radius.circular(36),
+            ),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Center(
+                child: Container(
+                  width: 48,
+                  height: 6,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade300,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
+              const Text(
+                'Buat Proyek Hardware Baru!',
+                style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.w900,
+                  color: Color(0xFF0A122C),
+                ),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                'Pilih jenis target device (Hardware Platform):',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey.shade600,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              const SizedBox(height: 24),
+
+              _buildModalOption(
+                context,
+                title: 'Raspberry Pi',
+                subtitle: 'Komputer mini untuk robotik & AI kamera',
+                icon: Icons.developer_board_rounded,
+                color: const Color(0xFF00C2FF),
+                onTap: () {
+                  Navigator.pop(context);
+                  _addNewProject('Proyek Raspberry Pi Baru', 'raspberry_pi');
+                },
+              ),
+              const SizedBox(height: 12),
+
+              _buildModalOption(
+                context,
+                title: 'Orange Pi',
+                subtitle: 'Single board computer performa tinggi',
+                icon: Icons.hardware_rounded,
+                color: const Color(0xFFFF9F1C),
+                onTap: () {
+                  Navigator.pop(context);
+                  _addNewProject('Proyek Orange Pi Baru', 'orange_pi');
+                },
+              ),
+              const SizedBox(height: 24),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildModalOption(
+    BuildContext context, {
+    required String title,
+    required String subtitle,
+    required IconData icon,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: Colors.grey.shade200, width: 2),
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: color,
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Icon(icon, color: Colors.white, size: 24),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: color,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    subtitle,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey.shade600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Icon(Icons.chevron_right_rounded, color: color),
+          ],
+        ),
+      ),
+    );
   }
 
   @override
@@ -151,7 +316,7 @@ class _DashboardHomePageState extends State<DashboardHomePage> {
 
   Widget _buildHeroChallengeCard() {
     return HoverCard(
-      onTap: widget.onCreateProjectTapped,
+      onTap: () => showCreateProjectModal(context),
       child: Container(
         width: double.infinity,
         padding: const EdgeInsets.all(22),
@@ -189,7 +354,7 @@ class _DashboardHomePageState extends State<DashboardHomePage> {
                 ),
                 const SizedBox(height: 16),
                 ElevatedButton(
-                  onPressed: widget.onCreateProjectTapped,
+                  onPressed: () => showCreateProjectModal(context),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.white,
                     foregroundColor: const Color(0xFF005CFF),
@@ -275,8 +440,8 @@ class _DashboardHomePageState extends State<DashboardHomePage> {
 
   Widget _buildProjectsFullWidthCard() {
     return HoverCard(
-      onTap: () {
-        Navigator.push(
+      onTap: () async {
+        await Navigator.push(
           context,
           PageRouteBuilder(
             pageBuilder: (context, animation, secondaryAnimation) => const ProjectListScreen(),
@@ -286,6 +451,7 @@ class _DashboardHomePageState extends State<DashboardHomePage> {
             transitionDuration: const Duration(milliseconds: 250),
           ),
         );
+        _loadData();
       },
       child: Container(
         width: double.infinity,
@@ -326,7 +492,7 @@ class _DashboardHomePageState extends State<DashboardHomePage> {
                 ),
                 IconButton(
                   icon: const Icon(Icons.add_circle_rounded, color: Color(0xFF005CFF), size: 32),
-                  onPressed: widget.onCreateProjectTapped,
+                  onPressed: () => showCreateProjectModal(context),
                 ),
               ],
             ),
@@ -358,13 +524,14 @@ class _DashboardHomePageState extends State<DashboardHomePage> {
 
     return HoverCard(
       margin: const EdgeInsets.only(bottom: 10),
-      onTap: () {
-        Navigator.push(
+      onTap: () async {
+        await Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (_) => const BlocklyWorkspaceScreen(),
+            builder: (_) => BlocklyWorkspaceScreen(project: project),
           ),
         );
+        _loadData();
       },
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -452,6 +619,38 @@ class _DashboardHomePageState extends State<DashboardHomePage> {
               ),
               const SizedBox(width: 8),
             ],
+            IconButton(
+              icon: const Icon(Icons.delete_outline_rounded, color: Colors.redAccent, size: 22),
+              onPressed: () async {
+                final confirm = await showDialog<bool>(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                    title: const Text('Hapus Proyek?'),
+                    content: const Text('Apakah Anda yakin ingin menghapus proyek ini? Proyek yang dihapus tidak bisa dikembalikan.'),
+                    actions: [
+                      TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Batal')),
+                      ElevatedButton(
+                        style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
+                        onPressed: () => Navigator.pop(context, true), 
+                        child: const Text('Hapus', style: TextStyle(color: Colors.white))
+                      ),
+                    ]
+                  )
+                );
+                if (confirm == true) {
+                  try {
+                    await ProjectRepositoryImpl().deleteProject(project.id);
+                    setState(() {
+                      _projects.removeWhere((p) => p.id == project.id);
+                    });
+                  } catch (e) {
+                    if (mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Gagal menghapus: $e')));
+                    }
+                  }
+                }
+              },
+            ),
             const Icon(Icons.chevron_right_rounded, color: Colors.grey, size: 20),
           ],
         ),
