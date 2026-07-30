@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_bluetooth_serial/flutter_bluetooth_serial.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
 enum ConnectionMode { bluetooth, wifi }
@@ -75,6 +76,10 @@ class DeviceConnectionService extends ChangeNotifier {
 
   Future<void> loadPairedDevices({bool silent = false}) async {
     try {
+      // Request permissions required for Android 12+
+      await Permission.bluetoothConnect.request();
+      await Permission.bluetoothScan.request();
+      
       List<BluetoothDevice> devices = await FlutterBluetoothSerial.instance.getBondedDevices();
       _devicesList = devices;
       for (var dev in devices) {

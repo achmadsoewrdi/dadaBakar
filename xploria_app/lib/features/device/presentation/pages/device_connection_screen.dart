@@ -30,8 +30,10 @@ class _DeviceConnectionScreenState extends State<DeviceConnectionScreen> {
   }
 
   void _showDeviceSelectionModal() {
+    DeviceConnectionService.instance.loadPairedDevices();
     showModalBottomSheet(
       context: context,
+      isScrollControlled: true,
       backgroundColor: Colors.white,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
@@ -41,65 +43,77 @@ class _DeviceConnectionScreenState extends State<DeviceConnectionScreen> {
           listenable: DeviceConnectionService.instance,
           builder: (context, _) {
             final service = DeviceConnectionService.instance;
-            return Padding(
-              padding: const EdgeInsets.all(24.0),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Pilih Perangkat Bluetooth',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w800,
-                      color: Color(0xFF0A122C),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  if (service.devicesList.isEmpty)
-                    const Text('Tidak ada perangkat tersimpan.')
-                  else
-                    ...service.devicesList.map((d) {
-                      final isSelected = service.selectedDevice?.address == d.address;
-                      return ListTile(
-                        title: Text(d.name ?? "Unknown Device"),
-                        subtitle: Text(d.address),
-                        trailing: isSelected
-                            ? const Icon(Icons.check_circle, color: Color(0xFF005CFF))
-                            : null,
-                        onTap: () {
-                          service.setSelectedDevice(d);
-                        },
-                      );
-                    }),
-                  const SizedBox(height: 16),
-                  SizedBox(
-                    width: double.infinity,
-                    height: 50,
-                    child: ElevatedButton(
-                      onPressed: service.selectedDevice == null
-                          ? null
-                          : () {
-                              Navigator.pop(context);
-                              service.connectBluetooth();
-                            },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF005CFF),
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                      ),
-                      child: const Text(
-                        'Hubungkan',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
-                        ),
+            return SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.all(24.0),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Pilih Perangkat Bluetooth',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w800,
+                        color: Color(0xFF0A122C),
                       ),
                     ),
-                  ),
-                ],
+                    const SizedBox(height: 16),
+                    if (service.devicesList.isEmpty)
+                      const Text('Tidak ada perangkat tersimpan.')
+                    else
+                      ConstrainedBox(
+                        constraints: BoxConstraints(
+                          maxHeight: MediaQuery.of(context).size.height * 0.5, // 50% of screen height
+                        ),
+                        child: ListView.builder(
+                          shrinkWrap: true,
+                          itemCount: service.devicesList.length,
+                          itemBuilder: (context, index) {
+                            final d = service.devicesList[index];
+                            final isSelected = service.selectedDevice?.address == d.address;
+                            return ListTile(
+                              title: Text(d.name ?? "Unknown Device"),
+                              subtitle: Text(d.address),
+                              trailing: isSelected
+                                  ? const Icon(Icons.check_circle, color: Color(0xFF005CFF))
+                                  : null,
+                              onTap: () {
+                                service.setSelectedDevice(d);
+                              },
+                            );
+                          },
+                        ),
+                      ),
+                    const SizedBox(height: 16),
+                    SizedBox(
+                      width: double.infinity,
+                      height: 50,
+                      child: ElevatedButton(
+                        onPressed: service.selectedDevice == null
+                            ? null
+                            : () {
+                                Navigator.pop(context);
+                                service.connectBluetooth();
+                              },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF005CFF),
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                        ),
+                        child: const Text(
+                          'Hubungkan',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             );
           }
