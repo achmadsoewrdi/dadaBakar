@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 import '../../domain/models/auth_response_model.dart';
 import '../../domain/models/user_model.dart';
@@ -9,7 +10,7 @@ class AuthApiService {
   factory AuthApiService() => _instance;
   AuthApiService._internal();
 
-  final String baseUrl = 'http://192.168.1.73:8000/api/v1';
+  final String baseUrl = dotenv.env['BASE_URL'] ?? 'http://192.168.1.73:8000/api/v1';
 
   /// Option A: Login with Email & Password
   /// Sequence Diagram Steps 1-5: POST /auth/login (email, password)
