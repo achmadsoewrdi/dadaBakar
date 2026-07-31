@@ -31,3 +31,19 @@ class DeviceProfile(Base):
     owner = relationship("User", back_populates="device_profiles")
     hardware_type = relationship("HardwareType", back_populates="device_profiles")
     projects = relationship("Project", back_populates="device_profile")
+    hardware_logs = relationship("HardwareLog", back_populates="device_profile", cascade="all, delete-orphan")
+
+
+class HardwareLog(Base):
+    __tablename__ = "hardware_logs"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    device_profile_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("device_profiles.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    log_level: Mapped[str] = mapped_column(String(20), default="INFO")
+    log_message: Mapped[str] = mapped_column(String, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)
+
+    # Relationships
+    device_profile = relationship("DeviceProfile", back_populates="hardware_logs")

@@ -3,6 +3,8 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_bluetooth_serial/flutter_bluetooth_serial.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
+import '../../features/device/domain/device_entity.dart';
+import '../../features/device/data/data_sources/device_remote_data_source.dart';
 
 enum ConnectionMode { bluetooth, wifi }
 
@@ -29,6 +31,9 @@ class DeviceConnectionService extends ChangeNotifier {
   String? _connectedIp;
   String? get connectedIp => _connectedIp;
 
+  String? _connectedDeviceId;
+  String? get connectedDeviceId => _connectedDeviceId;
+
   // Generic State
   bool _isConnected = false;
   bool get isConnected => _isConnected;
@@ -42,6 +47,49 @@ class DeviceConnectionService extends ChangeNotifier {
   // Terminal Logs State
   final List<String> _terminalLogs = [];
   List<String> get terminalLogs => _terminalLogs;
+
+  // Saved Devices from API
+  final DeviceRemoteDataSource _remoteDataSource = DeviceRemoteDataSource();
+  List<DeviceEntity> _savedDevices = [];
+  List<DeviceEntity> get savedDevices => _savedDevices;
+  bool _isLoadingSavedDevices = false;
+  bool get isLoadingSavedDevices => _isLoadingSavedDevices;
+
+  Future<void> fetchSavedDevices() async {
+    _isLoadingSavedDevices = true;
+    notifyListeners();
+    try {
+      _savedDevices = await _remoteDataSource.getDevices();
+    } catch (e) {
+      debugPrint('Failed to fetch saved devices: $e');
+    } finally {
+      _isLoadingSavedDevices = false;
+      notifyListeners();
+    }
+  }
+
+  Future<String?> saveDeviceToCloud({
+    required String label,
+    required String protocol,
+    String? host,
+    int? port,
+    String? macAddress,
+  }) async {
+    try {
+      final newDevice = await _remoteDataSource.saveDevice(
+        label: label,
+        protocol: protocol,
+        host: host,
+        port: port,
+        macAddress: macAddress,
+      );
+      _savedDevices.add(newDevice);
+      notifyListeners();
+      return null;
+    } catch (e) {
+      return e.toString();
+    }
+  }
 
   void addLog(String log) {
     // Prefix with timestamp
@@ -95,10 +143,14 @@ class DeviceConnectionService extends ChangeNotifier {
     }
   }
 
-  Future<void> connectBluetooth() async {
+  Future<void> connectBluetooth({String? deviceId}) async {
+    if (_isConnected) {
+      disconnect(silent: true);
+    }
     if (_selectedDevice == null) return;
     
     _isConnecting = true;
+    _connectedDeviceId = deviceId;
     _statusMessage = "Menghubungkan ke ${_selectedDevice!.name}...";
     notifyListeners();
 
@@ -145,10 +197,14 @@ class DeviceConnectionService extends ChangeNotifier {
     }
   }
 
-  Future<void> connectWifi(String address, String port) async {
+  Future<void> connectWifi(String address, String port, {String? deviceId}) async {
+    if (_isConnected) {
+      disconnect(silent: true);
+    }
     if (address.isEmpty) return;
 
     _isConnecting = true;
+    _connectedDeviceId = deviceId;
     _statusMessage = port.isNotEmpty ? "Menghubungkan ke $address:$port..." : "Menghubungkan ke $address...";
     notifyListeners();
 
@@ -219,6 +275,7 @@ class DeviceConnectionService extends ChangeNotifier {
       _webSocketChannel?.sink.close();
       _webSocketChannel = null;
     }
+    _connectedDeviceId = null;
     
     if (!silent) {
       _isConnected = false;
@@ -271,5 +328,17 @@ class DeviceConnectionService extends ChangeNotifier {
         _webSocketChannel!.sink.add("$jsonPayload\n");
       }
     }
+  }
+
+  Future<bool> deleteSavedDevice(String deviceId) async {
+    final success = await _remoteDataSource.deleteDevice(deviceId);
+    if (success) {
+      _savedDevices.removeWhere((d) => d.id == deviceId);
+      if (_connectedDeviceId == deviceId) {
+        disconnect();
+      }
+      notifyListeners();
+    }
+    return success;
   }
 }
