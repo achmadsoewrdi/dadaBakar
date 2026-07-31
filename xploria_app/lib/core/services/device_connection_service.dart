@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_bluetooth_serial/flutter_bluetooth_serial.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 import '../../features/device/domain/device_entity.dart';
 import '../../features/device/data/data_sources/device_remote_data_source.dart';
@@ -123,6 +124,10 @@ class DeviceConnectionService extends ChangeNotifier {
 
   Future<void> loadPairedDevices({bool silent = false}) async {
     try {
+      // Request permissions required for Android 12+
+      await Permission.bluetoothConnect.request();
+      await Permission.bluetoothScan.request();
+      
       List<BluetoothDevice> devices = await FlutterBluetoothSerial.instance.getBondedDevices();
       _devicesList = devices;
       for (var dev in devices) {
@@ -192,7 +197,16 @@ class DeviceConnectionService extends ChangeNotifier {
     } catch (e) {
       _isConnected = false;
       _isConnecting = false;
-      _statusMessage = "Gagal konek: $e";
+      
+      final errorStr = e.toString().toLowerCase();
+      if (errorStr.contains('read failed') || errorStr.contains('socket might closed')) {
+        _statusMessage = "Koneksi ditolak. Pastikan perangkat menyala, belum terhubung ke alat lain, dan sudah dipasangkan (paired) dengan HP ini.";
+      } else if (errorStr.contains('timeout')) {
+        _statusMessage = "Waktu koneksi habis. Pastikan perangkat berada di dekat HP Anda.";
+      } else {
+        _statusMessage = "Gagal terhubung ke perangkat. Silakan coba lagi.";
+      }
+      
       notifyListeners();
     }
   }

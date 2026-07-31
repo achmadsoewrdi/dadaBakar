@@ -10,7 +10,8 @@ class AuthApiService {
   factory AuthApiService() => _instance;
   AuthApiService._internal();
 
-  final String baseUrl = dotenv.env['BASE_URL'] ?? 'http://192.168.1.73:8000/api/v1';
+  final String baseUrl =
+      dotenv.env['BASE_URL'] ?? 'http://192.168.1.73:8000/api/v1';
 
   /// Option A: Login with Email & Password
   /// Sequence Diagram Steps 1-5: POST /auth/login (email, password)
@@ -20,14 +21,13 @@ class AuthApiService {
   }) async {
     final url = Uri.parse('$baseUrl/auth/login');
     try {
-      final response = await http.post(
-        url,
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'email': email,
-          'password': password,
-        }),
-      ).timeout(const Duration(seconds: 5));
+      final response = await http
+          .post(
+            url,
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode({'email': email, 'password': password}),
+          )
+          .timeout(const Duration(seconds: 5));
 
       return _handleAuthResponse(response);
     } catch (e) {
@@ -48,15 +48,17 @@ class AuthApiService {
   }) async {
     final url = Uri.parse('$baseUrl/auth/register');
     try {
-      final response = await http.post(
-        url,
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'email': email,
-          'password': password,
-          'full_name': fullName,
-        }),
-      ).timeout(const Duration(seconds: 5));
+      final response = await http
+          .post(
+            url,
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode({
+              'email': email,
+              'password': password,
+              'full_name': fullName,
+            }),
+          )
+          .timeout(const Duration(seconds: 5));
 
       return _handleAuthResponse(response);
     } catch (e) {
@@ -66,19 +68,19 @@ class AuthApiService {
 
   /// Option B: Google Sign-In Flow
   /// Sequence Diagram Steps 6-10: POST /auth/google (id_token)
-  Future<AuthResponseModel> loginWithGoogle({
-    String? idToken,
-  }) async {
-    final token = idToken ?? 'google_oauth_mock_id_token_${DateTime.now().millisecondsSinceEpoch}';
+  Future<AuthResponseModel> loginWithGoogle({String? idToken}) async {
+    final token =
+        idToken ??
+        'google_oauth_mock_id_token_${DateTime.now().millisecondsSinceEpoch}';
     final url = Uri.parse('$baseUrl/auth/google');
     try {
-      final response = await http.post(
-        url,
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'id_token': token,
-        }),
-      ).timeout(const Duration(seconds: 5));
+      final response = await http
+          .post(
+            url,
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode({'id_token': token}),
+          )
+          .timeout(const Duration(seconds: 5));
 
       return _handleAuthResponse(response);
     } catch (e) {
@@ -97,7 +99,10 @@ class AuthApiService {
     } else {
       try {
         final body = jsonDecode(response.body);
-        final message = body['detail'] ?? body['message'] ?? 'Terjadi kesalahan pada server (${response.statusCode})';
+        final message =
+            body['detail'] ??
+            body['message'] ??
+            'Terjadi kesalahan pada server (${response.statusCode})';
         throw Exception(message);
       } catch (_) {
         throw Exception('Gagal menghubungi backend (${response.statusCode})');
@@ -127,7 +132,9 @@ class AuthApiService {
         updatedAt: now,
       ),
     );
-    AuthStorageService().saveAuthSession(authResponse); // Simulating without await
+    AuthStorageService().saveAuthSession(
+      authResponse,
+    ); // Simulating without await
     return authResponse;
   }
 }
