@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:http/http.dart' as http;
 import '../../domain/models/auth_response_model.dart';
 import '../../domain/models/user_model.dart';
@@ -14,10 +13,6 @@ class AuthApiService {
   String get baseUrl {
     return dotenv.env['BASE_URL'] ?? 'http://10.118.238.177:8000/api/v1';
   }
-
-  final String baseUrl = kIsWeb
-      ? 'http://127.0.0.1:8000/api/v1'
-      : 'http://192.168.1.71:8000/api/v1';
 
   /// Option A: Login with Email & Password
   /// Sequence Diagram Steps 1-5: POST /auth/login (email, password)

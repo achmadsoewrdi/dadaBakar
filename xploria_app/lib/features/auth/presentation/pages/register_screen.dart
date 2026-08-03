@@ -40,7 +40,7 @@ class _RegisterFormContentState extends State<RegisterFormContent> {
       });
 
       try {
-        final authResponse = await _authRepository.registerWithEmail(
+        await _authRepository.registerWithEmail(
           email: _emailController.text.trim(),
           password: _passwordController.text,
           fullName: _nameController.text.trim(),
@@ -88,7 +88,7 @@ class _RegisterFormContentState extends State<RegisterFormContent> {
     });
 
     try {
-      final authResponse = await _authRepository.loginWithGoogle();
+      await _authRepository.loginWithGoogle();
 
       if (mounted) {
         setState(() {

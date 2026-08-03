@@ -85,7 +85,7 @@ class _LoginFormContentState extends State<LoginFormContent> {
     });
 
     try {
-      final authResponse = await _authRepository.loginWithGoogle();
+      await _authRepository.loginWithGoogle();
 
       if (mounted) {
         setState(() {
