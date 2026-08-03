@@ -9,8 +9,9 @@ class ProjectApiService {
   factory ProjectApiService() => _instance;
   ProjectApiService._internal();
 
-  final String baseUrl =
-      dotenv.env['BASE_URL'] ?? 'http://192.168.1.73:8000/api/v1';
+  String get baseUrl {
+    return dotenv.env['BASE_URL'] ?? 'http://10.118.238.177:8000/api/v1';
+  }
 
   Future<Map<String, String>> _getHeaders() async {
     final token = AuthStorageService().accessToken;

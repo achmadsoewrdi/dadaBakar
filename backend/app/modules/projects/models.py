@@ -2,7 +2,7 @@ import uuid
 from datetime import datetime
 from sqlalchemy import String, Text, DateTime, ForeignKey, Index
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.dialects.postgresql import UUID, JSONB
 from app.db.session import Base
 
 
@@ -19,7 +19,13 @@ class Project(Base):
     )
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     workspace_xml: Mapped[str] = mapped_column(Text, nullable=False)
-    generated_code: Mapped[str | None] = mapped_column(Text, nullable=True)
+    generated_code: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
+    
+    # STEM Fields
+    target_hardware_type: Mapped[str | None] = mapped_column(String(50), nullable=True)
+    execution_target: Mapped[str] = mapped_column(String(50), server_default="hardware", nullable=False)
+    subject_context: Mapped[str] = mapped_column(String(50), server_default="coding", nullable=False)
+    
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False

@@ -10,8 +10,9 @@ class AuthApiService {
   factory AuthApiService() => _instance;
   AuthApiService._internal();
 
-  final String baseUrl =
-      dotenv.env['BASE_URL'] ?? 'http://192.168.1.73:8000/api/v1';
+  String get baseUrl {
+    return dotenv.env['BASE_URL'] ?? 'http://10.118.238.177:8000/api/v1';
+  }
 
   /// Option A: Login with Email & Password
   /// Sequence Diagram Steps 1-5: POST /auth/login (email, password)
