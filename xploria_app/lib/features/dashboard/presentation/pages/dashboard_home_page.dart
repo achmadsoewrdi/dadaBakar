@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-
+import 'package:flutter/services.dart';
 import '../../../blockly_workspace/presentation/pages/blockly_workspace_screen.dart';
 import '../../../iot_blynk/presentation/screens/blynk_canvas_screen.dart';
 import '../../../projects/domain/models/project_model.dart';
@@ -25,6 +25,7 @@ class DashboardHomePageState extends State<DashboardHomePage> with AutomaticKeep
   final DashboardRepository _repository = DashboardRepository();
   bool _isLoading = true;
   List<ProjectModel> _projects = [];
+  Color _heroColor = const Color(0xFF005CFF);
 
   @override
   bool get wantKeepAlive => true;
@@ -137,7 +138,13 @@ class DashboardHomePageState extends State<DashboardHomePage> with AutomaticKeep
                     const SizedBox(height: 32),
 
                     // Carousel Header
-                    const DashboardHeroCarousel(),
+                    DashboardHeroCarousel(
+                      onColorChanged: (color) {
+                        setState(() {
+                          _heroColor = color;
+                        });
+                      },
+                    ),
                     const SizedBox(height: 32),
 
                     // Let's Start Building Action Card
@@ -216,10 +223,10 @@ class DashboardHomePageState extends State<DashboardHomePage> with AutomaticKeep
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: const Color(0xFFE0F2FE),
+              color: _heroColor.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(16),
             ),
-            child: const Icon(Icons.rocket_launch_rounded, color: Color(0xFF005CFF), size: 28),
+            child: Icon(Icons.rocket_launch_rounded, color: _heroColor, size: 28),
           ),
           const SizedBox(width: 16),
           Expanded(
@@ -246,7 +253,7 @@ class DashboardHomePageState extends State<DashboardHomePage> with AutomaticKeep
                 ElevatedButton(
                   onPressed: () => _addNewProject("New Project", "raspberry_pi"),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF005CFF),
+                    backgroundColor: _heroColor,
                     foregroundColor: Colors.white,
                     elevation: 0,
                     shape: RoundedRectangleBorder(
@@ -352,30 +359,45 @@ class DashboardHomePageState extends State<DashboardHomePage> with AutomaticKeep
 }
 
 class DashboardHeroCarousel extends StatefulWidget {
-  const DashboardHeroCarousel({super.key});
+  final Function(Color) onColorChanged;
+
+  const DashboardHeroCarousel({super.key, required this.onColorChanged});
 
   @override
   State<DashboardHeroCarousel> createState() => _DashboardHeroCarouselState();
 }
 
 class _DashboardHeroCarouselState extends State<DashboardHeroCarousel> {
-  final PageController _pageController = PageController(initialPage: 0);
+  final PageController _pageController = PageController(initialPage: 0, viewportFraction: 0.85);
   int _currentIndex = 0;
 
-  final List<Map<String, String>> _carouselItems = [
-    {
-      'title': 'SMART\nAGRICULTURE',
-      'image': 'assets/images/modules/dashboard/smart_farm 1.png',
-    },
+  final List<Map<String, dynamic>> _carouselItems = [
     {
       'title': 'SMART\nCITY',
       'image': 'assets/images/modules/dashboard/smart_city 1.png',
+      'color': const Color(0xFF005CFF),
+    },
+    {
+      'title': 'SMART\nAGRICULTURE',
+      'image': 'assets/images/modules/dashboard/smart_farm 1.png',
+      'color': const Color(0xFF22C55E),
     },
     {
       'title': 'SMART\nHOME',
       'image': 'assets/images/modules/dashboard/smart_home 1.png',
+      'color': const Color(0xFF8B5CF6),
     },
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        widget.onColorChanged(_carouselItems[_currentIndex]['color'] as Color);
+      }
+    });
+  }
 
   @override
   void dispose() {
@@ -388,17 +410,16 @@ class _DashboardHeroCarouselState extends State<DashboardHeroCarousel> {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        // Fixed Title that changes with cross-fade animation
         AnimatedSwitcher(
           duration: const Duration(milliseconds: 300),
           child: Text(
             _carouselItems[_currentIndex]['title']!,
             key: ValueKey<int>(_currentIndex),
             textAlign: TextAlign.center,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 32,
               fontWeight: FontWeight.w900,
-              color: Color(0xFF005CFF),
+              color: _carouselItems[_currentIndex]['color'] as Color,
               height: 1.1,
             ),
           ),
@@ -406,21 +427,49 @@ class _DashboardHeroCarouselState extends State<DashboardHeroCarousel> {
         const SizedBox(height: 24),
         // The Carousel containing only images
         SizedBox(
-          height: 200, 
+          height: 250, 
           child: PageView.builder(
+            clipBehavior: Clip.none,
             controller: _pageController,
             onPageChanged: (index) {
-              setState(() {
-                _currentIndex = index;
-              });
+              if (_currentIndex != index) {
+                HapticFeedback.selectionClick(); //efek geter
+                setState(() {
+                  _currentIndex = index;
+                });
+                widget.onColorChanged(_carouselItems[index]['color'] as Color);
+              }
             },
             itemCount: _carouselItems.length,
             itemBuilder: (context, index) {
               final item = _carouselItems[index];
-              return Image.asset(
-                item['image']!,
-                height: 200,
-                fit: BoxFit.contain,
+              return AnimatedBuilder(
+                animation: _pageController,
+                builder: (context, child) {
+                  double value = 1.0;
+                  if (_pageController.position.haveDimensions) {
+                    value = _pageController.page! - index;
+                    value = (1 - (value.abs() * 0.2)).clamp(0.8, 1.0);
+                  } else if (index != _currentIndex) {
+                    value = 0.8;
+                  }
+                  
+                  return Center(
+                    child: Transform.scale(
+                      scale: Curves.easeOut.transform(value),
+                      child: child,
+                    ),
+                  );
+                },
+                child: Container(
+                  color: Colors.transparent,
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 24.0),
+                  child: Image.asset(
+                    item['image']!,
+                    height: 200,
+                    fit: BoxFit.contain,
+                  ),
+                ),
               );
             },
           ),
@@ -445,10 +494,9 @@ class _DashboardHeroCarouselState extends State<DashboardHeroCarousel> {
       width: active ? 24 : 8,
       height: 8,
       decoration: BoxDecoration(
-        color: active ? const Color(0xFF005CFF) : Colors.grey.shade300,
+        color: active ? (_carouselItems[_currentIndex]['color'] as Color) : Colors.grey.shade300,
         borderRadius: BorderRadius.circular(4),
       ),
     );
   }
 }
-

@@ -10,7 +10,7 @@ class AuthApiService {
   factory AuthApiService() => _instance;
   AuthApiService._internal();
 
-  final String baseUrl = kIsWeb ? 'http://127.0.0.1:8000/api/v1' : 'http://192.168.1.71:8000/api/v1';
+  final String baseUrl = kIsWeb ? 'http://127.0.0.1:8000/api/v1' : 'http://192.168.1.68:8000/api/v1';
 
   /// Option A: Login with Email & Password
   /// Sequence Diagram Steps 1-5: POST /auth/login (email, password)
