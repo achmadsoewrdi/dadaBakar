@@ -205,8 +205,9 @@ class _BlocklyWorkspaceScreenState extends State<BlocklyWorkspaceScreen> {
         } else {
           await repo.updateProject(_currentProject!.id, name: _projectName, workspaceXml: _state.xmlData, generatedCode: _state.pythonCode);
         }
-      } catch (_) {
-        // Abaikan error background autosave
+      } catch (e) {
+        // Abaikan error background autosave dari UI, tapi log ke console
+        debugPrint("AutoSave error: $e");
       } finally {
         if (mounted) setState(() => _isSaving = false);
       }

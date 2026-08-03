@@ -75,7 +75,7 @@ class ProjectApiService {
     final body = <String, dynamic>{};
     if (name != null) body['name'] = name;
     if (workspaceXml != null) body['workspace_xml'] = workspaceXml;
-    if (generatedCode != null) body['generated_code'] = generatedCode;
+    if (generatedCode != null) body['generated_code'] = {"python": generatedCode};
 
     final response = await http
         .put(url, headers: headers, body: jsonEncode(body))

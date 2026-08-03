@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bluetooth_serial/flutter_bluetooth_serial.dart';
 import '../../../../core/services/device_connection_service.dart';
 import '../../data/data_sources/device_api_service.dart';
 import '../../data/models/device_profile_model.dart';
 import '../../../auth/data/data_sources/auth_storage_service.dart';
+
+import '../widgets/device_selection_modal.dart';
+import '../widgets/wifi_connection_modal.dart';
+import '../widgets/device_details_modal.dart';
+import '../widgets/saved_device_card.dart';
 
 class DeviceConnectionScreen extends StatefulWidget {
   final bool showBackButton;
@@ -15,8 +19,6 @@ class DeviceConnectionScreen extends StatefulWidget {
 }
 
 class _DeviceConnectionScreenState extends State<DeviceConnectionScreen> {
-  final TextEditingController _ipController = TextEditingController();
-  final TextEditingController _portController = TextEditingController();
   final TextEditingController _searchController = TextEditingController();
 
   List<DeviceProfileModel> _savedDevices = [];
@@ -93,576 +95,56 @@ class _DeviceConnectionScreenState extends State<DeviceConnectionScreen> {
 
   @override
   void dispose() {
-    _ipController.dispose();
-    _portController.dispose();
     _searchController.dispose();
     super.dispose();
   }
 
-  void _confirmDelete(String id, String label) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Hapus Perangkat'),
-        content: Text('Apakah Anda yakin ingin menghapus "$label"?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Batal'),
-          ),
-          TextButton(
-            onPressed: () async {
-              Navigator.pop(context);
-              final success = await DeviceConnectionService.instance
-                  .deleteSavedDevice(id);
-              if (success && context.mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('$label berhasil dihapus')),
-                );
-              }
-            },
-            child: const Text('Hapus', style: TextStyle(color: Colors.red)),
-          ),
-        ],
-      ),
-    );
-  }
+  Future<void> _connectToDevice(DeviceProfileModel device, DeviceConnectionService service) async {
+    // Putuskan koneksi yang ada jika sedang nyambung ke device lain
+    if (service.isConnected || service.isConnecting) {
+      service.disconnect();
+      await Future.delayed(
+        const Duration(milliseconds: 200),
+      ); // Beri waktu cleanup
+    }
 
-  void _showAddDeviceModal() {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.white,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      builder: (context) {
-        return Padding(
-          padding: EdgeInsets.only(
-            bottom: MediaQuery.of(context).viewInsets.bottom,
-            left: 24.0,
-            right: 24.0,
-            top: 24.0,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'Daftarkan Perangkat Wi-Fi',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w800,
-                  color: Color(0xFF0A122C),
-                ),
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: _labelController,
-                decoration: InputDecoration(
-                  labelText: 'Label (Nama Device)',
-                  hintText: 'Robot Xploria',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  prefixIcon: const Icon(Icons.label_rounded),
-                ),
-              ),
-              const SizedBox(height: 12),
-              Row(
-                children: [
-                  Expanded(
-                    flex: 7,
-                    child: TextField(
-                      controller: _ipController,
-                      decoration: InputDecoration(
-                        labelText: 'IP / Domain',
-                        hintText: '192.168.4.1 atau domain.com',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        prefixIcon: const Icon(Icons.language_rounded),
-                      ),
-                      keyboardType: TextInputType.url,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    flex: 3,
-                    child: TextField(
-                      controller: _portController,
-                      decoration: InputDecoration(
-                        labelText: 'Port (Opsional)',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                      ),
-                      keyboardType: TextInputType.number,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 24),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () async {
-                    final error = await DeviceConnectionService.instance
-                        .saveDeviceToCloud(
-                          label: _labelController.text.trim(),
-                          protocol: 'websocket',
-                          host: _ipController.text.trim(),
-                          port: int.tryParse(_portController.text.trim()),
-                        );
-                    if (context.mounted) {
-                      if (error == null) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Perangkat berhasil didaftarkan!'),
-                          ),
-                        );
-                        Navigator.pop(context);
-                        DeviceConnectionService.instance.fetchSavedDevices();
-                      } else {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(error),
-                            backgroundColor: Colors.red,
-                          ),
-                        );
-                      }
-                    }
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF005CFF),
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                  ),
-                  child: const Text(
-                    'Simpan Perangkat',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 24),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  void _showDeviceSelectionModal() {
-    DeviceConnectionService.instance.loadPairedDevices();
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      builder: (context) {
-        return ListenableBuilder(
-          listenable: DeviceConnectionService.instance,
-          builder: (context, _) {
-            final service = DeviceConnectionService.instance;
-            return SafeArea(
-              child: Padding(
-                padding: const EdgeInsets.all(24.0),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Pilih Perangkat Bluetooth',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w800,
-                        color: Color(0xFF0A122C),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    if (service.devicesList.isEmpty)
-                      const Text('Tidak ada perangkat tersimpan.')
-                    else
-                      ConstrainedBox(
-                        constraints: BoxConstraints(
-                          maxHeight: MediaQuery.of(context).size.height * 0.5,
-                        ),
-                        child: ListView.builder(
-                          shrinkWrap: true,
-                          itemCount: service.devicesList.length,
-                          itemBuilder: (context, index) {
-                            final d = service.devicesList[index];
-                            final isSelected =
-                                service.selectedDevice?.address == d.address;
-                            return ListTile(
-                              title: Text(d.name ?? "Unknown Device"),
-                              subtitle: Text(d.address),
-                              trailing: isSelected
-                                  ? const Icon(
-                                      Icons.check_circle,
-                                      color: Color(0xFF005CFF),
-                                    )
-                                  : null,
-                              onTap: () {
-                                service.setSelectedDevice(d);
-                              },
-                            );
-                          },
-                        ),
-                      ),
-                    const SizedBox(height: 16),
-                    SizedBox(
-                      width: double.infinity,
-                      height: 50,
-                      child: ElevatedButton(
-                        onPressed: service.selectedDevice == null
-                            ? null
-                            : () async {
-                                Navigator.pop(context);
-                                await service.connectBluetooth();
-                                if (service.isConnected) {
-                                  _saveDevice(
-                                    service.selectedDevice?.name ??
-                                        'Xploria Bluetooth',
-                                    'bluetooth',
-                                    macAddress: service.selectedDevice?.address,
-                                  );
-                                }
-                              },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF005CFF),
-                          foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                        ),
-                        child: const Text(
-                          'Hubungkan',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            );
-          },
-        );
-      },
-    );
-  }
-
-  void _showWifiConnectionModal() {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.white,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      builder: (context) {
-        return Padding(
-          padding: EdgeInsets.only(
-            bottom: MediaQuery.of(context).viewInsets.bottom,
-            left: 24.0,
-            right: 24.0,
-            top: 24.0,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'Hubungkan ke Wi-Fi (WebSocket)',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w800,
-                  color: Color(0xFF0A122C),
-                ),
-              ),
-              const SizedBox(height: 16),
-              Row(
-                children: [
-                  Expanded(
-                    flex: 7,
-                    child: TextField(
-                      controller: _ipController,
-                      decoration: InputDecoration(
-                        labelText: 'IP / Domain',
-                        hintText: '192.168.4.1 atau domain.com',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        prefixIcon: const Icon(Icons.language_rounded),
-                      ),
-                      keyboardType: TextInputType.url,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    flex: 3,
-                    child: TextField(
-                      controller: _portController,
-                      decoration: InputDecoration(
-                        labelText: 'Port (Opsional)',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                      ),
-                      keyboardType: TextInputType.number,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 24),
-              SizedBox(
-                width: double.infinity,
-                height: 50,
-                child: ElevatedButton(
-                  onPressed: () async {
-                    Navigator.pop(context);
-                    final host = _ipController.text.trim();
-                    final portStr = _portController.text.trim();
-                    await DeviceConnectionService.instance.connectWifi(
-                      host,
-                      portStr,
-                    );
-                    if (DeviceConnectionService.instance.isConnected) {
-                      _saveDevice(
-                        'Xploria Wi-Fi',
-                        'websocket',
-                        host: host,
-                        port: int.tryParse(portStr),
-                      );
-                    }
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFFF9F1C),
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                  ),
-                  child: const Text(
-                    'Hubungkan',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 24),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildSavedDeviceCard(
-    DeviceProfileModel device,
-    DeviceConnectionService service,
-  ) {
     final isBluetooth = device.protocol == 'bluetooth';
-    final isOnline = isBluetooth
-        ? (service.isConnected &&
-              service.connectionMode == ConnectionMode.bluetooth &&
-              service.selectedDevice?.address == device.macAddress)
-        : (service.isConnected &&
-              service.connectionMode == ConnectionMode.wifi &&
-              service.connectedIp == device.host);
 
-    final iconColor = isBluetooth
-        ? const Color(0xFF2A5EE8)
-        : const Color(0xFFF79E66);
-    final iconBgColor = iconColor.withValues(alpha: 0.1);
-
-    return GestureDetector(
-      onTap: () async {
-        if (isOnline) return; // Already connected
-
-        // Putuskan koneksi yang ada jika sedang nyambung ke device lain
-        if (service.isConnected || service.isConnecting) {
-          service.disconnect();
-          await Future.delayed(
-            const Duration(milliseconds: 200),
-          ); // Beri waktu cleanup
-        }
-
-        if (isBluetooth && device.macAddress != null) {
-          service.setConnectionMode(ConnectionMode.bluetooth);
-          setState(() => _connectingDeviceId = device.id);
-          await service.connectBluetoothByMac(device.macAddress!);
-          if (mounted) {
-            setState(() => _connectingDeviceId = null);
-            if (!service.isConnected) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(service.statusMessage),
-                  backgroundColor: Colors.red,
-                ),
-              );
-            }
-          }
-        } else if (!isBluetooth && device.host != null) {
-          service.setConnectionMode(ConnectionMode.wifi);
-          setState(() => _connectingDeviceId = device.id);
-          await service.connectWifi(
-            device.host!,
-            device.port?.toString() ?? '',
+    if (isBluetooth && device.macAddress != null) {
+      service.setConnectionMode(ConnectionMode.bluetooth);
+      setState(() => _connectingDeviceId = device.id);
+      await service.connectBluetoothByMac(device.macAddress!, deviceId: device.id);
+      if (mounted) {
+        setState(() => _connectingDeviceId = null);
+        if (!service.isConnected) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(service.statusMessage),
+              backgroundColor: Colors.red,
+            ),
           );
-          if (mounted) {
-            setState(() => _connectingDeviceId = null);
-            if (!service.isConnected) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(service.statusMessage),
-                  backgroundColor: Colors.red,
-                ),
-              );
-            }
-          }
         }
-      },
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 12),
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.grey.shade200),
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 50,
-              height: 50,
-              decoration: BoxDecoration(
-                color: iconBgColor,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(
-                isBluetooth ? Icons.bluetooth : Icons.wifi,
-                color: iconColor,
-              ),
+      }
+    } else if (!isBluetooth && device.host != null) {
+      service.setConnectionMode(ConnectionMode.wifi);
+      setState(() => _connectingDeviceId = device.id);
+      await service.connectWifi(
+        device.host!,
+        device.port?.toString() ?? '',
+        deviceId: device.id,
+      );
+      if (mounted) {
+        setState(() => _connectingDeviceId = null);
+        if (!service.isConnected) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(service.statusMessage),
+              backgroundColor: Colors.red,
             ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    device.label,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                      color: Color(0xFF0A122C),
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    '${device.hardwareVariant ?? 'Hardware Kit'} • ${device.macAddress ?? device.host ?? ''}',
-                    style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
-              ),
-            ),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-              decoration: BoxDecoration(
-                color: isOnline
-                    ? const Color(0xFFE8F5E9)
-                    : (_connectingDeviceId == device.id
-                          ? Colors.blue.shade50
-                          : Colors.grey.shade100),
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(
-                  color: isOnline
-                      ? Colors.green.shade200
-                      : (_connectingDeviceId == device.id
-                            ? Colors.blue.shade200
-                            : Colors.grey.shade300),
-                ),
-              ),
-              child: Row(
-                children: [
-                  if (_connectingDeviceId == device.id)
-                    const SizedBox(
-                      width: 10,
-                      height: 10,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  else
-                    Container(
-                      width: 6,
-                      height: 6,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: isOnline ? Colors.green : Colors.grey,
-                      ),
-                    ),
-                  const SizedBox(width: 6),
-                  Text(
-                    _connectingDeviceId == device.id
-                        ? 'Connecting...'
-                        : (isOnline ? 'Online' : 'Offline'),
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                      color: _connectingDeviceId == device.id
-                          ? Colors.blue.shade700
-                          : (isOnline
-                                ? Colors.green.shade700
-                                : Colors.grey.shade600),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            if (isOnline) ...[
-              const SizedBox(width: 12),
-              InkWell(
-                onTap: () => service.disconnect(),
-                borderRadius: BorderRadius.circular(20),
-                child: Container(
-                  padding: const EdgeInsets.all(6),
-                  decoration: BoxDecoration(
-                    color: Colors.red.shade50,
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(
-                    Icons.power_settings_new_rounded,
-                    color: Colors.red.shade400,
-                    size: 20,
-                  ),
-                ),
-              ),
-            ],
-            const SizedBox(width: 8),
-            InkWell(
-              onTap: () => _showDeviceDetailsModal(device),
-              borderRadius: BorderRadius.circular(20),
-              child: Padding(
-                padding: const EdgeInsets.all(4.0),
-                child: Icon(
-                  Icons.more_vert,
-                  color: Colors.grey.shade400,
-                  size: 20,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
+          );
+        }
+      }
+    }
   }
 
   @override
@@ -862,8 +344,8 @@ class _DeviceConnectionScreenState extends State<DeviceConnectionScreen> {
                                           _connectingDeviceId == null)
                                       ? null
                                       : (isBluetoothMode
-                                            ? _showDeviceSelectionModal
-                                            : _showWifiConnectionModal),
+                                            ? () => showDeviceSelectionModal(context, onDeviceSaved: _saveDevice)
+                                            : () => showWifiConnectionModal(context, onDeviceSaved: _saveDevice)),
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: primaryColor,
                                     foregroundColor: Colors.white,
@@ -984,9 +466,18 @@ class _DeviceConnectionScreenState extends State<DeviceConnectionScreen> {
                             physics: const BouncingScrollPhysics(),
                             itemCount: sortedDevices.length,
                             itemBuilder: (context, index) {
-                              return _buildSavedDeviceCard(
-                                sortedDevices[index],
-                                service,
+                              final device = sortedDevices[index];
+                              return SavedDeviceCard(
+                                device: device,
+                                service: service,
+                                isConnecting: _connectingDeviceId == device.id,
+                                onTap: () => _connectToDevice(device, service),
+                                onDisconnect: () => service.disconnect(),
+                                onShowDetails: () => showDeviceDetailsModal(
+                                  context,
+                                  device,
+                                  onDeviceUpdatedOrDeleted: _loadSavedDevices,
+                                ),
                               );
                             },
                           ),
@@ -995,267 +486,6 @@ class _DeviceConnectionScreenState extends State<DeviceConnectionScreen> {
               ),
             ),
           ),
-        );
-      },
-    );
-  }
-
-  Widget _buildDetailRow(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            label,
-            style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
-          ),
-          Text(
-            value,
-            style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showDeviceDetailsModal(DeviceProfileModel device) {
-    final TextEditingController nameController = TextEditingController(
-      text: device.label,
-    );
-    bool isSaving = false;
-    bool isDeleting = false;
-
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      builder: (context) {
-        return StatefulBuilder(
-          builder: (context, setModalState) {
-            return Padding(
-              padding: EdgeInsets.only(
-                bottom: MediaQuery.of(context).viewInsets.bottom,
-                left: 24,
-                right: 24,
-                top: 24,
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text(
-                        'Detail Perangkat',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w800,
-                          color: Color(0xFF0A122C),
-                        ),
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.close),
-                        onPressed: () => Navigator.pop(context),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Detail info
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: Colors.grey.shade50,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.grey.shade200),
-                    ),
-                    child: Column(
-                      children: [
-                        _buildDetailRow(
-                          'Protocol',
-                          device.protocol.toUpperCase(),
-                        ),
-                        const Divider(),
-                        _buildDetailRow(
-                          device.protocol == 'bluetooth'
-                              ? 'MAC Address'
-                              : 'IP / Domain',
-                          device.macAddress ?? device.host ?? '-',
-                        ),
-                        if (device.port != null) ...[
-                          const Divider(),
-                          _buildDetailRow('Port', device.port.toString()),
-                        ],
-                        const Divider(),
-                        _buildDetailRow(
-                          'Dibuat Pada',
-                          device.createdAt.toString().split('.')[0],
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  const SizedBox(height: 24),
-                  const Text(
-                    'Ubah Nama Perangkat',
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 8),
-                  TextField(
-                    controller: nameController,
-                    decoration: InputDecoration(
-                      hintText: 'Nama Perangkat',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(height: 24),
-
-                  Row(
-                    children: [
-                      Expanded(
-                        child: OutlinedButton(
-                          onPressed: isDeleting || isSaving
-                              ? null
-                              : () async {
-                                  final confirm = await showDialog<bool>(
-                                    context: context,
-                                    builder: (ctx) => AlertDialog(
-                                      title: const Text('Hapus Perangkat?'),
-                                      content: const Text(
-                                        'Perangkat ini akan dihapus dari daftar tersimpan.',
-                                      ),
-                                      actions: [
-                                        TextButton(
-                                          onPressed: () =>
-                                              Navigator.pop(ctx, false),
-                                          child: const Text('Batal'),
-                                        ),
-                                        TextButton(
-                                          onPressed: () =>
-                                              Navigator.pop(ctx, true),
-                                          child: const Text(
-                                            'Hapus',
-                                            style: TextStyle(color: Colors.red),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  );
-
-                                  if (confirm == true) {
-                                    setModalState(() => isDeleting = true);
-                                    try {
-                                      await DeviceApiService().deleteDevice(
-                                        device.id,
-                                      );
-                                      if (mounted) {
-                                        Navigator.pop(context);
-                                        _loadSavedDevices();
-                                      }
-                                    } catch (e) {
-                                      if (mounted)
-                                        ScaffoldMessenger.of(
-                                          context,
-                                        ).showSnackBar(
-                                          SnackBar(content: Text(e.toString())),
-                                        );
-                                    }
-                                    setModalState(() => isDeleting = false);
-                                  }
-                                },
-                          style: OutlinedButton.styleFrom(
-                            foregroundColor: Colors.red,
-                            side: const BorderSide(color: Colors.red),
-                            padding: const EdgeInsets.symmetric(vertical: 14),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
-                          child: isDeleting
-                              ? const SizedBox(
-                                  width: 20,
-                                  height: 20,
-                                  child: CircularProgressIndicator(
-                                    color: Colors.red,
-                                    strokeWidth: 2,
-                                  ),
-                                )
-                              : const Text(
-                                  'Hapus',
-                                  style: TextStyle(fontWeight: FontWeight.bold),
-                                ),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: ElevatedButton(
-                          onPressed: isDeleting || isSaving
-                              ? null
-                              : () async {
-                                  final newName = nameController.text.trim();
-                                  if (newName.isEmpty ||
-                                      newName == device.label) {
-                                    Navigator.pop(context);
-                                    return;
-                                  }
-                                  setModalState(() => isSaving = true);
-                                  try {
-                                    await DeviceApiService().updateDevice(
-                                      device.id,
-                                      {'label': newName},
-                                    );
-                                    if (mounted) {
-                                      Navigator.pop(context);
-                                      _loadSavedDevices();
-                                    }
-                                  } catch (e) {
-                                    if (mounted)
-                                      ScaffoldMessenger.of(
-                                        context,
-                                      ).showSnackBar(
-                                        SnackBar(content: Text(e.toString())),
-                                      );
-                                  }
-                                  setModalState(() => isSaving = false);
-                                },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF003092),
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(vertical: 14),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
-                          child: isSaving
-                              ? const SizedBox(
-                                  width: 20,
-                                  height: 20,
-                                  child: CircularProgressIndicator(
-                                    color: Colors.white,
-                                    strokeWidth: 2,
-                                  ),
-                                )
-                              : const Text(
-                                  'Simpan',
-                                  style: TextStyle(fontWeight: FontWeight.bold),
-                                ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 24),
-                ],
-              ),
-            );
-          },
         );
       },
     );

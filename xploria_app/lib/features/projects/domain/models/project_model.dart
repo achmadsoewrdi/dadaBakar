@@ -29,7 +29,9 @@ class ProjectModel {
       ownerId: json['owner_id'] as String? ?? '',
       name: json['name'] as String? ?? '',
       workspaceXml: json['workspace_xml'] as String? ?? '',
-      generatedCode: json['generated_code'] as String?,
+      generatedCode: (json['generated_code'] is Map)
+          ? (json['generated_code'] as Map)['python'] as String?
+          : json['generated_code'] as String?,
       deviceType: json['device_type'] as String? ?? 'raspberry_pi',
       blynkConfigJson: (json['blynk_config_json'] as List?)
           ?.map((e) => Map<String, dynamic>.from(e as Map))

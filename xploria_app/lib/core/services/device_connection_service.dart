@@ -154,19 +154,26 @@ class DeviceConnectionService extends ChangeNotifier {
     }
   }
 
-  Future<void> connectBluetoothByMac(String macAddress) async {
+  Future<void> connectBluetoothByMac(String macAddress, {String? deviceId}) async {
     try {
+      if (_devicesList.isEmpty) {
+        await loadPairedDevices(silent: true);
+      }
       final dev = _devicesList.firstWhere((d) => d.address == macAddress);
       _selectedDevice = dev;
-      await connectBluetooth();
+      await connectBluetooth(deviceId: deviceId);
     } catch (e) {
       _statusMessage = "Perangkat Bluetooth tidak ditemukan di daftar pairing.";
       notifyListeners();
     }
   }
 
-  Future<void> connectBluetooth() async {
+  Future<void> connectBluetooth({String? deviceId}) async {
     if (_selectedDevice == null) return;
+    
+    if (_isConnected) {
+      disconnect(silent: true);
+    }
 
     _isConnecting = true;
     _connectedDeviceId = deviceId;
@@ -176,7 +183,7 @@ class DeviceConnectionService extends ChangeNotifier {
     try {
       BluetoothConnection connection = await BluetoothConnection.toAddress(
         _selectedDevice!.address,
-      );
+      ).timeout(const Duration(seconds: 15));
 
       _bluetoothConnection = connection;
       _isConnected = true;
@@ -236,6 +243,7 @@ class DeviceConnectionService extends ChangeNotifier {
   Future<void> connectWifi(
     String address,
     String port, {
+    bool silent = false,
     String? deviceId,
   }) async {
     if (_isConnected) {
@@ -263,6 +271,7 @@ class DeviceConnectionService extends ChangeNotifier {
 
       final wsUrl = Uri.parse(urlStr);
       _webSocketChannel = WebSocketChannel.connect(wsUrl);
+      await _webSocketChannel!.ready.timeout(const Duration(seconds: 10));
 
       _isConnected = true;
       _isConnecting = false;
