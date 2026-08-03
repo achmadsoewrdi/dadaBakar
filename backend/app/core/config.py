@@ -16,6 +16,10 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
     REFRESH_TOKEN_EXPIRE_DAYS: int = 30
     GOOGLE_CLIENT_ID: str = ""
+    GROQ_API_KEY: str = ""
+    GROQ_MODEL: str = "llama-3.3-70b-versatile"
+    GROQ_MAX_REQUESTS_PER_MINUTE: int = 20
+    GROQ_MAX_REQUESTS_PER_DAY: int = 1000
 
     if SettingsConfigDict is not None:
         model_config = SettingsConfigDict(
