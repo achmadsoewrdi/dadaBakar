@@ -105,3 +105,6 @@ flutter:
     - assets/icons/
     - assets/fonts/
     - assets/images/modules/
+    - assets/images/modules/dashboard/
+    - assets/images/modules/project/
+    - assets/images/

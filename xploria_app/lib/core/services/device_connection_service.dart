@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_bluetooth_serial/flutter_bluetooth_serial.dart';
@@ -198,6 +199,7 @@ class DeviceConnectionService extends ChangeNotifier {
       _isConnected = false;
       _isConnecting = false;
       
+      //eror handling ketika bluetooth tidak terhubung, tapi di flutter mencoba menghubungkan
       final errorStr = e.toString().toLowerCase();
       if (errorStr.contains('read failed') || errorStr.contains('socket might closed')) {
         _statusMessage = "Koneksi ditolak. Pastikan perangkat menyala, belum terhubung ke alat lain, dan sudah dipasangkan (paired) dengan HP ini.";

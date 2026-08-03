@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:http/http.dart' as http;
 import '../../domain/models/project_model.dart';
 import '../../../auth/data/data_sources/auth_storage_service.dart';

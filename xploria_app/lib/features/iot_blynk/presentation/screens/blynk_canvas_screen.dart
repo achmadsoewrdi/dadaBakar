@@ -8,6 +8,7 @@ import '../widgets/blynk_gauge_widget.dart';
 import '../widgets/blynk_switch_widget.dart';
 import '../widgets/blynk_value_widget.dart';
 import '../widgets/add_widget_modal.dart';
+import '../../../../core/services/device_connection_service.dart';
 
 class BlynkCanvasScreen extends StatefulWidget {
   final ProjectModel project;
@@ -24,7 +25,7 @@ class BlynkCanvasScreen extends StatefulWidget {
 }
 
 class _BlynkCanvasScreenState extends State<BlynkCanvasScreen> {
-  late List<BlynkWidgetEntity> _widgets;
+  late List<ValueNotifier<BlynkWidgetEntity>> _widgetNotifiers;
   final Map<String, List<double>> _chartHistories = {};
 
   bool _isEditMode = false;
@@ -40,16 +41,17 @@ class _BlynkCanvasScreenState extends State<BlynkCanvasScreen> {
 
   void _initWidgetsFromConfig() {
     if (widget.project.blynkConfigJson != null && widget.project.blynkConfigJson!.isNotEmpty) {
-      _widgets = widget.project.blynkConfigJson!
-          .map((json) => BlynkWidgetEntity.fromJson(json))
+      _widgetNotifiers = widget.project.blynkConfigJson!
+          .map((json) => ValueNotifier(BlynkWidgetEntity.fromJson(json)))
           .toList();
     } else {
       // Default initial Blynk widgets if freshly created
-      _widgets = [];
+      _widgetNotifiers = [];
     }
 
     // Initialize chart telemetry histories
-    for (var w in _widgets) {
+    for (var notifier in _widgetNotifiers) {
+      final w = notifier.value;
       if (w.type == BlynkWidgetType.chart) {
         _chartHistories[w.id] = [28.0, 28.5, 29.0, 29.2, 28.8, 29.5];
       }
@@ -59,23 +61,24 @@ class _BlynkCanvasScreenState extends State<BlynkCanvasScreen> {
   void _startLiveSimulation() {
     _telemetryTimer = Timer.periodic(const Duration(seconds: 2), (timer) {
       if (!mounted) return;
-      setState(() {
-        for (int i = 0; i < _widgets.length; i++) {
-          final w = _widgets[i];
-          if (w.type == BlynkWidgetType.chart || w.type == BlynkWidgetType.gauge || w.type == BlynkWidgetType.value) {
-            double delta = (_random.nextDouble() - 0.5) * 0.8;
-            double newVal = (w.currentValueNum + delta).clamp(w.minValue, w.maxValue);
-            _widgets[i] = w.copyWith(currentValueNum: double.parse(newVal.toStringAsFixed(1)));
-
-            if (w.type == BlynkWidgetType.chart) {
-              final list = _chartHistories[w.id] ?? [];
-              list.add(newVal);
-              if (list.length > 20) list.removeAt(0);
-              _chartHistories[w.id] = list;
-            }
+      
+      for (int i = 0; i < _widgetNotifiers.length; i++) {
+        final notifier = _widgetNotifiers[i];
+        final w = notifier.value;
+        if (w.type == BlynkWidgetType.chart || w.type == BlynkWidgetType.gauge || w.type == BlynkWidgetType.value) {
+          double delta = (_random.nextDouble() - 0.5) * 0.8;
+          double newVal = (w.currentValueNum + delta).clamp(w.minValue, w.maxValue);
+          
+          if (w.type == BlynkWidgetType.chart) {
+            final list = _chartHistories[w.id] ?? [];
+            list.add(newVal);
+            if (list.length > 20) list.removeAt(0);
+            _chartHistories[w.id] = list;
           }
+          
+          notifier.value = w.copyWith(currentValueNum: double.parse(newVal.toStringAsFixed(1)));
         }
-      });
+      }
     });
   }
 
@@ -86,7 +89,7 @@ class _BlynkCanvasScreenState extends State<BlynkCanvasScreen> {
   }
 
   void _saveConfiguration() {
-    final updatedJson = _widgets.map((w) => w.toJson()).toList();
+    final updatedJson = _widgetNotifiers.map((n) => n.value.toJson()).toList();
     final updatedProject = widget.project.copyWith(blynkConfigJson: updatedJson);
 
     if (widget.onSaveBlynkConfig != null) {
@@ -111,7 +114,7 @@ class _BlynkCanvasScreenState extends State<BlynkCanvasScreen> {
       builder: (context) => AddWidgetModal(
         onWidgetAdded: (newWidget) {
           setState(() {
-            _widgets.add(newWidget);
+            _widgetNotifiers.add(ValueNotifier(newWidget));
             if (newWidget.type == BlynkWidgetType.chart) {
               _chartHistories[newWidget.id] = [25.0, 26.0, 27.0];
             }
@@ -172,54 +175,59 @@ class _BlynkCanvasScreenState extends State<BlynkCanvasScreen> {
               }
             },
           ),
+          const SizedBox(width: 8),
         ],
       ),
       body: SingleChildScrollView(
         physics: const BouncingScrollPhysics(),
         padding: const EdgeInsets.only(top: 20, left: 20, right: 20, bottom: 100),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Status Header Card
+            // Status Header
             _buildStatusHeader(),
-            const SizedBox(height: 20),
+            const SizedBox(height: 24),
 
+            // Canvas Title & Add Widget
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  _isEditMode ? 'Atur & Edit Widget Kanvas' : 'Kanvas IoT Real-Time',
-                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: Color(0xFF0A122C)),
+                const Text(
+                  'Kanvas IoT Real-Time',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w900,
+                    color: Color(0xFF0A122C),
+                  ),
                 ),
-                ElevatedButton.icon(
+                ElevatedButton(
                   onPressed: _showAddWidgetModal,
-                  icon: const Icon(Icons.add_rounded, size: 18),
-                  label: const Text('+ Widget'),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF005CFF),
                     foregroundColor: Colors.white,
                     elevation: 0,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                   ),
+                  child: const Text('+ Widget', style: TextStyle(fontWeight: FontWeight.bold)),
                 ),
               ],
             ),
             const SizedBox(height: 16),
-
-            // Render Dynamic Blynk Widgets
-            if (_widgets.isEmpty)
+            if (_widgetNotifiers.isEmpty)
               _buildEmptyState()
             else
               ListView.separated(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
-                itemCount: _widgets.length,
+                itemCount: _widgetNotifiers.length,
                 separatorBuilder: (context, index) => const SizedBox(height: 14),
                 itemBuilder: (context, index) {
-                  final w = _widgets[index];
-                  final color = Color(w.primaryColorHex);
-
-                  return _buildWidgetCard(w, color, index);
+                  return ValueListenableBuilder<BlynkWidgetEntity>(
+                    valueListenable: _widgetNotifiers[index],
+                    builder: (context, w, child) {
+                      final color = Color(w.primaryColorHex);
+                      return _buildWidgetCard(w, color, index);
+                    },
+                  );
                 },
               ),
           ],
@@ -229,6 +237,9 @@ class _BlynkCanvasScreenState extends State<BlynkCanvasScreen> {
   }
 
   Widget _buildStatusHeader() {
+    final connectedDeviceName = DeviceConnectionService.instance.selectedDevice?.name;
+    final deviceNameDisplay = connectedDeviceName != null ? connectedDeviceName.toUpperCase() : widget.project.deviceType.toUpperCase();
+    
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -259,9 +270,12 @@ class _BlynkCanvasScreenState extends State<BlynkCanvasScreen> {
               children: [
                 Row(
                   children: [
-                    Text(
-                      'Target Device: ${widget.project.deviceType.toUpperCase()}',
-                      style: const TextStyle(color: Color(0xFF0A122C), fontWeight: FontWeight.w900, fontSize: 14),
+                    Expanded(
+                      child: Text(
+                        'Target Device: $deviceNameDisplay',
+                        style: const TextStyle(color: Color(0xFF0A122C), fontWeight: FontWeight.w900, fontSize: 14),
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ),
                     const Spacer(),
                     Container(
@@ -276,7 +290,7 @@ class _BlynkCanvasScreenState extends State<BlynkCanvasScreen> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  '${_widgets.length} Widget Terpasang • Synced Live',
+                  '${_widgetNotifiers.length} Widget Terpasang • Synced Live',
                   style: TextStyle(color: Colors.grey.shade500, fontSize: 12, fontWeight: FontWeight.w600),
                 ),
               ],
@@ -291,7 +305,7 @@ class _BlynkCanvasScreenState extends State<BlynkCanvasScreen> {
     VoidCallback? onDeleteAction = _isEditMode
         ? () {
             setState(() {
-              _widgets.removeAt(index);
+              _widgetNotifiers.removeAt(index);
             });
             _saveConfiguration();
           }
@@ -325,9 +339,7 @@ class _BlynkCanvasScreenState extends State<BlynkCanvasScreen> {
           themeColor: color,
           onDelete: onDeleteAction,
           onChanged: (val) {
-            setState(() {
-              _widgets[index] = w.copyWith(currentValueBool: val);
-            });
+            _widgetNotifiers[index].value = w.copyWith(currentValueBool: val);
           },
         );
       case BlynkWidgetType.value:
