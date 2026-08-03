@@ -172,7 +172,7 @@ class WavyPageHeader extends StatelessWidget {
                         ],
                       ),
                     ),
-                    if (topActionWidget != null) topActionWidget!,
+                    ?topActionWidget,
                   ],
                 ),
               ),

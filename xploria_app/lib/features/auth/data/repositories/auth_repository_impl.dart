@@ -27,7 +27,7 @@ class AuthRepositoryImpl {
     }
 
     final GoogleSignIn googleSignIn = GoogleSignIn(
-      serverClientId: '508119791160-6hebpitsnbh0qs5995fk5bo49t9ocqlj.apps.googleusercontent.com',
+      clientId: '508119791160-6hebpitsnbh0qs5995fk5bo49t9ocqlj.apps.googleusercontent.com',
       scopes: ['email', 'profile'],
     );
     

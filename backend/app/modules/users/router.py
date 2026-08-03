@@ -117,6 +117,7 @@ async def google_login(
             audience=settings.GOOGLE_CLIENT_ID if settings.GOOGLE_CLIENT_ID else None
         )
     except Exception as e:
+        print(f"========== GOOGLE LOGIN ERROR: {str(e)} ==========")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"Token Google tidak valid: {str(e)}"
@@ -127,6 +128,7 @@ async def google_login(
     full_name = id_info.get("name")
 
     if not google_sub or not email:
+        print(f"========== GOOGLE LOGIN ERROR: Missing data in payload: {id_info} ==========")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Gagal mendapatkan data identitas dari Google."
@@ -141,6 +143,7 @@ async def google_login(
     )
 
     if not user.is_active:
+        print(f"========== GOOGLE LOGIN ERROR: User is inactive: {email} ==========")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Akun Anda sedang dinonaktifkan."

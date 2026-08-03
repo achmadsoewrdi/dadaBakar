@@ -129,7 +129,7 @@ class XploriaLogo extends StatelessWidget {
           style: TextStyle(
             fontSize: 14 * scale,
             fontWeight: FontWeight.w600,
-            color: Colors.white.withOpacity(0.9),
+            color: Colors.white.withValues(alpha: 0.9),
             letterSpacing: 4.0 * scale,
           ),
         ),

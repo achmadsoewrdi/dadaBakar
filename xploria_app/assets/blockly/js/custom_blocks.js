@@ -186,6 +186,22 @@ function _hal_require_sensor() {
         '            return (stop - start) * 34300 / 2',
         '        except: return 0',
         '',
+        '    def read_ultrasonic_ads(self, trig, ch=0):',
+        '        try:',
+        '            import board, busio, adafruit_ads1x15.ads1115 as ADS',
+        '            from adafruit_ads1x15.analog_in import AnalogIn',
+        '            if not hasattr(self, "_ads"):',
+        '                i2c = busio.I2C(board.SCL, board.SDA)',
+        '                self._ads = ADS.ADS1115(i2c)',
+        '            chan = AnalogIn(self._ads, int(ch))',
+        '            c_trig, o_trig = _get_gpio(trig)',
+        '            try: _gpio.gpio_claim_output(c_trig, o_trig)',
+        '            except: pass',
+        '            _gpio.gpio_write(c_trig, o_trig, 1); time.sleep(0.00001); _gpio.gpio_write(c_trig, o_trig, 0)',
+        '            voltage = chan.voltage',
+        '            return (voltage / 3.3) * 100',
+        '        except: return 0',
+        '',
         '    def read_line(self, p):',
         '        chip, offset = _get_gpio(p)',
         '        self._claim_in(chip, offset, p)',
@@ -1066,6 +1082,62 @@ Blockly.Python['sensor_ultrasonic_if'] = function (block) {
     let doFalse = Blockly.Python.statementToCode(block, 'DO_FALSE');
 
     let code = `if sensor.read_ultrasonic(${trig}, ${echo}) ${op} ${setpoint}:\n`;
+    code += doTrue || '    pass\n';
+    code += `else:\n`;
+    code += doFalse || '    pass\n';
+    return code;
+};
+
+Blockly.Blocks['sensor_ultrasonic_ads'] = {
+    init: function () {
+        this.appendDummyInput()
+            .appendField("🌡️ Jarak Ultrasonik (ADS1115) Trig")
+            .appendField(new Blockly.FieldNumber(21, 0, 40), "TRIG")
+            .appendField("Channel Echo")
+            .appendField(new Blockly.FieldDropdown([["A0", "0"], ["A1", "1"], ["A2", "2"], ["A3", "3"]]), "CH")
+            .appendField("(cm)");
+        this.setOutput(true, "Number");
+        this.setColour("#2E8B57");
+    }
+};
+Blockly.Python['sensor_ultrasonic_ads'] = function (block) {
+    _hal_require_sensor();
+    let trig = block.getFieldValue('TRIG');
+    let ch = block.getFieldValue('CH');
+    return [`sensor.read_ultrasonic_ads(${trig}, ${ch})`, Blockly.Python.ORDER_ATOMIC];
+};
+
+Blockly.Blocks['sensor_ultrasonic_ads_if'] = {
+    init: function () {
+        this.appendDummyInput()
+            .appendField("🌡️ Jika Jarak Ultrasonik (ADS1115) Trig")
+            .appendField(new Blockly.FieldNumber(21, 0, 40), "TRIG")
+            .appendField("Channel Echo")
+            .appendField(new Blockly.FieldDropdown([["A0", "0"], ["A1", "1"], ["A2", "2"], ["A3", "3"]]), "CH");
+        this.appendDummyInput()
+            .appendField(new Blockly.FieldDropdown([["< (Kurang dari)", "<"], ["> (Lebih dari)", ">"], ["= (Sama dengan)", "=="]]), "OP")
+            .appendField(new Blockly.FieldNumber(10), "SETPOINT")
+            .appendField("cm");
+        this.appendStatementInput("DO_TRUE")
+            .appendField("maka (DO):");
+        this.appendStatementInput("DO_FALSE")
+            .appendField("selain itu (ELSE):");
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour("#2E8B57");
+    }
+};
+Blockly.Python['sensor_ultrasonic_ads_if'] = function (block) {
+    _hal_require_sensor();
+    let trig = block.getFieldValue('TRIG');
+    let ch = block.getFieldValue('CH');
+    let op = block.getFieldValue('OP');
+    let setpoint = block.getFieldValue('SETPOINT');
+
+    let doTrue = Blockly.Python.statementToCode(block, 'DO_TRUE');
+    let doFalse = Blockly.Python.statementToCode(block, 'DO_FALSE');
+
+    let code = `if sensor.read_ultrasonic_ads(${trig}, ${ch}) ${op} ${setpoint}:\n`;
     code += doTrue || '    pass\n';
     code += `else:\n`;
     code += doFalse || '    pass\n';

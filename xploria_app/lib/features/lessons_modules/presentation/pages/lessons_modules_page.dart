@@ -53,8 +53,9 @@ class _LessonsModulesPageState extends State<LessonsModulesPage> {
 
     final filteredModules = _learningModules.where((module) {
       bool categoryMatch = true;
-      if (_selectedModuleCategoryIndex == 1) categoryMatch = module.stepsJson['level'] == 'Pemula';
-      else if (_selectedModuleCategoryIndex == 2) categoryMatch = module.stepsJson['level'] == 'Menengah';
+      if (_selectedModuleCategoryIndex == 1) {
+        categoryMatch = module.stepsJson['level'] == 'Pemula';
+      } else if (_selectedModuleCategoryIndex == 2) categoryMatch = module.stepsJson['level'] == 'Menengah';
       else if (_selectedModuleCategoryIndex == 3) categoryMatch = module.isPremiumOnly == true;
 
       bool searchMatch = true;

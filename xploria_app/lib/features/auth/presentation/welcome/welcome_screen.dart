@@ -112,17 +112,16 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                       // "Sign Up" Button
                       _buildActionButton(
                         text: 'Sign Up',
-                        backgroundColor: Colors.white,
-                        textColor: const Color(0xFF005CFF),
+                        backgroundColor: const Color(0xFF2ED9C3),
+                        textColor: Colors.white,
                         onPressed: () => _switchMode(AuthMode.register),
                       ),
                       const SizedBox(height: 16),
-                      // "Login" Button (Outlined)
+                      // "Login" Button
                       _buildActionButton(
                         text: 'Login',
-                        backgroundColor: Colors.transparent,
-                        textColor: Colors.white,
-                        hasBorder: true,
+                        backgroundColor: Colors.white,
+                        textColor: const Color(0xFF005CFF),
                         onPressed: () => _switchMode(AuthMode.login),
                       ),
                     ],
@@ -200,7 +199,6 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
     required Color backgroundColor,
     required Color textColor,
     required VoidCallback onPressed,
-    bool hasBorder = false,
   }) {
     return Container(
       width: double.infinity,
@@ -208,8 +206,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
       decoration: BoxDecoration(
         color: backgroundColor,
         borderRadius: BorderRadius.circular(26),
-        border: hasBorder ? Border.all(color: Colors.white, width: 2) : null,
-        boxShadow: hasBorder ? [] : [
+        boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.15),
             blurRadius: 12,
@@ -238,4 +235,3 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
     );
   }
 }
-

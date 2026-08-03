@@ -26,7 +26,7 @@ class CustomTextField extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: const Color(0xFF005CFF).withOpacity(0.04), // Blue tint background
+        color: const Color(0xFF005CFF).withValues(alpha: 0.04), // Blue tint background
         borderRadius: BorderRadius.circular(16),
       ),
       child: TextFormField(
@@ -38,12 +38,12 @@ class CustomTextField extends StatelessWidget {
         decoration: InputDecoration(
           hintText: hintText,
           hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 15, fontWeight: FontWeight.w500),
-          prefixIcon: Icon(icon, color: const Color(0xFF005CFF).withOpacity(0.7), size: 20),
+          prefixIcon: Icon(icon, color: const Color(0xFF005CFF).withValues(alpha: 0.7), size: 20),
           suffixIcon: isPassword
               ? IconButton(
                   icon: Icon(
                     obscureText ? Icons.visibility_off_rounded : Icons.visibility_rounded,
-                    color: const Color(0xFF005CFF).withOpacity(0.7),
+                    color: const Color(0xFF005CFF).withValues(alpha: 0.7),
                     size: 20,
                   ),
                   onPressed: onToggleVisibility,
