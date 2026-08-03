@@ -101,6 +101,17 @@ class DeviceConnectionService extends ChangeNotifier {
     }
   }
 
+  Future<void> connectBluetoothByMac(String macAddress) async {
+    try {
+      final dev = _devicesList.firstWhere((d) => d.address == macAddress);
+      _selectedDevice = dev;
+      await connectBluetooth();
+    } catch (e) {
+      _statusMessage = "Perangkat Bluetooth tidak ditemukan di daftar pairing.";
+      notifyListeners();
+    }
+  }
+
   Future<void> connectBluetooth() async {
     if (_selectedDevice == null) return;
     

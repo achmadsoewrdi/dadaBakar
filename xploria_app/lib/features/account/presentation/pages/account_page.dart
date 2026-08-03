@@ -3,7 +3,6 @@ import 'package:google_sign_in/google_sign_in.dart';
 import '../../../auth/data/data_sources/auth_storage_service.dart';
 import '../../../auth/presentation/pages/welcome_screen.dart';
 import '../../../auth/domain/models/user_model.dart';
-import '../../../dashboard/presentation/widgets/dashboard_shared_widgets.dart';
 import '../../data/repositories/account_repository.dart';
 
 class AccountPage extends StatefulWidget {
@@ -47,198 +46,569 @@ class _AccountPageState extends State<AccountPage> {
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    if (_isLoading) {
-      return const Center(child: CircularProgressIndicator());
-    }
-
-    final userName = (_user?.fullName.isNotEmpty == true) ? _user!.fullName : 'Young Coder';
-    final topInset = MediaQuery.of(context).padding.top;
-    final topPadding = topInset > 0 ? topInset + 20 : 54.0;
-
-    return Stack(
-      children: [
-        SingleChildScrollView(
-          physics: const ClampingScrollPhysics(),
-          padding: EdgeInsets.only(top: topInset + 230, bottom: 120),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24.0),
-            child: Column(
-              children: [
-                _buildProfileMenuItem(
-                  title: 'Account & ERD Details',
-                  subtitle: _user?.email ?? 'hello@xploria.com',
-                  icon: Icons.person_outline_rounded,
-                  onTap: () => _showFeatureSnackbar('UUID: ${_user?.id}'),
-                ),
-                _buildProfileMenuItem(
-                  title: 'Parental Control & Security',
-                  subtitle: 'Safety and privacy settings',
-                  icon: Icons.shield_outlined,
-                  onTap: () => _showFeatureSnackbar('Pengaturan Keamanan'),
-                ),
-                _buildProfileMenuItem(
-                  title: 'Notifications',
-                  subtitle: 'Manage your alerts',
-                  icon: Icons.notifications_none_rounded,
-                  onTap: () => _showFeatureSnackbar('Notifikasi Ditampilkan'),
-                ),
-                _buildProfileMenuItem(
-                  title: 'Themes & Appearance',
-                  subtitle: 'Change app appearance',
-                  icon: Icons.palette_outlined,
-                  onTap: () => _showFeatureSnackbar('Tema Cerah Aktif'),
-                ),
-                _buildProfileMenuItem(
-                  title: 'Help and support',
-                  subtitle: 'Get help when you need it',
-                  icon: Icons.help_outline_rounded,
-                  onTap: () => _showFeatureSnackbar('Pusat Bantuan Xploria'),
-                ),
-                _buildProfileMenuItem(
-                  title: 'Logout',
-                  subtitle: 'Keluar dari akun',
-                  icon: Icons.logout_rounded,
-                  iconColor: Colors.redAccent,
-                  onTap: () async {
-                    await AuthStorageService().clearSession();
-                    try {
-                      // Hapus sesi Google Sign In agar user bisa memilih akun lain saat login berikutnya
-                      await GoogleSignIn().signOut();
-                    } catch (_) {}
-                    
-                    if (context.mounted) {
-                      Navigator.pushAndRemoveUntil(
-                        context,
-                        MaterialPageRoute(builder: (_) => const WelcomeScreen()),
-                        (route) => false,
-                      );
-                    }
-                  },
-                ),
-              ],
-            ),
-          ),
-        ),
-        Positioned(
-          top: 0,
-          left: 0,
-          right: 0,
-          child: ClipPath(
-            clipper: WaveHeaderClipper(),
-            child: Container(
-              width: double.infinity,
-              height: topPadding + 175,
-              padding: EdgeInsets.only(top: topPadding - 10),
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [Color(0xFF005CFF), Color(0xFF00C2FF)],
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                ),
-              ),
+  void _showSettingsModal() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: const Color(0xFFF4F6F9),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return FractionallySizedBox(
+              heightFactor: 0.9,
               child: Column(
                 children: [
-                  Container(
-                    padding: const EdgeInsets.all(4),
-                    decoration: const BoxDecoration(
-                      color: Color(0xFF00C2FF),
-                      shape: BoxShape.circle,
-                    ),
-                    child: CircleAvatar(
-                      radius: 40,
-                      backgroundColor: Colors.white,
-                      child: Text(
-                        userName.isNotEmpty ? userName[0].toUpperCase() : 'Y',
-                        style: const TextStyle(
-                          fontSize: 32,
-                          fontWeight: FontWeight.w900,
-                          color: Color(0xFF005CFF),
+                  // Header
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 24, 16, 16),
+                    child: Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        Align(
+                          alignment: Alignment.centerLeft,
+                          child: InkWell(
+                            onTap: () => Navigator.pop(context),
+                            borderRadius: BorderRadius.circular(12),
+                            child: Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(color: Colors.grey.shade200),
+                              ),
+                              child: const Icon(Icons.close, color: Colors.black87, size: 20),
+                            ),
+                          ),
                         ),
+                        const Text(
+                          'Settings',
+                          style: TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF003092),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Expanded(
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                      child: Column(
+                        children: [
+                          // Card 1: Account, Parental Control, Notifications
+                          _buildSettingsGroup([
+                            _buildSettingsItem(
+                              icon: Icons.person_outline_rounded,
+                              iconColor: const Color(0xFF005CFF),
+                              iconBgColor: const Color(0xFFDDE5FF),
+                              title: 'Account',
+                              onTap: () {
+                                Navigator.pop(context);
+                                _showFeatureSnackbar('UUID: ${_user?.id}');
+                              },
+                            ),
+                            _buildSettingsDivider(),
+                            _buildSettingsItem(
+                              icon: Icons.shield_outlined,
+                              iconColor: const Color(0xFFFF7A00),
+                              iconBgColor: const Color(0xFFFFE8D6),
+                              title: 'Parental Control & Security',
+                              onTap: () {
+                                Navigator.pop(context);
+                                _showFeatureSnackbar('Pengaturan Keamanan');
+                              },
+                            ),
+                            _buildSettingsDivider(),
+                            _buildSettingsItem(
+                              icon: Icons.notifications_none_rounded,
+                              iconColor: const Color(0xFF005CFF),
+                              iconBgColor: const Color(0xFFDDE5FF),
+                              title: 'Notifications',
+                              onTap: () {
+                                Navigator.pop(context);
+                                _showFeatureSnackbar('Notifikasi Ditampilkan');
+                              },
+                            ),
+                          ]),
+                          
+                          const SizedBox(height: 16),
+                          
+                          // Card 2: Appearance
+                          Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(color: Colors.grey.shade100),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  'APPEARANCE',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.grey,
+                                  ),
+                                ),
+                                const SizedBox(height: 12),
+                                Container(
+                                  padding: const EdgeInsets.all(4),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFF4F6F9),
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      Expanded(
+                                        child: InkWell(
+                                          onTap: () {
+                                            Navigator.pop(context);
+                                            _showFeatureSnackbar('Tema Cerah Aktif');
+                                          },
+                                          child: Container(
+                                            padding: const EdgeInsets.symmetric(vertical: 10),
+                                            decoration: BoxDecoration(
+                                              color: Colors.white,
+                                              borderRadius: BorderRadius.circular(8),
+                                              boxShadow: [
+                                                BoxShadow(
+                                                  color: Colors.black.withOpacity(0.05),
+                                                  blurRadius: 4,
+                                                )
+                                              ]
+                                            ),
+                                            alignment: Alignment.center,
+                                            child: const Text('Light', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF003092))),
+                                          ),
+                                        ),
+                                      ),
+                                      Expanded(
+                                        child: InkWell(
+                                          onTap: () {
+                                            Navigator.pop(context);
+                                            _showFeatureSnackbar('Tema Gelap Aktif');
+                                          },
+                                          child: Container(
+                                            padding: const EdgeInsets.symmetric(vertical: 10),
+                                            alignment: Alignment.center,
+                                            child: Text('Dark', style: TextStyle(color: Colors.grey.shade600)),
+                                          ),
+                                        ),
+                                      ),
+                                      Expanded(
+                                        child: InkWell(
+                                          onTap: () {
+                                            Navigator.pop(context);
+                                            _showFeatureSnackbar('Tema Sistem Aktif');
+                                          },
+                                          child: Container(
+                                            padding: const EdgeInsets.symmetric(vertical: 10),
+                                            alignment: Alignment.center,
+                                            child: Text('Auto', style: TextStyle(color: Colors.grey.shade600)),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                )
+                              ],
+                            ),
+                          ),
+                          
+                          const SizedBox(height: 16),
+                          
+                          // Card 3: Support
+                          _buildSettingsGroup([
+                            _buildSettingsItem(
+                              icon: Icons.info_outline_rounded,
+                              iconColor: const Color(0xFF005CFF),
+                              iconBgColor: const Color(0xFFDDE5FF),
+                              title: 'About',
+                              onTap: () {
+                                Navigator.pop(context);
+                                _showFeatureSnackbar('Tentang Xploria');
+                              },
+                            ),
+                            _buildSettingsDivider(),
+                            _buildSettingsItem(
+                              icon: Icons.help_outline_rounded,
+                              iconColor: Colors.blueGrey,
+                              iconBgColor: Colors.blueGrey.shade100,
+                              title: 'Help',
+                              onTap: () {
+                                Navigator.pop(context);
+                                _showFeatureSnackbar('Pusat Bantuan Xploria');
+                              },
+                            ),
+                            _buildSettingsDivider(),
+                            _buildSettingsItem(
+                              icon: Icons.flag_outlined,
+                              iconColor: Colors.blueGrey,
+                              iconBgColor: Colors.blueGrey.shade100,
+                              title: 'Report a problem',
+                              onTap: () {
+                                Navigator.pop(context);
+                                _showFeatureSnackbar('Laporkan Masalah');
+                              },
+                            ),
+                          ]),
+                          
+                          const SizedBox(height: 16),
+                          
+                          // Card 4: Logout
+                          Container(
+                            width: double.infinity,
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(color: Colors.grey.shade100),
+                            ),
+                            child: InkWell(
+                              onTap: () async {
+                                await AuthStorageService().clearSession();
+                                try {
+                                  await GoogleSignIn().signOut();
+                                } catch (_) {}
+                                
+                                if (context.mounted) {
+                                  Navigator.pushAndRemoveUntil(
+                                    context,
+                                    MaterialPageRoute(builder: (_) => const WelcomeScreen()),
+                                    (route) => false,
+                                  );
+                                }
+                              },
+                              borderRadius: BorderRadius.circular(16),
+                              child: const Padding(
+                                padding: EdgeInsets.symmetric(vertical: 16),
+                                child: Center(
+                                  child: Text(
+                                    'Log out',
+                                    style: TextStyle(
+                                      color: Color(0xFFD32F2F),
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 16,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                          
+                          const SizedBox(height: 40),
+                        ],
                       ),
                     ),
                   ),
-                  const SizedBox(height: 12),
-                  Text(
-                    userName,
-                    style: const TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.w900,
-                      color: Colors.white,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
                 ],
               ),
-            ),
-          ),
-        ),
-      ],
+            );
+          },
+        );
+      },
     );
   }
 
-  Widget _buildProfileMenuItem({
-    required String title,
-    required String subtitle,
+  Widget _buildSettingsGroup(List<Widget> children) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.grey.shade100),
+      ),
+      child: Column(
+        children: children,
+      ),
+    );
+  }
+
+  Widget _buildSettingsDivider() {
+    return Divider(height: 1, thickness: 1, color: Colors.grey.shade100, indent: 56);
+  }
+
+  Widget _buildSettingsItem({
     required IconData icon,
-    Color? iconColor,
+    required Color iconColor,
+    required Color iconBgColor,
+    required String title,
     required VoidCallback onTap,
   }) {
-    final color = iconColor ?? const Color(0xFF00C2FF);
-
-    return HoverCard(
-      margin: const EdgeInsets.only(bottom: 12),
+    return InkWell(
       onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(20),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.02),
-              blurRadius: 8,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         child: Row(
           children: [
             Container(
-              padding: const EdgeInsets.all(10),
+              padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.12),
-                shape: BoxShape.circle,
+                color: iconBgColor,
+                borderRadius: BorderRadius.circular(8),
               ),
-              child: Icon(icon, color: color, size: 22),
+              child: Icon(icon, color: iconColor, size: 20),
             ),
             const SizedBox(width: 16),
             Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: const TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF0A122C),
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    subtitle,
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.grey.shade500,
-                    ),
-                  ),
-                ],
+              child: Text(
+                title,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFF0A122C),
+                ),
               ),
             ),
             const Icon(Icons.chevron_right_rounded, color: Colors.grey, size: 20),
           ],
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_isLoading) {
+      return const Scaffold(
+        backgroundColor: Color(0xFFF4F6F9),
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    final userName = (_user?.fullName.isNotEmpty == true) ? _user!.fullName : 'Young Coder';
+    final initial = userName.isNotEmpty ? userName[0].toUpperCase() : 'Y';
+
+    return Scaffold(
+      backgroundColor: const Color(0xFFF4F6F9),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Top Row: Avatar, Name, Settings
+              Row(
+                children: [
+                  Container(
+                    width: 60,
+                    height: 60,
+                    decoration: const BoxDecoration(
+                      color: Color(0xFFDDE5FF),
+                      shape: BoxShape.circle,
+                    ),
+                    alignment: Alignment.center,
+                    child: Text(
+                      initial,
+                      style: const TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF005CFF),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Text(
+                      userName,
+                      style: const TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF0A122C),
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  InkWell(
+                    onTap: _showSettingsModal,
+                    borderRadius: BorderRadius.circular(16),
+                    child: Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: Colors.grey.shade200),
+                      ),
+                      child: const Icon(
+                        Icons.settings_outlined,
+                        color: Color(0xFF005CFF),
+                        size: 24,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 32),
+
+              // Stats Row: Max Streak & Lifetime XP
+              Row(
+                children: [
+                  Expanded(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 20),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: Colors.grey.shade200),
+                      ),
+                      child: Column(
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: const [
+                              Icon(Icons.bolt_rounded, color: Color(0xFF005CFF), size: 24),
+                              SizedBox(width: 8),
+                              Text('0', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF0A122C))),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          const Text('Max Streak', style: TextStyle(color: Colors.grey, fontSize: 14)),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 20),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: Colors.grey.shade200),
+                      ),
+                      child: Column(
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: const [
+                              Icon(Icons.star_rounded, color: Color(0xFF005CFF), size: 24),
+                              SizedBox(width: 8),
+                              Text('140', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF0A122C))),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          const Text('Lifetime XP', style: TextStyle(color: Colors.grey, fontSize: 14)),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              
+              const SizedBox(height: 24),
+
+              // Weekly Leaderboard
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(32),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: Colors.grey.shade200),
+                ),
+                child: Column(
+                  children: [
+                    Container(
+                      width: 80,
+                      height: 80,
+                      decoration: const BoxDecoration(
+                        color: Color(0xFFDDE5FF),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(Icons.emoji_events, color: Color(0xFF005CFF), size: 40),
+                    ),
+                    const SizedBox(height: 24),
+                    const Text(
+                      'Weekly Leaderboard',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF0A122C),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    const Text(
+                      'You are currently Rank #12',
+                      style: TextStyle(
+                        fontSize: 15,
+                        color: Colors.grey,
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    InkWell(
+                      onTap: () {
+                        _showFeatureSnackbar('Leaderboard belum tersedia');
+                      },
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: const [
+                          Text(
+                            'View Leaderboard',
+                            style: TextStyle(
+                              color: Color(0xFF005CFF),
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          SizedBox(width: 4),
+                          Icon(Icons.arrow_forward, color: Color(0xFF005CFF), size: 16),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 24),
+
+              // Achievements & Badges
+              Container(
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: Colors.grey.shade200),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Expanded(
+                      child: Text(
+                        'Achievements &\nBadges',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF0A122C),
+                          height: 1.2,
+                        ),
+                      ),
+                    ),
+                    InkWell(
+                      onTap: () {
+                        _showFeatureSnackbar('Achievements belum tersedia');
+                      },
+                      child: const Text(
+                        'View\nAll',
+                        style: TextStyle(
+                          color: Color(0xFF005CFF),
+                          fontWeight: FontWeight.w500,
+                          height: 1.2,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              
+              const SizedBox(height: 100),
+            ],
+          ),
         ),
       ),
     );
