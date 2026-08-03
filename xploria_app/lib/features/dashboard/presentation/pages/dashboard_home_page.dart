@@ -24,12 +24,15 @@ class DashboardHomePage extends StatefulWidget {
   State<DashboardHomePage> createState() => DashboardHomePageState();
 }
 
-class DashboardHomePageState extends State<DashboardHomePage> {
+class DashboardHomePageState extends State<DashboardHomePage> with AutomaticKeepAliveClientMixin {
   final DashboardRepository _repository = DashboardRepository();
   bool _isLoading = true;
   List<ProjectModel> _projects = [];
   List<DeviceProfileModel> _deviceProfiles = [];
   List<LearningModuleModel> _learningModules = [];
+
+  @override
+  bool get wantKeepAlive => true;
 
   @override
   void initState() {
@@ -220,6 +223,7 @@ class DashboardHomePageState extends State<DashboardHomePage> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context); // Required by AutomaticKeepAliveClientMixin
     if (_isLoading) {
       return const Center(child: CircularProgressIndicator());
     }

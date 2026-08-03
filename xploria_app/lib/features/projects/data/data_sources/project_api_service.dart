@@ -9,7 +9,8 @@ class ProjectApiService {
   factory ProjectApiService() => _instance;
   ProjectApiService._internal();
 
-  final String baseUrl = dotenv.env['BASE_URL'] ?? 'http://192.168.1.73:8000/api/v1';
+  final String baseUrl =
+      dotenv.env['BASE_URL'] ?? 'http://192.168.1.73:8000/api/v1';
 
   Future<Map<String, String>> _getHeaders() async {
     final token = AuthStorageService().accessToken;
@@ -25,9 +26,11 @@ class ProjectApiService {
   Future<List<ProjectModel>> getProjects() async {
     final url = Uri.parse('$baseUrl/projects/');
     final headers = await _getHeaders();
-    
-    final response = await http.get(url, headers: headers).timeout(const Duration(seconds: 10));
-    
+
+    final response = await http
+        .get(url, headers: headers)
+        .timeout(const Duration(seconds: 10));
+
     if (response.statusCode == 200) {
       final List<dynamic> jsonList = jsonDecode(response.body);
       return jsonList.map((json) => ProjectModel.fromJson(json)).toList();
@@ -36,18 +39,21 @@ class ProjectApiService {
     }
   }
 
-  Future<ProjectModel> createProject(String name, {String workspaceXml = '<xml xmlns="https://developers.google.com/blockly/xml"></xml>'}) async {
+  Future<ProjectModel> createProject(
+    String name, {
+    String workspaceXml =
+        '<xml xmlns="https://developers.google.com/blockly/xml"></xml>',
+  }) async {
     final url = Uri.parse('$baseUrl/projects/');
     final headers = await _getHeaders();
-    
-    final response = await http.post(
-      url,
-      headers: headers,
-      body: jsonEncode({
-        'name': name,
-        'workspace_xml': workspaceXml,
-      }),
-    ).timeout(const Duration(seconds: 10));
+
+    final response = await http
+        .post(
+          url,
+          headers: headers,
+          body: jsonEncode({'name': name, 'workspace_xml': workspaceXml}),
+        )
+        .timeout(const Duration(seconds: 10));
 
     if (response.statusCode == 201 || response.statusCode == 200) {
       return ProjectModel.fromJson(jsonDecode(response.body));
@@ -56,24 +62,23 @@ class ProjectApiService {
     }
   }
 
-  Future<ProjectModel> updateProject(String projectId, {
+  Future<ProjectModel> updateProject(
+    String projectId, {
     String? name,
     String? workspaceXml,
     String? generatedCode,
   }) async {
     final url = Uri.parse('$baseUrl/projects/$projectId');
     final headers = await _getHeaders();
-    
+
     final body = <String, dynamic>{};
     if (name != null) body['name'] = name;
     if (workspaceXml != null) body['workspace_xml'] = workspaceXml;
     if (generatedCode != null) body['generated_code'] = generatedCode;
-    
-    final response = await http.put(
-      url,
-      headers: headers,
-      body: jsonEncode(body),
-    ).timeout(const Duration(seconds: 10));
+
+    final response = await http
+        .put(url, headers: headers, body: jsonEncode(body))
+        .timeout(const Duration(seconds: 10));
 
     if (response.statusCode == 200) {
       return ProjectModel.fromJson(jsonDecode(response.body));
@@ -85,9 +90,11 @@ class ProjectApiService {
   Future<void> deleteProject(String projectId) async {
     final url = Uri.parse('$baseUrl/projects/$projectId');
     final headers = await _getHeaders();
-    
-    final response = await http.delete(url, headers: headers).timeout(const Duration(seconds: 10));
-    
+
+    final response = await http
+        .delete(url, headers: headers)
+        .timeout(const Duration(seconds: 10));
+
     if (response.statusCode != 204 && response.statusCode != 200) {
       throw Exception('Gagal menghapus proyek (${response.statusCode})');
     }
