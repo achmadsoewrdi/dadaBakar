@@ -25,8 +25,9 @@ class BlynkGaugeWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final double percentage = (value / maxValue).clamp(0.0, 1.0);
 
-    return Container(
-      padding: const EdgeInsets.all(18),
+    return RepaintBoundary(
+      child: Container(
+        padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(24),
@@ -76,46 +77,55 @@ class BlynkGaugeWidget extends StatelessWidget {
           const SizedBox(height: 12),
 
           // Gauge Dial Painter
-          SizedBox(
-            height: 95,
-            width: 160,
-            child: Stack(
-              alignment: Alignment.center,
-              children: [
-                CustomPaint(
-                  size: const Size(160, 95),
-                  painter: _GaugePainter(
-                    percentage: percentage,
-                    color: themeColor,
-                  ),
-                ),
-                Positioned(
-                  bottom: 0,
-                  child: Column(
-                    children: [
-                      Text(
-                        '${value.toStringAsFixed(0)}$unit',
-                        style: TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.w900,
-                          color: themeColor,
-                        ),
+          TweenAnimationBuilder<double>(
+            tween: Tween<double>(begin: 0.0, end: value),
+            duration: const Duration(milliseconds: 1200),
+            curve: Curves.easeOutCubic,
+            builder: (context, animatedValue, child) {
+              final double percentage = (animatedValue / maxValue).clamp(0.0, 1.0);
+              return SizedBox(
+                height: 95,
+                width: 160,
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    CustomPaint(
+                      size: const Size(160, 95),
+                      painter: _GaugePainter(
+                        percentage: percentage,
+                        color: themeColor,
                       ),
-                      Text(
-                        'Max: ${maxValue.toStringAsFixed(0)}$unit',
-                        style: TextStyle(
-                          fontSize: 10,
-                          color: Colors.grey.shade500,
-                          fontWeight: FontWeight.w600,
-                        ),
+                    ),
+                    Positioned(
+                      bottom: 0,
+                      child: Column(
+                        children: [
+                          Text(
+                            '${animatedValue.toStringAsFixed(0)}$unit',
+                            style: TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.w900,
+                              color: themeColor,
+                            ),
+                          ),
+                          Text(
+                            'Max: ${maxValue.toStringAsFixed(0)}$unit',
+                            style: TextStyle(
+                              fontSize: 10,
+                              color: Colors.grey.shade500,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
+              );
+            },
           ),
         ],
+      ),
       ),
     );
   }

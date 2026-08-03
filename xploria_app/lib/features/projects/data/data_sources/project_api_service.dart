@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:http/http.dart' as http;
 import '../../domain/models/project_model.dart';
 import '../../../auth/data/data_sources/auth_storage_service.dart';
@@ -8,7 +9,7 @@ class ProjectApiService {
   factory ProjectApiService() => _instance;
   ProjectApiService._internal();
 
-  final String baseUrl = 'http://192.168.1.68:8000/api/v1';
+  final String baseUrl = kIsWeb ? 'http://127.0.0.1:8000/api/v1' : 'http://192.168.1.71:8000/api/v1';
 
   Future<Map<String, String>> _getHeaders() async {
     final token = AuthStorageService().accessToken;

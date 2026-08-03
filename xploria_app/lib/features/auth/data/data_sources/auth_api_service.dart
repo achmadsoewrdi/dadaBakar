@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:http/http.dart' as http;
 import '../../domain/models/auth_response_model.dart';
 import '../../domain/models/user_model.dart';
@@ -9,7 +10,7 @@ class AuthApiService {
   factory AuthApiService() => _instance;
   AuthApiService._internal();
 
-  final String baseUrl = 'http://192.168.1.68:8000/api/v1';
+  final String baseUrl = kIsWeb ? 'http://127.0.0.1:8000/api/v1' : 'http://192.168.1.71:8000/api/v1';
 
   /// Option A: Login with Email & Password
   /// Sequence Diagram Steps 1-5: POST /auth/login (email, password)
@@ -94,13 +95,19 @@ class AuthApiService {
     } else if (response.statusCode == 401) {
       throw Exception('Email atau password salah (401 Unauthorized)');
     } else {
+      String errorMessage = 'Terjadi kesalahan pada server (${response.statusCode})';
       try {
         final body = jsonDecode(response.body);
-        final message = body['detail'] ?? body['message'] ?? 'Terjadi kesalahan pada server (${response.statusCode})';
-        throw Exception(message);
+        errorMessage = body['detail'] ?? body['message'] ?? errorMessage;
+        
+        // Translate common FastAPI errors
+        if (errorMessage.toLowerCase().contains('incorrect username or password')) {
+          errorMessage = 'Email atau password yang Anda masukkan salah.';
+        }
       } catch (_) {
-        throw Exception('Gagal menghubungi backend (${response.statusCode})');
+        errorMessage = 'Gagal menghubungi backend (${response.statusCode})';
       }
+      throw Exception(errorMessage);
     }
   }
 
