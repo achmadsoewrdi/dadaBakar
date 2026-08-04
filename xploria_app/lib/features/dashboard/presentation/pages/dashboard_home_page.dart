@@ -4,6 +4,9 @@ import 'package:go_router/go_router.dart';
 import '../../../projects/domain/models/project_model.dart';
 import '../../data/repositories/dashboard_repository.dart';
 import '../../../projects/data/repositories/project_repository_impl.dart';
+import '../../../auth/data/data_sources/auth_storage_service.dart';
+import '../../../auth/domain/models/user_model.dart';
+import '../../../../core/config/app_constants.dart';
 
 class DashboardHomePage extends StatefulWidget {
   final String userName;
@@ -23,6 +26,7 @@ class DashboardHomePageState extends State<DashboardHomePage> with AutomaticKeep
   final DashboardRepository _repository = DashboardRepository();
   bool _isLoading = true;
   List<ProjectModel> _projects = [];
+  UserModel? _user;
 
   @override
   bool get wantKeepAlive => true;
@@ -35,10 +39,12 @@ class DashboardHomePageState extends State<DashboardHomePage> with AutomaticKeep
 
   Future<void> _loadData() async {
     final projects = await _repository.getRecentProjects();
+    final user = AuthStorageService().currentUser;
     
     if (mounted) {
       setState(() {
         _projects = projects;
+        _user = user;
         _isLoading = false;
       });
     }
@@ -88,17 +94,31 @@ class DashboardHomePageState extends State<DashboardHomePage> with AutomaticKeep
                       children: [
                         Row(
                           children: [
-                            Container(
-                              padding: const EdgeInsets.all(8),
-                              decoration: BoxDecoration(
-                                color: Colors.blue.withValues(alpha: 0.1),
-                                shape: BoxShape.circle,
+                            if (_user?.photoUrl != null && _user!.photoUrl!.isNotEmpty)
+                              CircleAvatar(
+                                radius: 20,
+                                backgroundColor: Colors.blue.withValues(alpha: 0.1),
+                                backgroundImage: NetworkImage(
+                                  _user!.photoUrl!.startsWith('http') 
+                                      ? _user!.photoUrl! 
+                                      : '${AppConstants.apiBaseUrl.replaceAll('/api/v1', '')}${_user!.photoUrl}'
+                                ),
+                              )
+                            else
+                              Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  color: Colors.blue.withValues(alpha: 0.1),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: Text(
+                                  (_user?.fullName.isNotEmpty == true) ? _user!.fullName[0].toUpperCase() : 'Y',
+                                  style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.blue, fontSize: 16),
+                                ),
                               ),
-                              child: const Icon(Icons.person, color: Colors.blue),
-                            ),
                             const SizedBox(width: 12),
                             Text(
-                              'Hello, ${widget.userName}!',
+                              'Hello, ${_user?.fullName ?? widget.userName}!',
                               style: const TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,

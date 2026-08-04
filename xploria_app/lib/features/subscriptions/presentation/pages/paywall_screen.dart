@@ -1,7 +1,8 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../data/repositories/subscription_repository.dart';
-import '../../../account/data/repositories/account_repository.dart';
+import '../../../auth/data/data_sources/auth_storage_service.dart';
 
 class PaywallScreen extends StatefulWidget {
   const PaywallScreen({super.key});
@@ -13,36 +14,52 @@ class PaywallScreen extends StatefulWidget {
 class _PaywallScreenState extends State<PaywallScreen> {
   final SubscriptionRepository _repository = SubscriptionRepository();
   bool _isLoading = false;
-  String _selectedTier = 'premium';
+  String _selectedTier =
+      'pro'; // default ke tahunan, biar konsisten sama badge hemat
+
+  // Light Mode Colors (Headspace inspired)
+  static const Color _bg = Color(0xFFFDFBF7); // Creamy white background
+  static const Color _card = Color(
+    0xFFF5F4F0,
+  ); // Light grey/cream for unselected card
+  static const Color _accentBtn = Color(
+    0xFF0066FF,
+  ); // Blue for button and links
+  static const Color _accentCard = Color(
+    0xFFFF7A00,
+  ); // Orange for selected card and ticks
+  static const Color _textColor = Color(0xFF2D2D2D); // Dark grey/black for text
 
   Future<void> _handleSubscribe() async {
     setState(() => _isLoading = true);
     try {
-      // 1. Panggil API Subscription untuk membuat langganan (MOCK checkout)
       await _repository.subscribe(_selectedTier);
-      
-      // 2. Refresh profil user dari backend agar isPremium menjadi true
-      // Kita panggil auth api me
-      final accountRepo = AccountRepository();
-      await accountRepo.getUserProfile(); // refresh user info // Ini akan memperbarui data di AuthStorage
+      await AuthStorageService().updatePremiumStatus(true);
       if (mounted) {
-        // Tampilkan sukses
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Text('Pembayaran Berhasil! Selamat datang di Xploria Pro! 🚀'),
+            content: const Text(
+              'Pembayaran Berhasil! Selamat datang di Xploria Pro! 🚀',
+            ),
             backgroundColor: Colors.green.shade600,
             behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
           ),
         );
-        context.pop(true); // Return true menandakan sukses langganan
+        context.pop(true);
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Gagal berlangganan: $e'),
+            content: Text('Gagal berlangganan: '),
             backgroundColor: Colors.red,
             behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
           ),
         );
       }
@@ -54,159 +71,237 @@ class _PaywallScreenState extends State<PaywallScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0F172A), // Dark premium background
+      backgroundColor: _bg,
       body: Stack(
         children: [
-          // Background Gradient effect
-          Positioned(
-            top: -100,
-            right: -100,
-            child: Container(
-              width: 300,
-              height: 300,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: const Color(0xFF005CFF).withValues(alpha: 0.2),
-                // Blur filter removed
+          // 1. Scrollable Content
+          Positioned.fill(
+            child: SingleChildScrollView(
+              padding: EdgeInsets.fromLTRB(
+                24,
+                MediaQuery.of(context).padding.top + 60, // Padding for header
+                24,
+                MediaQuery.of(context).padding.bottom +
+                    160, // Padding for footer
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  // Header Illustration (Sun Image)
+                  Center(
+                    child: Image.asset(
+                      'assets/icons/headspace_sun.png',
+                      height: 140,
+                      fit: BoxFit.contain,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  const Text(
+                    'Buka Potensi Penuh\ndengan Xploria Pro',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: _textColor,
+                      fontSize: 26,
+                      fontWeight: FontWeight.w800,
+                      height: 1.25,
+                      letterSpacing: -0.3,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    'Akses semua modul pembelajaran IoT tingkat lanjut, buat proyek tanpa batas, dan nikmati kanvas Blynk VIP.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: Colors.grey.shade700,
+                      fontSize: 14,
+                      height: 1.5,
+                    ),
+                  ),
+                  const SizedBox(height: 32),
+
+                  // Features
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 4,
+                      horizontal: 8,
+                    ),
+                    child: Column(
+                      children: [
+                        _buildFeatureItem('Akses ke semua modul Premium'),
+                        _buildFeatureItem('Proyek Blockly tanpa batas'),
+                        _buildFeatureItem('Template Blynk Canvas VIP'),
+                        _buildFeatureItem(
+                          'Sertifikat kelulusan digital',
+                          isLast: true,
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 32),
+
+                  // Pricing
+                  _buildPricingTile(
+                    tier: 'pro',
+                    title: 'Tahunan',
+                    price: 'Rp 490.000',
+                    duration: '(Rp 40.833/bulan)',
+                    subtitle: 'ditagih tahunan setelah percobaan 14 hari',
+                    badge: 'Best value',
+                  ),
+                  const SizedBox(height: 12),
+                  _buildPricingTile(
+                    tier: 'premium',
+                    title: 'Bulanan',
+                    price: 'Rp 49.000',
+                    duration: '/bulan',
+                    subtitle: 'ditagih bulanan setelah percobaan 7 hari',
+                  ),
+                ],
               ),
             ),
           ),
-          SafeArea(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Close button
-                Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: IconButton(
-                    icon: const Icon(Icons.close, color: Colors.white),
-                    onPressed: () => context.pop(false),
+
+          // 2. Glassmorphism Header (Close Button)
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            child: ClipRRect(
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+                child: Container(
+                  padding: EdgeInsets.only(
+                    top: MediaQuery.of(context).padding.top,
                   ),
-                ),
-                
-                Expanded(
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
+                  color: _bg.withValues(alpha: 0.8), // Transparan putih
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(8, 8, 16, 8),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
                       children: [
-                        const SizedBox(height: 20),
-                        // Crown Icon or Logo
-                        Container(
-                          padding: const EdgeInsets.all(20),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFFFD700).withValues(alpha: 0.1),
-                            shape: BoxShape.circle,
+                        IconButton(
+                          icon: const Icon(
+                            Icons.close_rounded,
+                            color: Colors.black54,
+                            size: 28,
                           ),
-                          child: const Icon(
-                            Icons.workspace_premium_rounded,
-                            size: 64,
-                            color: Color(0xFFFFD700),
-                          ),
+                          onPressed: () => context.pop(false),
                         ),
-                        const SizedBox(height: 24),
-                        const Text(
-                          'Buka Potensi Penuh\ndengan Xploria Pro',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 28,
-                            fontWeight: FontWeight.w900,
-                            height: 1.2,
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          'Akses semua modul pembelajaran IoT tingkat lanjut, buat proyek tanpa batas, dan nikmati kanvas Blynk VIP.',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            color: Colors.grey.shade400,
-                            fontSize: 15,
-                            height: 1.5,
-                          ),
-                        ),
-                        const SizedBox(height: 40),
-
-                        // Features List
-                        _buildFeatureItem(Icons.check_circle_rounded, 'Akses ke semua modul Premium'),
-                        _buildFeatureItem(Icons.check_circle_rounded, 'Proyek Blockly tanpa batas'),
-                        _buildFeatureItem(Icons.check_circle_rounded, 'Template Blynk Canvas VIP'),
-                        _buildFeatureItem(Icons.check_circle_rounded, 'Sertifikat kelulusan digital'),
-                        
-                        const SizedBox(height: 40),
-
-                        // Pricing Cards
-                        Row(
-                          children: [
-                            Expanded(
-                              child: _buildPricingCard(
-                                title: 'Bulanan',
-                                price: 'Rp 49.000',
-                                duration: '/ bulan',
-                                isSelected: _selectedTier == 'premium',
-                                onTap: () => setState(() => _selectedTier = 'premium'),
-                              ),
-                            ),
-                            const SizedBox(width: 16),
-                            Expanded(
-                              child: _buildPricingCard(
-                                title: 'Tahunan',
-                                price: 'Rp 490.000',
-                                duration: '/ tahun',
-                                isSelected: _selectedTier == 'pro',
-                                badge: 'HEMAT 20%',
-                                onTap: () => setState(() => _selectedTier = 'pro'),
-                              ),
-                            ),
-                          ],
-                        ),
-                        
-                        const SizedBox(height: 40),
-                        
-                        // Subscribe Button
-                        SizedBox(
-                          width: double.infinity,
-                          height: 56,
-                          child: ElevatedButton(
-                            onPressed: _isLoading ? null : _handleSubscribe,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF005CFF),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(16),
-                              ),
-                              elevation: 0,
-                            ),
-                            child: _isLoading 
-                              ? const SizedBox(
-                                  width: 24, height: 24,
-                                  child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
-                                )
-                              : const Text(
-                                  'Mulai Berlangganan Sekarang',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        TextButton(
-                          onPressed: () {
-                            // Restore purchase logic here later
-                          },
-                          child: Text(
-                            'Pulihkan Pembelian (Restore Purchase)',
-                            style: TextStyle(color: Colors.grey.shade500),
-                          ),
-                        ),
-                        const SizedBox(height: 40),
                       ],
                     ),
                   ),
                 ),
-              ],
+              ),
+            ),
+          ),
+
+          // 3. Glassmorphism Footer (Action Area)
+          Positioned(
+            bottom: 0,
+            left: 0,
+            right: 0,
+            child: ClipRRect(
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+                child: Container(
+                  padding: EdgeInsets.fromLTRB(
+                    24,
+                    16,
+                    24,
+                    MediaQuery.of(context).padding.bottom + 16,
+                  ),
+                  decoration: BoxDecoration(
+                    color: _bg.withValues(alpha: 0.8), // Transparan putih
+                    border: Border(
+                      top: BorderSide(
+                        color: Colors.black.withValues(alpha: 0.05),
+                      ),
+                    ),
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          TextButton(
+                            style: TextButton.styleFrom(
+                              padding: EdgeInsets.zero,
+                              minimumSize: const Size(0, 0),
+                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                            ),
+                            onPressed: () {},
+                            child: const Text(
+                              'Pulihkan Pembelian',
+                              style: TextStyle(
+                                color: _accentBtn,
+                                fontSize: 12.5,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 8),
+                            child: Text(
+                              '•',
+                              style: TextStyle(color: Colors.grey.shade400),
+                            ),
+                          ),
+                          TextButton(
+                            style: TextButton.styleFrom(
+                              padding: EdgeInsets.zero,
+                              minimumSize: const Size(0, 0),
+                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                            ),
+                            onPressed: () {},
+                            child: const Text(
+                              'Syarat & Ketentuan',
+                              style: TextStyle(
+                                color: _accentBtn,
+                                fontSize: 12.5,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 24),
+                      SizedBox(
+                        width: double.infinity,
+                        height: 56,
+                        child: ElevatedButton(
+                          onPressed: _isLoading ? null : _handleSubscribe,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: _accentBtn,
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(28),
+                            ),
+                            elevation: 0,
+                          ),
+                          child: _isLoading
+                              ? const SizedBox(
+                                  width: 22,
+                                  height: 22,
+                                  child: CircularProgressIndicator(
+                                    color: Colors.white,
+                                    strokeWidth: 2.2,
+                                  ),
+                                )
+                              : const Text(
+                                  'Coba gratis dan berlangganan',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
             ),
           ),
         ],
@@ -214,18 +309,18 @@ class _PaywallScreenState extends State<PaywallScreen> {
     );
   }
 
-  Widget _buildFeatureItem(IconData icon, String text) {
+  Widget _buildFeatureItem(String text, {bool isLast = false}) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 16.0),
+      padding: EdgeInsets.only(bottom: isLast ? 0 : 16.0),
       child: Row(
         children: [
-          Icon(icon, color: const Color(0xFF00E3A2), size: 24),
-          const SizedBox(width: 16),
+          const Icon(Icons.check_rounded, color: _accentCard, size: 22),
+          const SizedBox(width: 14),
           Expanded(
             child: Text(
               text,
               style: const TextStyle(
-                color: Colors.white,
+                color: _textColor,
                 fontSize: 15,
                 fontWeight: FontWeight.w500,
               ),
@@ -236,71 +331,104 @@ class _PaywallScreenState extends State<PaywallScreen> {
     );
   }
 
-  Widget _buildPricingCard({
+  Widget _buildPricingTile({
+    required String tier,
     required String title,
     required String price,
     required String duration,
-    required bool isSelected,
-    required VoidCallback onTap,
+    required String subtitle,
     String? badge,
   }) {
+    final bool isSelected = _selectedTier == tier;
+
     return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFF005CFF).withValues(alpha: 0.1) : const Color(0xFF1E293B),
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: isSelected ? const Color(0xFF005CFF) : Colors.transparent,
-            width: 2,
+      onTap: () => setState(() => _selectedTier = tier),
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 180),
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+            decoration: BoxDecoration(
+              color: isSelected ? _accentCard : _card,
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: TextStyle(
+                          color: isSelected ? Colors.white : _textColor,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      RichText(
+                        text: TextSpan(
+                          style: TextStyle(
+                            color: isSelected
+                                ? Colors.white.withValues(alpha: 0.9)
+                                : Colors.grey.shade600,
+                            fontSize: 13.5,
+                            fontFamily: 'Inter',
+                          ),
+                          children: [
+                            TextSpan(
+                              text: price,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            TextSpan(text: ' $duration setelah percobaan'),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        subtitle,
+                        style: TextStyle(
+                          color: isSelected
+                              ? Colors.white.withValues(alpha: 0.9)
+                              : Colors.grey.shade600,
+                          fontSize: 13.5,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
-        ),
-        child: Column(
-          children: [
-            if (badge != null)
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                margin: const EdgeInsets.only(bottom: 12),
+          if (badge != null)
+            Positioned(
+              top: -12,
+              right: 16,
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 6,
+                ),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFFFD700),
-                  borderRadius: BorderRadius.circular(8),
+                  color: _accentBtn,
+                  borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
                   badge,
                   style: const TextStyle(
-                    color: Colors.black,
-                    fontSize: 10,
-                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
               ),
-            Text(
-              title,
-              style: TextStyle(
-                color: isSelected ? const Color(0xFF005CFF) : Colors.grey.shade400,
-                fontWeight: FontWeight.bold,
-              ),
             ),
-            const SizedBox(height: 8),
-            Text(
-              price,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 20,
-                fontWeight: FontWeight.w900,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              duration,
-              style: TextStyle(
-                color: Colors.grey.shade500,
-                fontSize: 12,
-              ),
-            ),
-          ],
-        ),
+        ],
       ),
     );
   }

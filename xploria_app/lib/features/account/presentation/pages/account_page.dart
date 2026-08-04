@@ -4,6 +4,8 @@ import 'package:google_sign_in/google_sign_in.dart';
 import '../../../auth/data/data_sources/auth_storage_service.dart';
 import '../../../auth/domain/models/user_model.dart';
 import '../../data/repositories/account_repository.dart';
+import 'edit_account_screen.dart';
+import '../../../../core/config/app_constants.dart';
 
 class AccountPage extends StatefulWidget {
   const AccountPage({super.key});
@@ -106,9 +108,14 @@ class _AccountPageState extends State<AccountPage> {
                               iconColor: const Color(0xFF005CFF),
                               iconBgColor: const Color(0xFFDDE5FF),
                               title: 'Account',
-                              onTap: () {
-                                context.pop();
-                                _showFeatureSnackbar('UUID: ${_user?.id}');
+                              onTap: () async {
+                                context.pop(); // close modal
+                                final result = await context.push<bool>('/edit-account') ?? 
+                                               await Navigator.push<bool>(context, MaterialPageRoute(builder: (_) => const EditAccountScreen()));
+                                
+                                if (result == true) {
+                                  _loadData();
+                                }
                               },
                             ),
                             _buildSettingsDivider(),
@@ -391,23 +398,34 @@ class _AccountPageState extends State<AccountPage> {
               // Top Row: Avatar, Name, Settings
               Row(
                 children: [
-                  Container(
-                    width: 60,
-                    height: 60,
-                    decoration: const BoxDecoration(
-                      color: Color(0xFFDDE5FF),
-                      shape: BoxShape.circle,
-                    ),
-                    alignment: Alignment.center,
-                    child: Text(
-                      initial,
-                      style: const TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF005CFF),
+                  if (_user?.photoUrl != null && _user!.photoUrl!.isNotEmpty)
+                    CircleAvatar(
+                      radius: 30,
+                      backgroundColor: const Color(0xFFDDE5FF),
+                      backgroundImage: NetworkImage(
+                        _user!.photoUrl!.startsWith('http') 
+                            ? _user!.photoUrl! 
+                            : '${AppConstants.apiBaseUrl.replaceAll('/api/v1', '')}${_user!.photoUrl}'
+                      ),
+                    )
+                  else
+                    Container(
+                      width: 60,
+                      height: 60,
+                      decoration: const BoxDecoration(
+                        color: Color(0xFFDDE5FF),
+                        shape: BoxShape.circle,
+                      ),
+                      alignment: Alignment.center,
+                      child: Text(
+                        initial,
+                        style: const TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF005CFF),
+                        ),
                       ),
                     ),
-                  ),
                   const SizedBox(width: 16),
                   Expanded(
                     child: Text(

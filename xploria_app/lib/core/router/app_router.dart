@@ -12,6 +12,7 @@ import 'package:xploria_app/features/blockly_workspace/presentation/pages/blockl
 import 'package:xploria_app/features/auth/data/data_sources/auth_storage_service.dart';
 
 import 'package:xploria_app/features/account/presentation/pages/account_page.dart';
+import 'package:xploria_app/features/account/presentation/pages/edit_account_screen.dart';
 import 'package:xploria_app/features/content/presentation/pages/module_detail_screen.dart';
 import 'package:xploria_app/features/iot_blynk/presentation/screens/blynk_canvas_screen.dart';
 import 'package:xploria_app/features/blockly_workspace/presentation/pages/python_editor_screen.dart';
@@ -106,6 +107,10 @@ class AppRouter {
       GoRoute(
         path: '/account',
         builder: (context, state) => const AccountPage(),
+      ),
+      GoRoute(
+        path: '/edit-account',
+        builder: (context, state) => const EditAccountScreen(),
       ),
       GoRoute(
         path: '/module-detail',
