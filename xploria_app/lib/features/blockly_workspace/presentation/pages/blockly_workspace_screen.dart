@@ -1,16 +1,14 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/services/device_connection_service.dart';
-import '../../../device/presentation/pages/device_connection_screen.dart';
 import '../../data/blockly_bridge.dart';
 import '../../domain/workspace_state.dart';
 import '../../../projects/domain/models/project_model.dart';
 import '../../../projects/data/repositories/project_repository_impl.dart';
-import '../../../iot_blynk/presentation/screens/blynk_canvas_screen.dart';
-import 'python_editor_screen.dart';
 
 class BlocklyWorkspaceScreen extends StatefulWidget {
   final ProjectModel? project;
@@ -31,10 +29,7 @@ class _BlocklyWorkspaceScreenState extends State<BlocklyWorkspaceScreen> {
   bool _isSaving = false;
 
   void _navigateToConnection() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => const DeviceConnectionScreen(showBackButton: true)),
-    );
+    context.push('/device-connection');
   }
 
   void _editProjectName() {
@@ -55,7 +50,7 @@ class _BlocklyWorkspaceScreenState extends State<BlocklyWorkspaceScreen> {
           ),
           actions: [
             TextButton(
-              onPressed: () => Navigator.pop(context),
+              onPressed: () => context.pop(),
               child: const Text('Batal'),
             ),
             ElevatedButton(
@@ -65,7 +60,7 @@ class _BlocklyWorkspaceScreenState extends State<BlocklyWorkspaceScreen> {
                       ? controller.text.trim()
                       : 'Project';
                 });
-                Navigator.pop(context);
+                context.pop();
                 _autoSaveProject(); // Simpan saat nama diubah
               },
               child: const Text('Simpan'),
@@ -122,7 +117,7 @@ class _BlocklyWorkspaceScreenState extends State<BlocklyWorkspaceScreen> {
                   children: [
                     Expanded(
                       child: OutlinedButton(
-                        onPressed: () => Navigator.pop(context),
+                        onPressed: () => context.pop(),
                         style: OutlinedButton.styleFrom(
                           side: BorderSide(color: Colors.grey.shade300),
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -138,7 +133,7 @@ class _BlocklyWorkspaceScreenState extends State<BlocklyWorkspaceScreen> {
                     Expanded(
                       child: ElevatedButton(
                         onPressed: () {
-                          Navigator.pop(context); // Close popup
+                          context.pop(); // Close popup
                           final demoProject = ProjectModel(
                             id: 'proj_${DateTime.now().millisecondsSinceEpoch}',
                             ownerId: 'user_1',
@@ -149,12 +144,7 @@ class _BlocklyWorkspaceScreenState extends State<BlocklyWorkspaceScreen> {
                             updatedAt: DateTime.now(),
                           );
 
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => BlynkCanvasScreen(project: demoProject),
-                            ),
-                          );
+                          context.push('/blynk-canvas', extra: {'project': demoProject});
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFF005CFF),
@@ -325,14 +315,7 @@ class _BlocklyWorkspaceScreenState extends State<BlocklyWorkspaceScreen> {
             icon: const Icon(Icons.code, color: Colors.white),
             tooltip: 'Lihat Kode Python',
             onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => PythonEditorScreen(
-                    initialCode: _state.pythonCode,
-                  ),
-                ),
-              );
+              context.push('/python-editor', extra: _state.pythonCode);
             },
           ),
           // Tombol Connect atau Run tergantung status koneksi

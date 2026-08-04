@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../../../../core/services/device_connection_service.dart';
 import '../../data/data_sources/device_api_service.dart';
 import '../../data/models/device_profile_model.dart';
@@ -215,7 +216,7 @@ class _DeviceConnectionScreenState extends State<DeviceConnectionScreen> {
                         Padding(
                           padding: const EdgeInsets.only(right: 16.0),
                           child: InkWell(
-                            onTap: () => Navigator.pop(context),
+                            onTap: () => context.pop(),
                             child: const Icon(
                               Icons.arrow_back_ios,
                               color: Color(0xFF003092),

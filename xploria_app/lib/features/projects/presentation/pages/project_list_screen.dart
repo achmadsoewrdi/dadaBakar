@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../../../dashboard/data/repositories/dashboard_repository.dart';
 import '../../data/repositories/project_repository_impl.dart';
 import '../../domain/models/project_model.dart';
-import '../../../blockly_workspace/presentation/pages/blockly_workspace_screen.dart';
 import '../../data/data_sources/project_category_service.dart';
 
 class ProjectListScreen extends StatefulWidget {
@@ -68,20 +68,15 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
       final newProj = await repo.createProject(name); 
       await _categoryService.setProjectCategory(newProj.id, category);
       
-      if (mounted) Navigator.pop(context); 
+      if (mounted) context.pop(); 
       
       if (mounted) {
-        await Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => BlocklyWorkspaceScreen(project: newProj),
-          ),
-        );
+        await context.push('/blockly', extra: newProj);
         _initData();
       }
     } catch (e) {
       if (mounted) {
-        Navigator.pop(context);
+        context.pop();
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Gagal membuat proyek: $e')));
       }
     }
@@ -95,11 +90,11 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
         content: Text('Yakin ingin menghapus proyek "${project.name}"?'),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context, false),
+            onPressed: () => context.pop(false),
             child: const Text('Batal'),
           ),
           TextButton(
-            onPressed: () => Navigator.pop(context, true),
+            onPressed: () => context.pop(true),
             style: TextButton.styleFrom(foregroundColor: Colors.red),
             child: const Text('Hapus'),
           ),
@@ -137,11 +132,11 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
         content: Text('Anda yakin ingin menghapus kategori "$category"? Proyek di dalamnya akan masuk ke "All".'),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context, false),
+            onPressed: () => context.pop(false),
             child: const Text('Batal'),
           ),
           TextButton(
-            onPressed: () => Navigator.pop(context, true),
+            onPressed: () => context.pop(true),
             style: TextButton.styleFrom(foregroundColor: Colors.red),
             child: const Text('Hapus'),
           ),
@@ -215,7 +210,7 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
             ),
             actions: [
               TextButton(
-                onPressed: () => Navigator.pop(context),
+                onPressed: () => context.pop(),
                 child: const Text('Cancel'),
               ),
               TextButton(
@@ -224,7 +219,7 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
                     await _categoryService.addCategory(controller.text.trim(), selectedIcon);
                     if (mounted) {
                       setState(() {});
-                      Navigator.pop(context);
+                      context.pop();
                     }
                   }
                 },
@@ -272,13 +267,13 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
             ),
             actions: [
               TextButton(
-                onPressed: () => Navigator.pop(context),
+                onPressed: () => context.pop(),
                 child: const Text('Cancel'),
               ),
               TextButton(
                 onPressed: () {
                   if (controller.text.isNotEmpty) {
-                    Navigator.pop(context);
+                    context.pop();
                     _addNewProject(controller.text.trim(), selectedCat);
                   }
                 },
@@ -748,12 +743,7 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
 
                   return GestureDetector(
                     onTap: () async {
-                      await Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => BlocklyWorkspaceScreen(project: project),
-                        ),
-                      );
+                      await context.push('/blockly', extra: project);
                       _initData();
                     },
                     child: projectCardWidget,

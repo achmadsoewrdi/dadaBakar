@@ -11,6 +11,13 @@ import 'package:xploria_app/features/device/presentation/pages/device_connection
 import 'package:xploria_app/features/blockly_workspace/presentation/pages/blockly_workspace_screen.dart';
 import 'package:xploria_app/features/auth/data/data_sources/auth_storage_service.dart';
 
+import 'package:xploria_app/features/account/presentation/pages/account_page.dart';
+import 'package:xploria_app/features/content/presentation/pages/module_detail_screen.dart';
+import 'package:xploria_app/features/iot_blynk/presentation/screens/blynk_canvas_screen.dart';
+import 'package:xploria_app/features/blockly_workspace/presentation/pages/python_editor_screen.dart';
+import 'package:xploria_app/features/projects/domain/models/project_model.dart';
+import 'package:xploria_app/features/content/domain/models/learning_module_model.dart';
+
 class AppRouter {
   static final _rootNavigatorKey = GlobalKey<NavigatorState>();
 
@@ -91,7 +98,37 @@ class AppRouter {
       GoRoute(
         path: '/blockly',
         builder: (context, state) {
-          return const BlocklyWorkspaceScreen();
+          final project = state.extra as ProjectModel?;
+          return BlocklyWorkspaceScreen(project: project);
+        },
+      ),
+      GoRoute(
+        path: '/account',
+        builder: (context, state) => const AccountPage(),
+      ),
+      GoRoute(
+        path: '/module-detail',
+        builder: (context, state) {
+          final args = state.extra as Map<String, dynamic>? ?? {};
+          final module = args['module'] as LearningModuleModel;
+          final canAccess = args['canAccess'] as bool? ?? false;
+          return ModuleDetailScreen(module: module, canAccess: canAccess);
+        },
+      ),
+      GoRoute(
+        path: '/python-editor',
+        builder: (context, state) {
+          final code = state.extra as String? ?? '';
+          return PythonEditorScreen(initialCode: code);
+        },
+      ),
+      GoRoute(
+        path: '/blynk-canvas',
+        builder: (context, state) {
+          final args = state.extra as Map<String, dynamic>? ?? {};
+          final project = args['project'] as ProjectModel;
+          final onSave = args['onSave'] as ValueChanged<ProjectModel>?;
+          return BlynkCanvasScreen(project: project, onSaveBlynkConfig: onSave);
         },
       ),
     ],

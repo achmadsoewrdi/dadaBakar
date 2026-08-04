@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import '../../../auth/data/data_sources/auth_storage_service.dart';
-import '../../../auth/presentation/pages/welcome_screen.dart';
 import '../../../auth/domain/models/user_model.dart';
 import '../../data/repositories/account_repository.dart';
 
@@ -70,7 +70,7 @@ class _AccountPageState extends State<AccountPage> {
                         Align(
                           alignment: Alignment.centerLeft,
                           child: InkWell(
-                            onTap: () => Navigator.pop(context),
+                            onTap: () => context.pop(),
                             borderRadius: BorderRadius.circular(12),
                             child: Container(
                               padding: const EdgeInsets.all(8),
@@ -107,7 +107,7 @@ class _AccountPageState extends State<AccountPage> {
                               iconBgColor: const Color(0xFFDDE5FF),
                               title: 'Account',
                               onTap: () {
-                                Navigator.pop(context);
+                                context.pop();
                                 _showFeatureSnackbar('UUID: ${_user?.id}');
                               },
                             ),
@@ -118,7 +118,7 @@ class _AccountPageState extends State<AccountPage> {
                               iconBgColor: const Color(0xFFFFE8D6),
                               title: 'Parental Control & Security',
                               onTap: () {
-                                Navigator.pop(context);
+                                context.pop();
                                 _showFeatureSnackbar('Pengaturan Keamanan');
                               },
                             ),
@@ -129,7 +129,7 @@ class _AccountPageState extends State<AccountPage> {
                               iconBgColor: const Color(0xFFDDE5FF),
                               title: 'Notifications',
                               onTap: () {
-                                Navigator.pop(context);
+                                context.pop();
                                 _showFeatureSnackbar('Notifikasi Ditampilkan');
                               },
                             ),
@@ -169,7 +169,7 @@ class _AccountPageState extends State<AccountPage> {
                                       Expanded(
                                         child: InkWell(
                                           onTap: () {
-                                            Navigator.pop(context);
+                                            context.pop();
                                             _showFeatureSnackbar('Tema Cerah Aktif');
                                           },
                                           child: Container(
@@ -179,7 +179,7 @@ class _AccountPageState extends State<AccountPage> {
                                               borderRadius: BorderRadius.circular(8),
                                               boxShadow: [
                                                 BoxShadow(
-                                                  color: Colors.black.withOpacity(0.05),
+                                                  color: Colors.black.withValues(alpha: 0.05),
                                                   blurRadius: 4,
                                                 )
                                               ]
@@ -192,7 +192,7 @@ class _AccountPageState extends State<AccountPage> {
                                       Expanded(
                                         child: InkWell(
                                           onTap: () {
-                                            Navigator.pop(context);
+                                            context.pop();
                                             _showFeatureSnackbar('Tema Gelap Aktif');
                                           },
                                           child: Container(
@@ -205,7 +205,7 @@ class _AccountPageState extends State<AccountPage> {
                                       Expanded(
                                         child: InkWell(
                                           onTap: () {
-                                            Navigator.pop(context);
+                                            context.pop();
                                             _showFeatureSnackbar('Tema Sistem Aktif');
                                           },
                                           child: Container(
@@ -232,7 +232,7 @@ class _AccountPageState extends State<AccountPage> {
                               iconBgColor: const Color(0xFFDDE5FF),
                               title: 'About',
                               onTap: () {
-                                Navigator.pop(context);
+                                context.pop();
                                 _showFeatureSnackbar('Tentang Xploria');
                               },
                             ),
@@ -243,7 +243,7 @@ class _AccountPageState extends State<AccountPage> {
                               iconBgColor: Colors.blueGrey.shade100,
                               title: 'Help',
                               onTap: () {
-                                Navigator.pop(context);
+                                context.pop();
                                 _showFeatureSnackbar('Pusat Bantuan Xploria');
                               },
                             ),
@@ -254,7 +254,7 @@ class _AccountPageState extends State<AccountPage> {
                               iconBgColor: Colors.blueGrey.shade100,
                               title: 'Report a problem',
                               onTap: () {
-                                Navigator.pop(context);
+                                context.pop();
                                 _showFeatureSnackbar('Laporkan Masalah');
                               },
                             ),
@@ -278,11 +278,7 @@ class _AccountPageState extends State<AccountPage> {
                                 } catch (_) {}
                                 
                                 if (context.mounted) {
-                                  Navigator.pushAndRemoveUntil(
-                                    context,
-                                    MaterialPageRoute(builder: (_) => const WelcomeScreen()),
-                                    (route) => false,
-                                  );
+                                  context.go('/welcome');
                                 }
                               },
                               borderRadius: BorderRadius.circular(16),

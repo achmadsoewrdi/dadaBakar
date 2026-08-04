@@ -211,7 +211,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
         border: hasBorder ? Border.all(color: Colors.white, width: 2) : null,
         boxShadow: hasBorder ? [] : [
           BoxShadow(
-            color: Colors.black.withOpacity(0.15),
+            color: Colors.black.withValues(alpha: 0.15),
             blurRadius: 12,
             offset: const Offset(0, 5),
           ),

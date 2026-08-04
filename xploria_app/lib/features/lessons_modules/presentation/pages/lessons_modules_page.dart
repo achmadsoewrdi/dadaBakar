@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:flutter/cupertino.dart';
 import '../../../auth/data/data_sources/auth_storage_service.dart';
 import '../../../content/domain/models/learning_module_model.dart';
-import '../../../content/presentation/pages/module_detail_screen.dart';
 import '../../../dashboard/presentation/widgets/dashboard_shared_widgets.dart';
 import '../../data/repositories/lessons_repository.dart';
 
@@ -132,15 +132,7 @@ class _LessonsModulesPageState extends State<LessonsModulesPage> {
                     index: index,
                     canAccess: canAccess,
                     onTap: () {
-                      Navigator.push(
-                        context,
-                        CupertinoPageRoute(
-                          builder: (context) => ModuleDetailScreen(
-                            module: module,
-                            canAccess: canAccess,
-                          ),
-                        ),
-                      );
+                      context.push('/module-detail', extra: {'module': module, 'canAccess': canAccess});
                     },
                   );
                 }),

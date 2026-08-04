@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../../../content/domain/models/learning_module_model.dart';
 
 class ModuleDetailScreen extends StatelessWidget {
@@ -45,7 +46,7 @@ class ModuleDetailScreen extends StatelessWidget {
             top: MediaQuery.of(context).padding.top + 10,
             left: 16,
             child: GestureDetector(
-              onTap: () => Navigator.pop(context),
+              onTap: () => context.pop(),
               child: Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(

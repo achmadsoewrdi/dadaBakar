@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 class WaveHeaderClipper extends CustomClipper<Path> {
   @override
@@ -141,8 +142,8 @@ class WavyPageHeader extends StatelessWidget {
                         child: IconButton(
                           icon: const Icon(Icons.arrow_back, color: Colors.white, size: 28),
                           onPressed: () {
-                            if (Navigator.canPop(context)) {
-                              Navigator.pop(context);
+                            if (context.canPop()) {
+                              context.pop();
                             }
                           },
                         ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../../../../core/services/device_connection_service.dart';
 
 void showWifiConnectionModal(
@@ -124,7 +125,7 @@ class _WifiConnectionModalContentState
                       setState(() => _isConnecting = false);
 
                       if (DeviceConnectionService.instance.isConnected) {
-                        Navigator.pop(context);
+                        context.pop();
                         widget.onDeviceSaved(
                           'Xploria Wi-Fi',
                           'websocket',

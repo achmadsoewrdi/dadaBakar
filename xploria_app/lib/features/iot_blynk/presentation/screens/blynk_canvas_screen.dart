@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../../../projects/domain/models/project_model.dart';
 import '../../domain/entities/blynk_widget_entity.dart';
 import '../widgets/blynk_chart_widget.dart';
@@ -142,7 +143,7 @@ class _BlynkCanvasScreenState extends State<BlynkCanvasScreen> {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 20),
-          onPressed: () => Navigator.pop(context),
+          onPressed: () => context.pop(),
         ),
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,

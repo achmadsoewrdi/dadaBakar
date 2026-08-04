@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../../../../core/services/device_connection_service.dart';
 
 void showDeviceSelectionModal(
@@ -105,7 +106,7 @@ void showDeviceSelectionModal(
                                   if (!context.mounted) return;
 
                                   if (service.isConnected) {
-                                    Navigator.pop(context);
+                                    context.pop();
                                     onDeviceSaved(
                                       service.selectedDevice?.name ?? 'Xploria Bluetooth',
                                       'bluetooth',

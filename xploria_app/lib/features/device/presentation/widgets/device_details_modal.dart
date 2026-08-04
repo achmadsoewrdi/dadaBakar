@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../../data/models/device_profile_model.dart';
 import '../../data/data_sources/device_api_service.dart';
 
@@ -100,7 +101,7 @@ class _DeviceDetailsModalContentState extends State<_DeviceDetailsModalContent> 
               ),
               IconButton(
                 icon: const Icon(Icons.close),
-                onPressed: () => Navigator.pop(context),
+                onPressed: () => context.pop(),
               ),
             ],
           ),
@@ -175,12 +176,12 @@ class _DeviceDetailsModalContentState extends State<_DeviceDetailsModalContent> 
                               actions: [
                                 TextButton(
                                   onPressed: () =>
-                                      Navigator.pop(ctx, false),
+                                      ctx.pop(false),
                                   child: const Text('Batal'),
                                 ),
                                 TextButton(
                                   onPressed: () =>
-                                      Navigator.pop(ctx, true),
+                                      ctx.pop(true),
                                   child: const Text(
                                     'Hapus',
                                     style: TextStyle(color: Colors.red),
@@ -197,7 +198,7 @@ class _DeviceDetailsModalContentState extends State<_DeviceDetailsModalContent> 
                                 device.id,
                               );
                               if (!context.mounted) return;
-                              Navigator.pop(context);
+                              context.pop();
                               widget.onDeviceUpdatedOrDeleted();
                             } catch (e) {
                               if (!context.mounted) return;
@@ -244,7 +245,7 @@ class _DeviceDetailsModalContentState extends State<_DeviceDetailsModalContent> 
                           final newName = _nameController.text.trim();
                           if (newName.isEmpty ||
                               newName == device.label) {
-                            Navigator.pop(context);
+                            context.pop();
                             return;
                           }
                           setState(() => _isSaving = true);
@@ -254,7 +255,7 @@ class _DeviceDetailsModalContentState extends State<_DeviceDetailsModalContent> 
                               {'label': newName},
                             );
                             if (!context.mounted) return;
-                            Navigator.pop(context);
+                            context.pop();
                             widget.onDeviceUpdatedOrDeleted();
                           } catch (e) {
                             if (!context.mounted) return;

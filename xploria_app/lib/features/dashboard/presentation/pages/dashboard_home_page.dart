@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
-import '../../../blockly_workspace/presentation/pages/blockly_workspace_screen.dart';
 import '../../../projects/domain/models/project_model.dart';
-import '../../../projects/presentation/pages/project_list_screen.dart';
 import '../../data/repositories/dashboard_repository.dart';
 import '../../../projects/data/repositories/project_repository_impl.dart';
 
@@ -54,20 +53,15 @@ class DashboardHomePageState extends State<DashboardHomePage> with AutomaticKeep
     try {
       final repo = ProjectRepositoryImpl();
       final newProj = await repo.createProject(name); 
-      if (mounted) Navigator.pop(context); 
+      if (mounted) context.pop(); 
       
       if (mounted) {
-        await Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => BlocklyWorkspaceScreen(project: newProj),
-          ),
-        );
+        await context.push('/blockly', extra: newProj);
         _loadData();
       }
     } catch (e) {
       if (mounted) {
-        Navigator.pop(context);
+        context.pop();
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Gagal membuat proyek: $e')));
       }
     }
@@ -159,15 +153,7 @@ class DashboardHomePageState extends State<DashboardHomePage> with AutomaticKeep
                     if (_projects.isNotEmpty)
                       TextButton(
                         onPressed: () async {
-                          await Navigator.push(
-                            context,
-                            PageRouteBuilder(
-                              pageBuilder: (context, animation, secondaryAnimation) => const ProjectListScreen(),
-                              transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                                return FadeTransition(opacity: animation, child: child);
-                              },
-                            ),
-                          );
+                          await context.push('/projects');
                           _loadData();
                         },
                         child: const Row(
@@ -287,12 +273,7 @@ class DashboardHomePageState extends State<DashboardHomePage> with AutomaticKeep
 
     return GestureDetector(
       onTap: () async {
-        await Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => BlocklyWorkspaceScreen(project: project),
-          ),
-        );
+        await context.push('/blockly', extra: project);
         _loadData();
       },
       child: Container(
