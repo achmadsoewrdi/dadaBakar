@@ -10,8 +10,9 @@ class AuthApiService {
   factory AuthApiService() => _instance;
   AuthApiService._internal();
 
-  final String baseUrl =
-      dotenv.env['BASE_URL'] ?? 'http://192.168.1.73:8000/api/v1';
+  String get baseUrl {
+    return dotenv.env['BASE_URL'] ?? 'http://10.118.238.177:8000/api/v1';
+  }
 
   /// Option A: Login with Email & Password
   /// Sequence Diagram Steps 1-5: POST /auth/login (email, password)
@@ -97,6 +98,8 @@ class AuthApiService {
     } else if (response.statusCode == 401) {
       throw Exception('Email atau password salah (401 Unauthorized)');
     } else {
+      String errorMessage =
+          'Terjadi kesalahan pada server (${response.statusCode})';
       try {
         final body = jsonDecode(response.body);
         final message =
@@ -105,8 +108,9 @@ class AuthApiService {
             'Terjadi kesalahan pada server (${response.statusCode})';
         throw Exception(message);
       } catch (_) {
-        throw Exception('Gagal menghubungi backend (${response.statusCode})');
+        errorMessage = 'Gagal menghubungi backend (${response.statusCode})';
       }
+      throw Exception(errorMessage);
     }
   }
 

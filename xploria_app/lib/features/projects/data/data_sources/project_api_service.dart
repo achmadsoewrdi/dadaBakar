@@ -9,8 +9,9 @@ class ProjectApiService {
   factory ProjectApiService() => _instance;
   ProjectApiService._internal();
 
-  final String baseUrl =
-      dotenv.env['BASE_URL'] ?? 'http://192.168.1.73:8000/api/v1';
+  String get baseUrl {
+    return dotenv.env['BASE_URL'] ?? 'http://10.118.238.177:8000/api/v1';
+  }
 
   Future<Map<String, String>> _getHeaders() async {
     final token = AuthStorageService().accessToken;
@@ -74,7 +75,7 @@ class ProjectApiService {
     final body = <String, dynamic>{};
     if (name != null) body['name'] = name;
     if (workspaceXml != null) body['workspace_xml'] = workspaceXml;
-    if (generatedCode != null) body['generated_code'] = generatedCode;
+    if (generatedCode != null) body['generated_code'] = {"python": generatedCode};
 
     final response = await http
         .put(url, headers: headers, body: jsonEncode(body))

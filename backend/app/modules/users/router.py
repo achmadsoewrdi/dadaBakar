@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from google.oauth2 import id_token as google_id_token  # type: ignore
@@ -74,6 +75,39 @@ async def login_user(
         )
 
     # Buat Access Token dan Refresh Token berbasis ID user
+    access_token = create_access_token(subject=user.id)
+    refresh_token = create_refresh_token(subject=user.id)
+
+    return Token(
+        access_token=access_token,
+        refresh_token=refresh_token,
+        token_type="bearer",
+        user=user
+    )
+
+
+@router.post("/swagger-login", response_model=Token, include_in_schema=False)
+async def swagger_login(
+    form_data: OAuth2PasswordRequestForm = Depends(),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Endpoint khusus untuk tombol 'Authorize' di Swagger UI yang mengirim Form Data
+    bukan JSON. Ini disembunyikan dari dokumentasi publik (include_in_schema=False).
+    """
+    user = await authenticate_user(db, email=form_data.username, password=form_data.password)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Email atau password yang Anda masukkan salah."
+        )
+    
+    if not user.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Akun Anda sedang dinonaktifkan."
+        )
+
     access_token = create_access_token(subject=user.id)
     refresh_token = create_refresh_token(subject=user.id)
 

@@ -3,22 +3,17 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:xploria_app/features/auth/presentation/pages/welcome_screen.dart';
 import 'package:xploria_app/features/dashboard/presentation/pages/dashboard_screen.dart';
 import 'package:xploria_app/features/auth/data/data_sources/auth_storage_service.dart';
+import 'package:xploria_app/features/splash/presentation/pages/splash_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: ".env");
-  
-  // Inisialisasi AuthStorageService untuk load token dari secure storage
-  final authStorage = AuthStorageService();
-  await authStorage.init();
 
-  runApp(MyApp(isAuthenticated: authStorage.isAuthenticated));
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
-  final bool isAuthenticated;
-  
-  const MyApp({super.key, required this.isAuthenticated});
+  const MyApp({super.key});
 
   // This widget is the root of your application.
   @override
@@ -29,7 +24,24 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF005CFF)),
       ),
-      home: isAuthenticated ? const DashboardScreen() : const WelcomeScreen(),
+      home: Builder(
+        builder: (context) => SplashScreen(
+          onFinished: () async {
+            final authStorage = AuthStorageService();
+            await authStorage.init();
+            
+            if (context.mounted) {
+              Navigator.of(context).pushReplacement(
+                MaterialPageRoute(
+                  builder: (_) => authStorage.isAuthenticated
+                      ? const DashboardScreen()
+                      : const WelcomeScreen(),
+                ),
+              );
+            }
+          },
+        ),
+      ),
     );
   }
 }

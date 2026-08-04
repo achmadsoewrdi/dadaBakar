@@ -24,8 +24,9 @@ class BlynkChartWidget extends StatelessWidget {
     final double minVal = history.isNotEmpty ? history.reduce((a, b) => a < b ? a : b) - 2 : 0;
     final double maxVal = history.isNotEmpty ? history.reduce((a, b) => a > b ? a : b) + 2 : 100;
 
-    return Container(
-      padding: const EdgeInsets.all(18),
+    return RepaintBoundary(
+      child: Container(
+        padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(24),
@@ -113,6 +114,7 @@ class BlynkChartWidget extends StatelessWidget {
             ),
           ),
         ],
+      ),
       ),
     );
   }
