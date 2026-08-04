@@ -53,4 +53,16 @@ class AuthStorageService {
     await _storage.delete(key: 'refresh_token');
     await _storage.delete(key: 'current_user');
   }
+
+  Future<void> updatePremiumStatus(bool isPremium) async {
+    if (_currentUser != null) {
+      _currentUser = _currentUser!.copyWith(isPremium: isPremium);
+      await _storage.write(key: 'current_user', value: jsonEncode(_currentUser!.toJson()));
+    }
+  }
+
+  Future<void> updateUser(UserModel updatedUser) async {
+    _currentUser = updatedUser;
+    await _storage.write(key: 'current_user', value: jsonEncode(_currentUser!.toJson()));
+  }
 }

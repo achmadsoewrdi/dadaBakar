@@ -1,5 +1,5 @@
 import 'dart:convert';
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 import '../../domain/models/auth_response_model.dart';
 import '../../domain/models/user_model.dart';
@@ -10,7 +10,9 @@ class AuthApiService {
   factory AuthApiService() => _instance;
   AuthApiService._internal();
 
-  final String baseUrl = kIsWeb ? 'http://127.0.0.1:8000/api/v1' : 'http://192.168.1.68:8000/api/v1';
+  String get baseUrl {
+    return dotenv.env['BASE_URL'] ?? 'http://10.118.238.177:8000/api/v1';
+  }
 
   /// Option A: Login with Email & Password
   /// Sequence Diagram Steps 1-5: POST /auth/login (email, password)
@@ -20,14 +22,13 @@ class AuthApiService {
   }) async {
     final url = Uri.parse('$baseUrl/auth/login');
     try {
-      final response = await http.post(
-        url,
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'email': email,
-          'password': password,
-        }),
-      ).timeout(const Duration(seconds: 5));
+      final response = await http
+          .post(
+            url,
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode({'email': email, 'password': password}),
+          )
+          .timeout(const Duration(seconds: 5));
 
       return _handleAuthResponse(response);
     } catch (e) {
@@ -48,15 +49,17 @@ class AuthApiService {
   }) async {
     final url = Uri.parse('$baseUrl/auth/register');
     try {
-      final response = await http.post(
-        url,
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'email': email,
-          'password': password,
-          'full_name': fullName,
-        }),
-      ).timeout(const Duration(seconds: 5));
+      final response = await http
+          .post(
+            url,
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode({
+              'email': email,
+              'password': password,
+              'full_name': fullName,
+            }),
+          )
+          .timeout(const Duration(seconds: 5));
 
       return _handleAuthResponse(response);
     } catch (e) {
@@ -66,19 +69,19 @@ class AuthApiService {
 
   /// Option B: Google Sign-In Flow
   /// Sequence Diagram Steps 6-10: POST /auth/google (id_token)
-  Future<AuthResponseModel> loginWithGoogle({
-    String? idToken,
-  }) async {
-    final token = idToken ?? 'google_oauth_mock_id_token_${DateTime.now().millisecondsSinceEpoch}';
+  Future<AuthResponseModel> loginWithGoogle({String? idToken}) async {
+    final token =
+        idToken ??
+        'google_oauth_mock_id_token_${DateTime.now().millisecondsSinceEpoch}';
     final url = Uri.parse('$baseUrl/auth/google');
     try {
-      final response = await http.post(
-        url,
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'id_token': token,
-        }),
-      ).timeout(const Duration(seconds: 5));
+      final response = await http
+          .post(
+            url,
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode({'id_token': token}),
+          )
+          .timeout(const Duration(seconds: 5));
 
       return _handleAuthResponse(response);
     } catch (e) {
@@ -95,15 +98,15 @@ class AuthApiService {
     } else if (response.statusCode == 401) {
       throw Exception('Email atau password salah (401 Unauthorized)');
     } else {
-      String errorMessage = 'Terjadi kesalahan pada server (${response.statusCode})';
+      String errorMessage =
+          'Terjadi kesalahan pada server (${response.statusCode})';
       try {
         final body = jsonDecode(response.body);
-        errorMessage = body['detail'] ?? body['message'] ?? errorMessage;
-        
-        // Translate common FastAPI errors
-        if (errorMessage.toLowerCase().contains('incorrect username or password')) {
-          errorMessage = 'Email atau password yang Anda masukkan salah.';
-        }
+        final message =
+            body['detail'] ??
+            body['message'] ??
+            'Terjadi kesalahan pada server (${response.statusCode})';
+        throw Exception(message);
       } catch (_) {
         errorMessage = 'Gagal menghubungi backend (${response.statusCode})';
       }
@@ -133,7 +136,9 @@ class AuthApiService {
         updatedAt: now,
       ),
     );
-    AuthStorageService().saveAuthSession(authResponse); // Simulating without await
+    AuthStorageService().saveAuthSession(
+      authResponse,
+    ); // Simulating without await
     return authResponse;
   }
 }

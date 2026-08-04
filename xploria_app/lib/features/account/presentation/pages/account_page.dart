@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import '../../../auth/data/data_sources/auth_storage_service.dart';
-import '../../../auth/presentation/pages/welcome_screen.dart';
 import '../../../auth/domain/models/user_model.dart';
 import '../../data/repositories/account_repository.dart';
+import 'edit_account_screen.dart';
+import '../../../../core/config/app_constants.dart';
 
 class AccountPage extends StatefulWidget {
   const AccountPage({super.key});
@@ -70,7 +72,7 @@ class _AccountPageState extends State<AccountPage> {
                         Align(
                           alignment: Alignment.centerLeft,
                           child: InkWell(
-                            onTap: () => Navigator.pop(context),
+                            onTap: () => context.pop(),
                             borderRadius: BorderRadius.circular(12),
                             child: Container(
                               padding: const EdgeInsets.all(8),
@@ -106,9 +108,14 @@ class _AccountPageState extends State<AccountPage> {
                               iconColor: const Color(0xFF005CFF),
                               iconBgColor: const Color(0xFFDDE5FF),
                               title: 'Account',
-                              onTap: () {
-                                Navigator.pop(context);
-                                _showFeatureSnackbar('UUID: ${_user?.id}');
+                              onTap: () async {
+                                context.pop(); // close modal
+                                final result = await context.push<bool>('/edit-account') ?? 
+                                               await Navigator.push<bool>(context, MaterialPageRoute(builder: (_) => const EditAccountScreen()));
+                                
+                                if (result == true) {
+                                  _loadData();
+                                }
                               },
                             ),
                             _buildSettingsDivider(),
@@ -118,7 +125,7 @@ class _AccountPageState extends State<AccountPage> {
                               iconBgColor: const Color(0xFFFFE8D6),
                               title: 'Parental Control & Security',
                               onTap: () {
-                                Navigator.pop(context);
+                                context.pop();
                                 _showFeatureSnackbar('Pengaturan Keamanan');
                               },
                             ),
@@ -129,7 +136,7 @@ class _AccountPageState extends State<AccountPage> {
                               iconBgColor: const Color(0xFFDDE5FF),
                               title: 'Notifications',
                               onTap: () {
-                                Navigator.pop(context);
+                                context.pop();
                                 _showFeatureSnackbar('Notifikasi Ditampilkan');
                               },
                             ),
@@ -169,7 +176,7 @@ class _AccountPageState extends State<AccountPage> {
                                       Expanded(
                                         child: InkWell(
                                           onTap: () {
-                                            Navigator.pop(context);
+                                            context.pop();
                                             _showFeatureSnackbar('Tema Cerah Aktif');
                                           },
                                           child: Container(
@@ -179,7 +186,7 @@ class _AccountPageState extends State<AccountPage> {
                                               borderRadius: BorderRadius.circular(8),
                                               boxShadow: [
                                                 BoxShadow(
-                                                  color: Colors.black.withOpacity(0.05),
+                                                  color: Colors.black.withValues(alpha: 0.05),
                                                   blurRadius: 4,
                                                 )
                                               ]
@@ -192,7 +199,7 @@ class _AccountPageState extends State<AccountPage> {
                                       Expanded(
                                         child: InkWell(
                                           onTap: () {
-                                            Navigator.pop(context);
+                                            context.pop();
                                             _showFeatureSnackbar('Tema Gelap Aktif');
                                           },
                                           child: Container(
@@ -205,7 +212,7 @@ class _AccountPageState extends State<AccountPage> {
                                       Expanded(
                                         child: InkWell(
                                           onTap: () {
-                                            Navigator.pop(context);
+                                            context.pop();
                                             _showFeatureSnackbar('Tema Sistem Aktif');
                                           },
                                           child: Container(
@@ -232,7 +239,7 @@ class _AccountPageState extends State<AccountPage> {
                               iconBgColor: const Color(0xFFDDE5FF),
                               title: 'About',
                               onTap: () {
-                                Navigator.pop(context);
+                                context.pop();
                                 _showFeatureSnackbar('Tentang Xploria');
                               },
                             ),
@@ -243,7 +250,7 @@ class _AccountPageState extends State<AccountPage> {
                               iconBgColor: Colors.blueGrey.shade100,
                               title: 'Help',
                               onTap: () {
-                                Navigator.pop(context);
+                                context.pop();
                                 _showFeatureSnackbar('Pusat Bantuan Xploria');
                               },
                             ),
@@ -254,7 +261,7 @@ class _AccountPageState extends State<AccountPage> {
                               iconBgColor: Colors.blueGrey.shade100,
                               title: 'Report a problem',
                               onTap: () {
-                                Navigator.pop(context);
+                                context.pop();
                                 _showFeatureSnackbar('Laporkan Masalah');
                               },
                             ),
@@ -278,11 +285,7 @@ class _AccountPageState extends State<AccountPage> {
                                 } catch (_) {}
                                 
                                 if (context.mounted) {
-                                  Navigator.pushAndRemoveUntil(
-                                    context,
-                                    MaterialPageRoute(builder: (_) => const WelcomeScreen()),
-                                    (route) => false,
-                                  );
+                                  context.go('/welcome');
                                 }
                               },
                               borderRadius: BorderRadius.circular(16),
@@ -387,31 +390,43 @@ class _AccountPageState extends State<AccountPage> {
     return Scaffold(
       backgroundColor: const Color(0xFFF4F6F9),
       body: SafeArea(
+        bottom: false,
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24.0),
+          padding: const EdgeInsets.fromLTRB(24, 24, 24, 100),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Top Row: Avatar, Name, Settings
               Row(
                 children: [
-                  Container(
-                    width: 60,
-                    height: 60,
-                    decoration: const BoxDecoration(
-                      color: Color(0xFFDDE5FF),
-                      shape: BoxShape.circle,
-                    ),
-                    alignment: Alignment.center,
-                    child: Text(
-                      initial,
-                      style: const TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF005CFF),
+                  if (_user?.photoUrl != null && _user!.photoUrl!.isNotEmpty)
+                    CircleAvatar(
+                      radius: 30,
+                      backgroundColor: const Color(0xFFDDE5FF),
+                      backgroundImage: NetworkImage(
+                        _user!.photoUrl!.startsWith('http') 
+                            ? _user!.photoUrl! 
+                            : '${AppConstants.apiBaseUrl.replaceAll('/api/v1', '')}${_user!.photoUrl}'
+                      ),
+                    )
+                  else
+                    Container(
+                      width: 60,
+                      height: 60,
+                      decoration: const BoxDecoration(
+                        color: Color(0xFFDDE5FF),
+                        shape: BoxShape.circle,
+                      ),
+                      alignment: Alignment.center,
+                      child: Text(
+                        initial,
+                        style: const TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF005CFF),
+                        ),
                       ),
                     ),
-                  ),
                   const SizedBox(width: 16),
                   Expanded(
                     child: Text(
@@ -442,12 +457,65 @@ class _AccountPageState extends State<AccountPage> {
                       ),
                     ),
                   ),
-                ],
+              ],
+            ),
+            const SizedBox(height: 24),
+            
+            // Premium Banner
+            if (_user?.isPremium != true)
+              Container(
+                margin: const EdgeInsets.only(bottom: 24),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFF005CFF), Color(0xFF00E3A2)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFF005CFF).withValues(alpha: 0.3),
+                      blurRadius: 12,
+                      offset: const Offset(0, 4),
+                    )
+                  ]
+                ),
+                child: Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    onTap: () async {
+                      final success = await context.push('/paywall');
+                      if (success == true) {
+                        _loadData();
+                      }
+                    },
+                    borderRadius: BorderRadius.circular(16),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.workspace_premium_rounded, color: Colors.white, size: 36),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text('Upgrade ke Xploria Pro', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+                                const SizedBox(height: 4),
+                                Text('Dapatkan akses modul tanpa batas!', style: TextStyle(color: Colors.white.withValues(alpha: 0.9), fontSize: 13)),
+                              ],
+                            ),
+                          ),
+                          const Icon(Icons.arrow_forward_ios_rounded, color: Colors.white, size: 16),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
               ),
-              const SizedBox(height: 32),
 
-              // Stats Row: Max Streak & Lifetime XP
-              Row(
+            // Stats Row: Max Streak & Lifetime XP
+            Row(
                 children: [
                   Expanded(
                     child: Container(

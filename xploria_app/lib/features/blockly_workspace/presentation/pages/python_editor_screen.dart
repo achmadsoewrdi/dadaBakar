@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/services/device_connection_service.dart';
-import '../../../device/presentation/pages/device_connection_screen.dart';
 
 class PythonEditorScreen extends StatefulWidget {
   final String initialCode;
@@ -50,10 +50,7 @@ class _PythonEditorScreenState extends State<PythonEditorScreen> {
           backgroundColor: Colors.orange,
         ),
       );
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => const DeviceConnectionScreen(showBackButton: true)),
-      );
+      context.push('/device-connection');
       return;
     }
 
@@ -138,10 +135,7 @@ class _PythonEditorScreenState extends State<PythonEditorScreen> {
                         icon: const Icon(Icons.link, size: 20),
                         label: const Text('Connect', style: TextStyle(fontWeight: FontWeight.bold)),
                         onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (context) => const DeviceConnectionScreen(showBackButton: true)),
-                          );
+                          context.push('/device-connection');
                         },
                       ),
               );

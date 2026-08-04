@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../widgets/custom_text_field.dart';
 import '../widgets/google_sign_in_button.dart';
 import '../pages/welcome_screen.dart';
 import '../../data/repositories/auth_repository_impl.dart';
-import '../../../dashboard/presentation/pages/dashboard_screen.dart';
 
 class RegisterFormContent extends StatefulWidget {
   final VoidCallback onSwitchToLogin;
@@ -40,7 +40,7 @@ class _RegisterFormContentState extends State<RegisterFormContent> {
       });
 
       try {
-        final authResponse = await _authRepository.registerWithEmail(
+        await _authRepository.registerWithEmail(
           email: _emailController.text.trim(),
           password: _passwordController.text,
           fullName: _nameController.text.trim(),
@@ -54,10 +54,7 @@ class _RegisterFormContentState extends State<RegisterFormContent> {
 
 
           // Navigasi ke Dashboard Utama (Step 14)
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (_) => const DashboardScreen()),
-          );
+          context.go('/dashboard');
         }
       } catch (e) {
         if (mounted) {
@@ -88,7 +85,7 @@ class _RegisterFormContentState extends State<RegisterFormContent> {
     });
 
     try {
-      final authResponse = await _authRepository.loginWithGoogle();
+      await _authRepository.loginWithGoogle();
 
       if (mounted) {
         setState(() {
@@ -98,10 +95,7 @@ class _RegisterFormContentState extends State<RegisterFormContent> {
 
 
         // Navigasi ke Dashboard Utama (Step 14)
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (_) => const DashboardScreen()),
-        );
+        context.go('/dashboard');
       }
     } catch (e) {
       if (mounted) {

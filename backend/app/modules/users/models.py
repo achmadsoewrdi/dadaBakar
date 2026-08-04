@@ -14,6 +14,7 @@ class User(Base):
     hashed_password: Mapped[str | None] = mapped_column(String(255), nullable=True)
     google_sub: Mapped[str | None] = mapped_column(String(255), unique=True, nullable=True)
     full_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    photo_url: Mapped[str | None] = mapped_column(String(255), nullable=True)
     role: Mapped[str] = mapped_column(String(20), default="user", nullable=False)
     # is_premium dipertahankan sebagai cache cepat, tapi sumber kebenaran ada di tabel subscriptions
     is_premium: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)

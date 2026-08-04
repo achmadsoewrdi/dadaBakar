@@ -1,5 +1,9 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Form
+from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
+import os
+import shutil
+import uuid
 
 from google.oauth2 import id_token as google_id_token  # type: ignore
 from google.auth.transport import requests as google_requests  # type: ignore
@@ -14,6 +18,7 @@ from app.modules.users.service import (
     create_user,
     authenticate_user,
     get_or_create_google_user,
+    update_user_profile,
 )
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
@@ -85,6 +90,39 @@ async def login_user(
     )
 
 
+@router.post("/swagger-login", response_model=Token, include_in_schema=False)
+async def swagger_login(
+    form_data: OAuth2PasswordRequestForm = Depends(),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Endpoint khusus untuk tombol 'Authorize' di Swagger UI yang mengirim Form Data
+    bukan JSON. Ini disembunyikan dari dokumentasi publik (include_in_schema=False).
+    """
+    user = await authenticate_user(db, email=form_data.username, password=form_data.password)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Email atau password yang Anda masukkan salah."
+        )
+    
+    if not user.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Akun Anda sedang dinonaktifkan."
+        )
+
+    access_token = create_access_token(subject=user.id)
+    refresh_token = create_refresh_token(subject=user.id)
+
+    return Token(
+        access_token=access_token,
+        refresh_token=refresh_token,
+        token_type="bearer",
+        user=user
+    )
+
+
 @router.get("/me", response_model=UserOut)
 async def get_current_user_profile(
     current_user: User = Depends(get_current_user)
@@ -95,6 +133,32 @@ async def get_current_user_profile(
     - Mengembalikan profil lengkap user yang sedang aktif.
     """
     return current_user
+
+@router.put("/me", response_model=UserOut)
+async def update_current_user_profile(
+    full_name: str | None = Form(None),
+    photo: UploadFile | None = File(None),
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Update profil user (nama dan foto).
+    """
+    photo_url = None
+    if photo:
+        upload_dir = "uploads/avatars"
+        os.makedirs(upload_dir, exist_ok=True)
+        file_extension = os.path.splitext(photo.filename)[1] if photo.filename else ".jpg"
+        file_name = f"{uuid.uuid4()}{file_extension}"
+        file_path = os.path.join(upload_dir, file_name)
+        
+        with open(file_path, "wb") as buffer:
+            shutil.copyfileobj(photo.file, buffer)
+            
+        photo_url = f"/{upload_dir}/{file_name}"
+
+    updated_user = await update_user_profile(db, current_user, full_name=full_name, photo_url=photo_url)
+    return updated_user
 
 
 @router.post("/google", response_model=Token)
@@ -117,6 +181,7 @@ async def google_login(
             audience=settings.GOOGLE_CLIENT_ID if settings.GOOGLE_CLIENT_ID else None
         )
     except Exception as e:
+        print(f"Google login failed: {e}")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"Token Google tidak valid: {str(e)}"
@@ -125,6 +190,7 @@ async def google_login(
     google_sub = id_info.get("sub")
     email = id_info.get("email")
     full_name = id_info.get("name")
+    photo_url = id_info.get("picture")
 
     if not google_sub or not email:
         raise HTTPException(
@@ -137,7 +203,8 @@ async def google_login(
         db,
         google_sub=google_sub,
         email=email,
-        full_name=full_name
+        full_name=full_name,
+        photo_url=photo_url
     )
 
     if not user.is_active:

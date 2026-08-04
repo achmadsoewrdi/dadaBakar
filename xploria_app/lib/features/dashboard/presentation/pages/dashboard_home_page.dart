@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import '../../../blockly_workspace/presentation/pages/blockly_workspace_screen.dart';
-import '../../../iot_blynk/presentation/screens/blynk_canvas_screen.dart';
+import 'package:go_router/go_router.dart';
+
 import '../../../projects/domain/models/project_model.dart';
-import '../../../projects/presentation/pages/project_list_screen.dart';
 import '../../data/repositories/dashboard_repository.dart';
 import '../../../projects/data/repositories/project_repository_impl.dart';
+import '../../../auth/data/data_sources/auth_storage_service.dart';
+import '../../../auth/domain/models/user_model.dart';
+import '../../../../core/config/app_constants.dart';
 
 class DashboardHomePage extends StatefulWidget {
   final String userName;
@@ -25,6 +27,7 @@ class DashboardHomePageState extends State<DashboardHomePage> with AutomaticKeep
   final DashboardRepository _repository = DashboardRepository();
   bool _isLoading = true;
   List<ProjectModel> _projects = [];
+  UserModel? _user;
   Color _heroColor = const Color(0xFF005CFF);
 
   @override
@@ -38,10 +41,12 @@ class DashboardHomePageState extends State<DashboardHomePage> with AutomaticKeep
 
   Future<void> _loadData() async {
     final projects = await _repository.getRecentProjects();
+    final user = AuthStorageService().currentUser;
     
     if (mounted) {
       setState(() {
         _projects = projects;
+        _user = user;
         _isLoading = false;
       });
     }
@@ -56,20 +61,15 @@ class DashboardHomePageState extends State<DashboardHomePage> with AutomaticKeep
     try {
       final repo = ProjectRepositoryImpl();
       final newProj = await repo.createProject(name); 
-      if (mounted) Navigator.pop(context); 
+      if (mounted) context.pop(); 
       
       if (mounted) {
-        await Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => BlocklyWorkspaceScreen(project: newProj),
-          ),
-        );
+        await context.push('/blockly', extra: newProj);
         _loadData();
       }
     } catch (e) {
       if (mounted) {
-        Navigator.pop(context);
+        context.pop();
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Gagal membuat proyek: $e')));
       }
     }
@@ -84,9 +84,10 @@ class DashboardHomePageState extends State<DashboardHomePage> with AutomaticKeep
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : SafeArea(
+              bottom: false,
               child: SingleChildScrollView(
                 physics: const BouncingScrollPhysics(),
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                padding: const EdgeInsets.fromLTRB(24, 16, 24, 100),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
@@ -96,17 +97,31 @@ class DashboardHomePageState extends State<DashboardHomePage> with AutomaticKeep
                       children: [
                         Row(
                           children: [
-                            Container(
-                              padding: const EdgeInsets.all(8),
-                              decoration: BoxDecoration(
-                                color: Colors.blue.withValues(alpha: 0.1),
-                                shape: BoxShape.circle,
+                            if (_user?.photoUrl != null && _user!.photoUrl!.isNotEmpty)
+                              CircleAvatar(
+                                radius: 20,
+                                backgroundColor: Colors.blue.withValues(alpha: 0.1),
+                                backgroundImage: NetworkImage(
+                                  _user!.photoUrl!.startsWith('http') 
+                                      ? _user!.photoUrl! 
+                                      : '${AppConstants.apiBaseUrl.replaceAll('/api/v1', '')}${_user!.photoUrl}'
+                                ),
+                              )
+                            else
+                              Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  color: Colors.blue.withValues(alpha: 0.1),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: Text(
+                                  (_user?.fullName.isNotEmpty == true) ? _user!.fullName[0].toUpperCase() : 'Y',
+                                  style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.blue, fontSize: 16),
+                                ),
                               ),
-                              child: const Icon(Icons.person, color: Colors.blue),
-                            ),
                             const SizedBox(width: 12),
                             Text(
-                              'Hello, ${widget.userName}!',
+                              'Hello, ${_user?.fullName ?? widget.userName}!',
                               style: const TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,
@@ -115,23 +130,41 @@ class DashboardHomePageState extends State<DashboardHomePage> with AutomaticKeep
                             ),
                           ],
                         ),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(color: Colors.grey.shade200),
-                          ),
-                          child: const Row(
-                            children: [
-                              Text(
-                                '5',
-                                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                        Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(20),
+                                border: Border.all(color: Colors.grey.shade200),
                               ),
-                              SizedBox(width: 4),
-                              Text('🔥', style: TextStyle(fontSize: 16)),
-                            ],
-                          ),
+                              child: const Row(
+                                children: [
+                                  Text(
+                                    '5',
+                                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                                  ),
+                                  SizedBox(width: 4),
+                                  Text('🔥', style: TextStyle(fontSize: 16)),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Container(
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF3B5BDB).withValues(alpha: 0.1),
+                                shape: BoxShape.circle,
+                              ),
+                              child: IconButton(
+                                icon: const Icon(Icons.school, color: Color(0xFF3B5BDB), size: 20),
+                                tooltip: 'Simulasi Mode Guru',
+                                onPressed: () {
+                                  context.push('/teacher-dashboard');
+                                },
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),
@@ -167,15 +200,7 @@ class DashboardHomePageState extends State<DashboardHomePage> with AutomaticKeep
                     if (_projects.isNotEmpty)
                       TextButton(
                         onPressed: () async {
-                          await Navigator.push(
-                            context,
-                            PageRouteBuilder(
-                              pageBuilder: (context, animation, secondaryAnimation) => const ProjectListScreen(),
-                              transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                                return FadeTransition(opacity: animation, child: child);
-                              },
-                            ),
-                          );
+                          await context.push('/projects');
                           _loadData();
                         },
                         child: const Row(
@@ -295,12 +320,7 @@ class DashboardHomePageState extends State<DashboardHomePage> with AutomaticKeep
 
     return GestureDetector(
       onTap: () async {
-        await Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => BlocklyWorkspaceScreen(project: project),
-          ),
-        );
+        await context.push('/blockly', extra: project);
         _loadData();
       },
       child: Container(

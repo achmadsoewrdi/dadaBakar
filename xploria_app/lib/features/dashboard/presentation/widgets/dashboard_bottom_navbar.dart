@@ -13,62 +13,61 @@ class DashboardBottomNavbar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      margin: const EdgeInsets.only(left: 16, right: 16, bottom: 24),
       decoration: BoxDecoration(
         color: Colors.white,
+        borderRadius: BorderRadius.circular(30),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, -5),
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
           ),
         ],
       ),
-      child: SafeArea(
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
-            _buildNavItem(0, 'Learn', Icons.school_rounded),
-            _buildNavItem(1, 'Projects', Icons.terminal_rounded),
-            _buildNavItem(2, 'Devices', Icons.router_rounded),
-            _buildNavItem(3, 'Profile', Icons.person_outline_rounded),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(30),
+        child: BottomNavigationBar(
+          currentIndex: currentIndex,
+          onTap: onTabTapped,
+          type: BottomNavigationBarType.fixed,
+          backgroundColor: Colors.white,
+          selectedItemColor: const Color(0xFF005CFF),
+          unselectedItemColor: const Color(0xFF94A3B8),
+          selectedFontSize: 12,
+          unselectedFontSize: 12,
+          elevation: 0,
+          items: const [
+            BottomNavigationBarItem(
+              icon: Padding(
+                padding: EdgeInsets.only(bottom: 4),
+                child: Icon(Icons.school_rounded),
+              ),
+              label: 'Learn',
+            ),
+            BottomNavigationBarItem(
+              icon: Padding(
+                padding: EdgeInsets.only(bottom: 4),
+                child: Icon(Icons.terminal_rounded),
+              ),
+              label: 'Projects',
+            ),
+            BottomNavigationBarItem(
+              icon: Padding(
+                padding: EdgeInsets.only(bottom: 4),
+                child: Icon(Icons.router_rounded),
+              ),
+              label: 'Devices',
+            ),
+            BottomNavigationBarItem(
+              icon: Padding(
+                padding: EdgeInsets.only(bottom: 4),
+                child: Icon(Icons.person_outline_rounded),
+              ),
+              label: 'Profile',
+            ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildNavItem(int index, String label, IconData icon) {
-    final isSelected = currentIndex == index;
-    
-    return GestureDetector(
-      onTap: () => onTabTapped(index),
-      behavior: HitTestBehavior.opaque,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: isSelected ? const Color(0xFFE0F2FE) : Colors.transparent,
-              shape: BoxShape.circle,
-            ),
-            child: Icon(
-              icon,
-              color: isSelected ? const Color(0xFF005CFF) : Colors.grey.shade600,
-              size: 24,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
-              color: isSelected ? const Color(0xFF005CFF) : Colors.grey.shade600,
-            ),
-          ),
-        ],
       ),
     );
   }

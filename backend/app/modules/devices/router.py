@@ -19,7 +19,7 @@ async def list_devices(
     """
     Get all devices for the current user.
     """
-    return await service.get_user_devices(db, current_user.id)
+    return await service.get_device_profiles(db, current_user.id)
 
 @router.post("/", response_model=DeviceProfileOut, status_code=status.HTTP_201_CREATED)
 async def create_new_device(
@@ -30,7 +30,7 @@ async def create_new_device(
     """
     Create a new device for the current user.
     """
-    return await service.create_device(db, device_in, current_user.id)
+    return await service.create_device_profile(db, device_in, current_user.id)
 
 @router.delete("/{device_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_device(
@@ -41,7 +41,7 @@ async def delete_device(
     """
     Delete a device.
     """
-    success = await service.delete_device(db, device_id, current_user.id)
+    success = await service.delete_device_profile(db, device_id, current_user.id)
     if not success:
         raise HTTPException(status_code=404, detail="Device not found")
 
@@ -55,7 +55,7 @@ async def update_device(
     """
     Update a device's details (e.g. rename).
     """
-    device = await service.update_device(db, device_id, device_in, current_user.id)
+    device = await service.update_device_profile(db, device_id, current_user.id, device_in)
     if not device:
         raise HTTPException(status_code=404, detail="Device not found")
     return device

@@ -23,8 +23,6 @@ class BlynkGaugeWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final double percentage = (value / maxValue).clamp(0.0, 1.0);
-
     return RepaintBoundary(
       child: Container(
         padding: const EdgeInsets.all(18),

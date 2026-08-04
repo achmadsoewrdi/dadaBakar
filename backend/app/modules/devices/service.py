@@ -1,56 +1,62 @@
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.future import select
+from sqlalchemy import select
+from sqlalchemy.orm import selectinload
 from uuid import UUID
-from typing import List, Optional
-
 from app.modules.devices.models import DeviceProfile
 from app.modules.devices.schemas import DeviceProfileCreate, DeviceProfileUpdate
 
-async def get_user_devices(db: AsyncSession, user_id: UUID) -> List[DeviceProfile]:
-    result = await db.execute(
-        select(DeviceProfile).where(DeviceProfile.owner_id == user_id).order_by(DeviceProfile.created_at.desc())
+async def create_device_profile(db: AsyncSession, device_in: DeviceProfileCreate, owner_id: UUID) -> DeviceProfile:
+    device = DeviceProfile(
+        owner_id=owner_id,
+        label=device_in.label,
+        protocol=device_in.protocol,
+        hardware_type_id=device_in.hardware_type_id,
+        hardware_variant=device_in.hardware_variant,
+        host=device_in.host,
+        port=device_in.port,
+        use_tls=device_in.use_tls,
+        mac_address=device_in.mac_address,
     )
-    return result.scalars().all()
-
-async def create_device(db: AsyncSession, device_in: DeviceProfileCreate, user_id: UUID) -> DeviceProfile:
-    db_obj = DeviceProfile(
-        **device_in.model_dump(exclude_unset=True),
-        owner_id=user_id
-    )
-    db.add(db_obj)
+    db.add(device)
     await db.commit()
-    await db.refresh(db_obj)
-    return db_obj
+    await db.refresh(device)
+    # eager load hardware_type to avoid lazy loading issues on serialization if needed
+    result = await db.execute(select(DeviceProfile).options(selectinload(DeviceProfile.hardware_type)).where(DeviceProfile.id == device.id))
+    return result.scalar_one()
 
-async def delete_device(db: AsyncSession, device_id: UUID, user_id: UUID) -> bool:
+async def get_device_profiles(db: AsyncSession, owner_id: UUID) -> list[DeviceProfile]:
     result = await db.execute(
-        select(DeviceProfile).where(
-            DeviceProfile.id == device_id,
-            DeviceProfile.owner_id == user_id
-        )
+        select(DeviceProfile)
+        .options(selectinload(DeviceProfile.hardware_type))
+        .where(DeviceProfile.owner_id == owner_id)
     )
-    db_obj = result.scalar_one_or_none()
-    if db_obj:
-        await db.delete(db_obj)
-        await db.commit()
-        return True
-    return False
+    return list(result.scalars().all())
 
-async def update_device(db: AsyncSession, device_id: UUID, device_in: DeviceProfileUpdate, user_id: UUID) -> Optional[DeviceProfile]:
+async def get_device_profile(db: AsyncSession, device_id: UUID, owner_id: UUID) -> DeviceProfile | None:
     result = await db.execute(
-        select(DeviceProfile).where(
-            DeviceProfile.id == device_id,
-            DeviceProfile.owner_id == user_id
-        )
+        select(DeviceProfile)
+        .options(selectinload(DeviceProfile.hardware_type))
+        .where(DeviceProfile.id == device_id, DeviceProfile.owner_id == owner_id)
     )
-    db_obj = result.scalar_one_or_none()
-    if not db_obj:
+    return result.scalar_one_or_none()
+
+async def update_device_profile(db: AsyncSession, device_id: UUID, owner_id: UUID, device_update: DeviceProfileUpdate) -> DeviceProfile | None:
+    device = await get_device_profile(db, device_id, owner_id)
+    if not device:
         return None
-        
-    update_data = device_in.model_dump(exclude_unset=True)
-    for field, value in update_data.items():
-        setattr(db_obj, field, value)
+    
+    update_data = device_update.model_dump(exclude_unset=True)
+    for key, value in update_data.items():
+        setattr(device, key, value)
         
     await db.commit()
-    await db.refresh(db_obj)
-    return db_obj
+    await db.refresh(device)
+    return device
+
+async def delete_device_profile(db: AsyncSession, device_id: UUID, owner_id: UUID) -> bool:
+    device = await get_device_profile(db, device_id, owner_id)
+    if not device:
+        return False
+    await db.delete(device)
+    await db.commit()
+    return True

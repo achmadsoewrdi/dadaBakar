@@ -1,319 +1,40 @@
 /**
- * Custom Blockly Block Definitions & Python Generators for mBlock Style Categories
+ * Custom Blockly Block Definitions & Python Generators — Xploria Platform
+ *
+ * Setiap block menghasilkan DUA output (Dual Generation Engine, sesuai plan_v2.md §1.2):
+ *   1. Blockly.Python[...] → preview kode edukasi (Python) di Flutter UI
+ *   2. Blockly.JSON[...]   → CommandPacket JSON → Xploria Agent via WebSocket/BLE
+ *
+ * Semua HAL class (PinHAL, SensorHAL, MotorHAL, LEDHAL, MockDevice) ada di:
+ *   xploria_hal.py — letakkan di Raspberry Pi bersama Xploria Agent daemon.
  */
 
-/// ==========================================================================
-// HAL DEFINITIONS — dipanggil oleh generator blok hardware, bukan dari main.js
-// Target Platform: Orange Pi Zero 3W (Linux SBC) menggunakan lgpio
-// Blockly.Python.definitions_ secara otomatis di-deduplicate & di-prepend ke output
+// ==========================================================================
+// HAL IMPORT HELPERS
+// Meng-inject satu baris import ke output Python yang digenerate.
+// Semua _hal_require_* cukup memanggil _hal_require_all() — tidak perlu
+// embed class definition di sini lagi.
 // ==========================================================================
 
-function _hal_require_imports() {
+function _hal_require_all() {
+    Blockly.Python.definitions_['xploria_hal'] =
+        'from xploria_hal import pin, sensor, motor, led, audio, display, motion, lan, ai';
     Blockly.Python.definitions_['import_time'] = 'import time';
     Blockly.Python.definitions_['import_math'] = 'import math';
-    Blockly.Python.definitions_['import_sys'] = 'import sys';
-    Blockly.Python.definitions_['import_warnings'] = "import warnings\nwarnings.simplefilter('ignore')";
 }
 
-function _hal_require_mock() {
-    _hal_require_imports();
-    Blockly.Python.definitions_['hal_MockDevice'] = [
-        'class MockDevice:',
-        '    def __getattr__(self, name):',
-        '        def method(*args, **kwargs):',
-        '            return 0',
-        '        return method',
-    ].join('\n');
-}
-
-function _hal_require_pin() {
-    _hal_require_imports();
-    Blockly.Python.definitions_['import_lgpio'] = 'import lgpio as _gpio';
-    Blockly.Python.definitions_['import_atexit'] = 'import atexit';
-    Blockly.Python.definitions_['hal_gpio_chip'] = [
-        // Mapping untuk Orange Pi (dibiarkan jika nanti butuh)
-        // '_PIN_MAP = {3:35, 5:34, 7:36, 11:32, 12:37, 13:33, 15:139, 19:130, 21:131, 22:96, 23:129, 24:128, 26:132, 27:357, 28:356, 29:140, 31:141, 32:97, 33:99, 35:38, 36:98, 37:100, 38:40, 40:39}',
-        // Mapping untuk Raspberry Pi (Physical Pin -> BCM GPIO)
-        // '_PIN_MAP = {3: 2, 5: 3, 7: 4, 8: 14, 10: 15, 11: 17, 12: 18, 13: 27, 15: 22, 16: 23, 18: 24, 19: 10, 21: 9, 22: 25, 23: 11, 24: 8, 26: 7, 27: 0, 28: 1, 29: 5, 31: 6, 32: 12, 33: 13, 35: 19, 36: 16, 37: 26, 38: 20, 40: 21}',
-        '_PIN_MAP = {}', // Dikosongkan agar angka di Blockly langsung dianggap BCM GPIO
-        '_chips = {}',
-        'def _get_gpio(p):',
-        '    gpio = _PIN_MAP.get(int(p), int(p))',
-        '    chip_idx = 1 if gpio >= 352 else 0',
-        '    offset = gpio - 352 if chip_idx == 1 else gpio',
-        '    if chip_idx not in _chips:',
-        '        _chips[chip_idx] = _gpio.gpiochip_open(chip_idx)',
-        '    return _chips[chip_idx], offset',
-        '',
-        'def _gpio_cleanup():',
-        '    for c in _chips.values():',
-        '        try: _gpio.gpiochip_close(c)',
-        '        except: pass',
-        'atexit.register(_gpio_cleanup)',
-        'import signal',
-        'signal.signal(signal.SIGTERM, lambda s, f: (_gpio_cleanup(), exit(0)))',
-        'signal.signal(signal.SIGINT,  lambda s, f: (_gpio_cleanup(), exit(0)))',
-    ].join('\n');
-
-    Blockly.Python.definitions_['hal_PinHAL'] = [
-        'class PinHAL:',
-        '    def __init__(self):',
-        '        self._out_pins = set()',
-        '',
-        '    def _claim_out(self, chip, offset, p_name):',
-        '        err = None',
-        '        for i in range(10):',
-        '            try:',
-        '                _gpio.gpio_claim_output(chip, offset)',
-        '                self._out_pins.add(p_name)',
-        '                return',
-        '            except Exception as e:',
-        '                err = e',
-        '                time.sleep(0.2)',
-        '        print(f"Failed to claim output pin {p_name} (offset {offset}): {err}")',
-        '',
-        '    def set_digital(self, p, state):',
-        '        chip, offset = _get_gpio(p)',
-        '        if p not in self._out_pins:',
-        '            self._claim_out(chip, offset, p)',
-        '        # LOGIKA NORMAL (Active-High untuk LED)',
-        "        val = 1 if state == 'HIGH' else 0",
-        '        _gpio.gpio_write(chip, offset, val)',
-        '',
-        'pin = PinHAL()',
-    ].join('\n');
-}
-
-function _hal_require_sensor() {
-    _hal_require_imports();
-    Blockly.Python.definitions_['import_lgpio'] = 'import lgpio as _gpio';
-    Blockly.Python.definitions_['import_atexit'] = 'import atexit';
-    Blockly.Python.definitions_['hal_gpio_chip'] = [
-        '_PIN_MAP = {3:35, 5:34, 7:36, 11:32, 12:37, 13:33, 15:139, 19:130, 21:131, 22:96, 23:129, 24:128, 26:132, 27:357, 28:356, 29:140, 31:141, 32:97, 33:99, 35:38, 36:98, 37:100, 38:40, 40:39}',
-        '_chips = {}',
-        'def _get_gpio(p):',
-        '    gpio = _PIN_MAP.get(int(p), int(p))',
-        '    chip_idx = 1 if gpio >= 352 else 0',
-        '    offset = gpio - 352 if chip_idx == 1 else gpio',
-        '    if chip_idx not in _chips:',
-        '        _chips[chip_idx] = _gpio.gpiochip_open(chip_idx)',
-        '    return _chips[chip_idx], offset',
-        '',
-        'def _gpio_cleanup():',
-        '    for c in _chips.values():',
-        '        try: _gpio.gpiochip_close(c)',
-        '        except: pass',
-        'atexit.register(_gpio_cleanup)',
-        'import signal',
-        'signal.signal(signal.SIGTERM, lambda s, f: (_gpio_cleanup(), exit(0)))',
-        'signal.signal(signal.SIGINT,  lambda s, f: (_gpio_cleanup(), exit(0)))',
-    ].join('\n');
-
-    Blockly.Python.definitions_['hal_SensorHAL'] = [
-        'class SensorHAL:',
-        '    def __init__(self):',
-        '        self._in_pins = set()',
-        '        self._dht_pins = {}',
-        '',
-        '    def _claim_in(self, chip, offset, p_name):',
-        '        if p_name not in self._in_pins:',
-        '            err = None',
-        '            for i in range(10):',
-        '                try:',
-        '                    _gpio.gpio_claim_input(chip, offset)',
-        '                    self._in_pins.add(p_name)',
-        '                    return',
-        '                except Exception as e:',
-        '                    err = e',
-        '                    time.sleep(0.2)',
-        '            print(f"Failed to claim input pin {p_name} (offset {offset}): {err}")',
-        '',
-        '    def read_gas(self, p):',
-        '        chip, offset = _get_gpio(p)',
-        '        self._claim_in(chip, offset, p)',
-        '        return _gpio.gpio_read(chip, offset) == 1',
-        '',
-        '    def read_motion(self, p):',
-        '        chip, offset = _get_gpio(p)',
-        '        self._claim_in(chip, offset, p)',
-        '        return _gpio.gpio_read(chip, offset) == 1',
-        '',
-        '    def read_ir_obstacle(self, p):',
-        '        chip, offset = _get_gpio(p)',
-        '        self._claim_in(chip, offset, p)',
-        '        return _gpio.gpio_read(chip, offset) == 0',
-        '',
-        '    def read_soil_moisture(self, p):',
-        '        chip, offset = _get_gpio(p)',
-        '        self._claim_in(chip, offset, p)',
-        '        return _gpio.gpio_read(chip, offset) == 0',
-        '',
-        '    def read_temperature(self, p):',
-        '        try:',
-        '            import adafruit_dht, board',
-        '            if p not in self._dht_pins:',
-        "                self._dht_pins[p] = adafruit_dht.DHT22(getattr(board, f'D{p}'))",
-        '            val = self._dht_pins[p].temperature',
-        '            return val if val is not None else 0',
-        '        except: return 0',
-        '',
-        '    def read_humidity(self, p):',
-        '        try:',
-        '            import adafruit_dht, board',
-        '            if p not in self._dht_pins:',
-        "                self._dht_pins[p] = adafruit_dht.DHT22(getattr(board, f'D{p}'))",
-        '            val = self._dht_pins[p].humidity',
-        '            return val if val is not None else 0',
-        '        except: return 0',
-        '',
-        '    def read_ultrasonic(self, trig, echo):',
-        '        c_trig, o_trig = _get_gpio(trig)',
-        '        c_echo, o_echo = _get_gpio(echo)',
-        '        try:',
-        '            for _ in range(10):',
-        '                try: _gpio.gpio_claim_output(c_trig, o_trig); break',
-        '                except: time.sleep(0.2)',
-        '            for _ in range(10):',
-        '                try: _gpio.gpio_claim_input(c_echo, o_echo); break',
-        '                except: time.sleep(0.2)',
-        '            _gpio.gpio_write(c_trig, o_trig, 0); time.sleep(0.000002)',
-        '            _gpio.gpio_write(c_trig, o_trig, 1); time.sleep(0.00001)',
-        '            _gpio.gpio_write(c_trig, o_trig, 0)',
-        '            start = time.time()',
-        '            while _gpio.gpio_read(c_echo, o_echo) == 0: start = time.time()',
-        '            stop = time.time()',
-        '            while _gpio.gpio_read(c_echo, o_echo) == 1: stop = time.time()',
-        '            return (stop - start) * 34300 / 2',
-        '        except: return 0',
-        '',
-        '    def read_line(self, p):',
-        '        chip, offset = _get_gpio(p)',
-        '        self._claim_in(chip, offset, p)',
-        "        return 'BLACK' if _gpio.gpio_read(chip, offset) == 0 else 'WHITE'",
-        '',
-        '    def read_light(self, p):',
-        '        chip, offset = _get_gpio(p)',
-        '        self._claim_in(chip, offset, p)',
-        '        val = _gpio.gpio_read(chip, offset)',
-        '        return 100 if val == 0 else 0',
-        '',
-        'sensor = SensorHAL()',
-    ].join('\n');
-}
-
-function _hal_require_motor() {
-    _hal_require_imports();
-    Blockly.Python.definitions_['import_lgpio'] = 'import lgpio as _gpio';
-    Blockly.Python.definitions_['import_atexit'] = 'import atexit';
-    Blockly.Python.definitions_['hal_gpio_chip'] = [
-        '_PIN_MAP = {3:35, 5:34, 7:36, 11:32, 12:37, 13:33, 15:139, 19:130, 21:131, 22:96, 23:129, 24:128, 26:132, 27:357, 28:356, 29:140, 31:141, 32:97, 33:99, 35:38, 36:98, 37:100, 38:40, 40:39}',
-        '_chips = {}',
-        'def _get_gpio(p):',
-        '    gpio = _PIN_MAP.get(int(p), int(p))',
-        '    chip_idx = 1 if gpio >= 352 else 0',
-        '    offset = gpio - 352 if chip_idx == 1 else gpio',
-        '    if chip_idx not in _chips:',
-        '        _chips[chip_idx] = _gpio.gpiochip_open(chip_idx)',
-        '    return _chips[chip_idx], offset',
-        '',
-        'def _gpio_cleanup():',
-        '    for c in _chips.values():',
-        '        try: _gpio.gpiochip_close(c)',
-        '        except: pass',
-        'atexit.register(_gpio_cleanup)',
-        'import signal',
-        'signal.signal(signal.SIGTERM, lambda s, f: (_gpio_cleanup(), exit(0)))',
-        'signal.signal(signal.SIGINT,  lambda s, f: (_gpio_cleanup(), exit(0)))',
-    ].join('\n');
-
-    Blockly.Python.definitions_['hal_MotorHAL'] = [
-        'class MotorHAL:',
-        '    def __init__(self):',
-        '        self._servo_pins = {}',
-        '',
-        '    def set_servo(self, p, degree):',
-        '        chip, offset = _get_gpio(p)',
-        '        pulse_us = int(500 + (degree / 180.0) * 2000)',
-        '        if p not in self._servo_pins:',
-        '            _gpio.tx_servo(chip, offset, pulse_us, 50, 500, 2500)',
-        '            self._servo_pins[p] = True',
-        '        else:',
-        '            _gpio.tx_servo(chip, offset, pulse_us)',
-        '',
-        '    def run_dc(self, motor, speed):',
-        '        pins = {"M1": (11, 13, 15), "M2": (19, 21, 23)}',
-        '        if motor not in pins: return',
-        '        in1, in2, ena = pins[motor]',
-        '        c1, o1 = _get_gpio(in1)',
-        '        c2, o2 = _get_gpio(in2)',
-        '        ce, oe = _get_gpio(ena)',
-        '        try:',
-        '            _gpio.gpio_claim_output(c1, o1)',
-        '            _gpio.gpio_claim_output(c2, o2)',
-        '        except: pass',
-        '        speed = max(-100, min(100, int(speed)))',
-        '        if speed > 0:',
-        '            _gpio.gpio_write(c1, o1, 1)',
-        '            _gpio.gpio_write(c2, o2, 0)',
-        '            _gpio.tx_pwm(ce, oe, 100, speed)',
-        '        elif speed < 0:',
-        '            _gpio.gpio_write(c1, o1, 0)',
-        '            _gpio.gpio_write(c2, o2, 1)',
-        '            _gpio.tx_pwm(ce, oe, 100, -speed)',
-        '        else:',
-        '            _gpio.gpio_write(c1, o1, 0)',
-        '            _gpio.gpio_write(c2, o2, 0)',
-        '            _gpio.tx_pwm(ce, oe, 100, 0)',
-        '',
-        '    def stop_dc(self, motor):',
-        '        if motor == "ALL":',
-        '            self.run_dc("M1", 0)',
-        '            self.run_dc("M2", 0)',
-        '        else:',
-        '            self.run_dc(motor, 0)',
-        '',
-        'motor = MotorHAL()',
-    ].join('\n');
-}
-
-function _hal_require_led() {
-    _hal_require_pin();
-    Blockly.Python.definitions_['hal_LEDHAL'] = [
-        'class LEDHAL(PinHAL):',
-        '    def display_color(self, p, color):',
-        "        self.set_digital(p, 'HIGH' if color != 'black' else 'LOW')",
-        '    def turn_off(self, p):',
-        "        self.set_digital(p, 'LOW')",
-        '',
-        'led = LEDHAL()',
-    ].join('\n');
-}
-
-function _hal_require_audio() {
-    _hal_require_mock();
-    Blockly.Python.definitions_['hal_audio'] = 'audio = MockDevice()';
-}
-
-function _hal_require_display() {
-    _hal_require_mock();
-    Blockly.Python.definitions_['hal_display'] = 'display = MockDevice()';
-}
-
-function _hal_require_motion() {
-    _hal_require_mock();
-    Blockly.Python.definitions_['hal_motion'] = 'motion = MockDevice()';
-}
-
-function _hal_require_lan() {
-    _hal_require_mock();
-    Blockly.Python.definitions_['hal_lan'] = 'lan = MockDevice()';
-}
-
-function _hal_require_ai() {
-    _hal_require_mock();
-    Blockly.Python.definitions_['hal_ai'] = 'ai = MockDevice()';
-}
-
+// Alias agar semua generator block yang sudah ada tidak perlu diubah
+function _hal_require_imports()  { _hal_require_all(); }
+function _hal_require_mock()     { _hal_require_all(); }
+function _hal_require_pin()      { _hal_require_all(); }
+function _hal_require_sensor()   { _hal_require_all(); }
+function _hal_require_motor()    { _hal_require_all(); }
+function _hal_require_led()      { _hal_require_all(); }
+function _hal_require_audio()    { _hal_require_all(); }
+function _hal_require_display()  { _hal_require_all(); }
+function _hal_require_motion()   { _hal_require_all(); }
+function _hal_require_lan()      { _hal_require_all(); }
+function _hal_require_ai()       { _hal_require_all(); }
 
 // ==========================================================================
 // 🔊 AUDIO BLOCKS
@@ -1239,20 +960,7 @@ Blockly.Python['sensor_motion'] = function (block) {
     return code;
 };
 
-Blockly.Blocks['sensor_temperature'] = {
-    init: function () {
-        this.appendDummyInput()
-            .appendField("🌡️ Suhu Udara (°C) di")
-            .appendField(new Blockly.FieldNumber(4, 0, 40), "PIN");
-        this.setOutput(true, "Number");
-        this.setColour("#2E8B57");
-    }
-};
-Blockly.Python['sensor_temperature'] = function (block) {
-    _hal_require_sensor();
-    let pin = block.getFieldValue('PIN');
-    return [`sensor.read_temperature(${pin})`, Blockly.Python.ORDER_ATOMIC];
-};
+// Definisi sensor_temperature sudah ada di atas (tidak diduplikasi)
 
 Blockly.Blocks['sensor_humidity'] = {
     init: function () {
@@ -1489,4 +1197,596 @@ Blockly.Blocks['delay_seconds'] = {
 Blockly.Python['delay_seconds'] = function (block) {
     let seconds = Blockly.Python.valueToCode(block, 'SECONDS', Blockly.Python.ORDER_ATOMIC) || "1";
     return `time.sleep(${seconds})\n`;
+};
+
+// ==========================================================================
+// 🔷 JSON / AST GENERATORS (Dual Generation Engine — sesuai plan_v2.md §1.2)
+//
+// Setiap block kini menghasilkan DUA output:
+//   1. Blockly.Python[...] → preview kode edukasi di Flutter UI (sudah ada di atas)
+//   2. Blockly.JSON[...]   → CommandPacket JSON → dikirim ke Xploria Agent via WebSocket/BLE
+//
+// Format CommandPacket:
+//   { "type": "command"|"query"|"control"|"event", "cmd": "...", "args": {...} }
+//
+// Untuk memanggil dari Flutter/Dart:
+//   final ast = js.context['Blockly']['JSON'].callMethod('generateFromTopBlock', [workspace]);
+// ==========================================================================
+
+Blockly.JSON = Blockly.JSON || {};
+
+/**
+ * Traverse statement input block menjadi array CommandPacket secara rekursif.
+ * @param {Blockly.Block} block - parent block
+ * @param {string} inputName - nama statement input (mis. 'DO_TRUE', 'DO_FALSE')
+ * @returns {Array} array of CommandPacket objects
+ */
+function _jsonStatementToList(block, inputName) {
+    const commands = [];
+    let child = block.getInputTargetBlock(inputName);
+    while (child) {
+        const gen = Blockly.JSON[child.type];
+        if (gen) {
+            const result = gen(child);
+            if (Array.isArray(result)) commands.push(...result);
+            else if (result !== null && result !== undefined) commands.push(result);
+        }
+        child = child.getNextBlock();
+    }
+    return commands;
+}
+
+/**
+ * Ambil nilai dari value input sebagai literal (Number atau String).
+ * Hanya mendukung math_number dan text block standar Blockly.
+ * @param {Blockly.Block} block
+ * @param {string} inputName
+ * @param {*} defaultVal - nilai default jika input kosong
+ */
+function _jsonGetValue(block, inputName, defaultVal) {
+    const target = block.getInputTargetBlock(inputName);
+    if (!target) return defaultVal;
+    if (target.type === 'math_number') return parseFloat(target.getFieldValue('NUM'));
+    if (target.type === 'text') return target.getFieldValue('TEXT');
+    return defaultVal;
+}
+
+/**
+ * Generate seluruh program sebagai array CommandPacket dari top-level block.
+ * Dipanggil dari Flutter via JS Channel setelah user klik tombol Run.
+ * @param {Blockly.Workspace} workspace
+ * @returns {Array} array of CommandPacket
+ */
+Blockly.JSON.generateProgram = function(workspace) {
+    const commands = [];
+    const topBlocks = workspace.getTopBlocks(true);
+    for (const block of topBlocks) {
+        let current = block;
+        while (current) {
+            const gen = Blockly.JSON[current.type];
+            if (gen) {
+                const result = gen(current);
+                if (Array.isArray(result)) commands.push(...result);
+                else if (result) commands.push(result);
+            }
+            current = current.getNextBlock();
+        }
+    }
+    return commands;
+};
+
+// ============================================================
+// 🏁 EVENTS
+// ============================================================
+Blockly.JSON['event_when_start'] = function(block) {
+    return { type: 'event', cmd: 'program_start' };
+};
+
+// ============================================================
+// ⚙️ CONTROL
+// ============================================================
+Blockly.JSON['delay_seconds'] = function(block) {
+    const secs = _jsonGetValue(block, 'SECONDS', 1);
+    return { type: 'command', cmd: 'delay', args: { seconds: secs } };
+};
+
+// ============================================================
+// 🔌 PIN
+// ============================================================
+Blockly.JSON['pin_set_digital'] = function(block) {
+    return {
+        type: 'command',
+        cmd: 'pin_set_digital',
+        args: { pin: parseInt(block.getFieldValue('PIN')), state: block.getFieldValue('STATE') }
+    };
+};
+
+Blockly.JSON['pin_set_analog'] = function(block) {
+    return {
+        type: 'command',
+        cmd: 'pin_set_analog',
+        args: { pin: parseInt(block.getFieldValue('PIN')), value: _jsonGetValue(block, 'VAL', 0) }
+    };
+};
+
+Blockly.JSON['pin_read_digital'] = function(block) {
+    return {
+        type: 'query',
+        cmd: 'pin_read_digital',
+        args: { pin: parseInt(block.getFieldValue('PIN')) }
+    };
+};
+
+Blockly.JSON['pin_read_analog'] = function(block) {
+    return {
+        type: 'query',
+        cmd: 'pin_read_analog',
+        args: { pin: parseInt(block.getFieldValue('PIN')) }
+    };
+};
+
+// ============================================================
+// ⚙️ MOTOR
+// ============================================================
+Blockly.JSON['motor_set_servo'] = function(block) {
+    return {
+        type: 'command',
+        cmd: 'motor_set_servo',
+        args: { pin: parseInt(block.getFieldValue('PIN')), degree: _jsonGetValue(block, 'DEGREE', 90) }
+    };
+};
+
+Blockly.JSON['motor_dc_speed'] = function(block) {
+    return {
+        type: 'command',
+        cmd: 'motor_dc_run',
+        args: { motor: block.getFieldValue('MOTOR'), speed: _jsonGetValue(block, 'SPEED', 100) }
+    };
+};
+
+Blockly.JSON['motor_dc_stop'] = function(block) {
+    return {
+        type: 'command',
+        cmd: 'motor_dc_stop',
+        args: { motor: block.getFieldValue('MOTOR') }
+    };
+};
+
+// ============================================================
+// 🌡️ SENSOR
+// ============================================================
+Blockly.JSON['sensor_ultrasonic'] = function(block) {
+    return {
+        type: 'query',
+        cmd: 'sensor_read_ultrasonic',
+        args: { trig: parseInt(block.getFieldValue('TRIG')), echo: parseInt(block.getFieldValue('ECHO')) }
+    };
+};
+
+Blockly.JSON['sensor_ultrasonic_print'] = function(block) {
+    return {
+        type: 'command',
+        cmd: 'sensor_print',
+        args: { sensor: 'ultrasonic', trig: parseInt(block.getFieldValue('TRIG')), echo: parseInt(block.getFieldValue('ECHO')) }
+    };
+};
+
+Blockly.JSON['sensor_ultrasonic_if'] = function(block) {
+    return {
+        type: 'control',
+        cmd: 'if_sensor',
+        condition: {
+            cmd: 'sensor_read_ultrasonic',
+            args: { trig: parseInt(block.getFieldValue('TRIG')), echo: parseInt(block.getFieldValue('ECHO')) }
+        },
+        op: block.getFieldValue('OP'),
+        setpoint: parseFloat(block.getFieldValue('SETPOINT')),
+        do_true: _jsonStatementToList(block, 'DO_TRUE'),
+        do_false: _jsonStatementToList(block, 'DO_FALSE')
+    };
+};
+
+Blockly.JSON['sensor_line_follower'] = function(block) {
+    return {
+        type: 'query',
+        cmd: 'sensor_read_line',
+        args: { pin: parseInt(block.getFieldValue('PIN')), expected: block.getFieldValue('STATE') }
+    };
+};
+
+Blockly.JSON['sensor_light'] = function(block) {
+    return { type: 'query', cmd: 'sensor_read_light', args: { pin: parseInt(block.getFieldValue('PIN')) } };
+};
+
+Blockly.JSON['sensor_light_print'] = function(block) {
+    return {
+        type: 'command',
+        cmd: 'sensor_print',
+        args: { sensor: 'light', pin: parseInt(block.getFieldValue('PIN')) }
+    };
+};
+
+Blockly.JSON['sensor_light_if'] = function(block) {
+    return {
+        type: 'control',
+        cmd: 'if_sensor',
+        condition: { cmd: 'sensor_read_light', args: { pin: parseInt(block.getFieldValue('PIN')) } },
+        op: block.getFieldValue('OP'),
+        setpoint: parseFloat(block.getFieldValue('SETPOINT')),
+        do_true: _jsonStatementToList(block, 'DO_TRUE'),
+        do_false: _jsonStatementToList(block, 'DO_FALSE')
+    };
+};
+
+Blockly.JSON['sensor_temperature'] = function(block) {
+    return { type: 'query', cmd: 'sensor_read_temperature', args: { pin: parseInt(block.getFieldValue('PIN')) } };
+};
+
+Blockly.JSON['sensor_temperature_print'] = function(block) {
+    return {
+        type: 'command',
+        cmd: 'sensor_print',
+        args: { sensor: 'temperature', pin: parseInt(block.getFieldValue('PIN')) }
+    };
+};
+
+Blockly.JSON['sensor_temperature_if'] = function(block) {
+    return {
+        type: 'control',
+        cmd: 'if_sensor',
+        condition: { cmd: 'sensor_read_temperature', args: { pin: parseInt(block.getFieldValue('PIN')) } },
+        op: block.getFieldValue('OP'),
+        setpoint: parseFloat(block.getFieldValue('SETPOINT')),
+        do_true: _jsonStatementToList(block, 'DO_TRUE'),
+        do_false: _jsonStatementToList(block, 'DO_FALSE')
+    };
+};
+
+Blockly.JSON['sensor_humidity'] = function(block) {
+    return { type: 'query', cmd: 'sensor_read_humidity', args: { pin: parseInt(block.getFieldValue('PIN')) } };
+};
+
+Blockly.JSON['sensor_humidity_print'] = function(block) {
+    return {
+        type: 'command',
+        cmd: 'sensor_print',
+        args: { sensor: 'humidity', pin: parseInt(block.getFieldValue('PIN')) }
+    };
+};
+
+Blockly.JSON['sensor_humidity_if'] = function(block) {
+    return {
+        type: 'control',
+        cmd: 'if_sensor',
+        condition: { cmd: 'sensor_read_humidity', args: { pin: parseInt(block.getFieldValue('PIN')) } },
+        op: block.getFieldValue('OP'),
+        setpoint: parseFloat(block.getFieldValue('SETPOINT')),
+        do_true: _jsonStatementToList(block, 'DO_TRUE'),
+        do_false: _jsonStatementToList(block, 'DO_FALSE')
+    };
+};
+
+Blockly.JSON['sensor_gas'] = function(block) {
+    return {
+        type: 'control',
+        cmd: 'if_sensor',
+        condition: { cmd: 'sensor_read_gas', args: { pin: parseInt(block.getFieldValue('PIN')) } },
+        op: '==', setpoint: true,
+        do_true: _jsonStatementToList(block, 'DO_DETECT'),
+        do_false: _jsonStatementToList(block, 'DO_SAFE')
+    };
+};
+
+Blockly.JSON['sensor_soil_moisture'] = function(block) {
+    return { type: 'query', cmd: 'sensor_read_soil_moisture', args: { pin: parseInt(block.getFieldValue('PIN')) } };
+};
+
+Blockly.JSON['sensor_motion'] = function(block) {
+    return {
+        type: 'control',
+        cmd: 'if_sensor',
+        condition: { cmd: 'sensor_read_motion', args: { pin: parseInt(block.getFieldValue('PIN')) } },
+        op: '==', setpoint: true,
+        do_true: _jsonStatementToList(block, 'DO_DETECT'),
+        do_false: _jsonStatementToList(block, 'DO_SAFE')
+    };
+};
+
+Blockly.JSON['sensor_ir_obstacle'] = function(block) {
+    return {
+        type: 'control',
+        cmd: 'if_sensor',
+        condition: { cmd: 'sensor_read_ir_obstacle', args: { pin: parseInt(block.getFieldValue('PIN')) } },
+        op: '==', setpoint: true,
+        do_true: _jsonStatementToList(block, 'DO_DETECT'),
+        do_false: _jsonStatementToList(block, 'DO_SAFE')
+    };
+};
+
+// ============================================================
+// 💡 LED
+// ============================================================
+Blockly.JSON['led_play_animation_until_done'] = function(block) {
+    return { type: 'command', cmd: 'led_play_animation', args: { animation: block.getFieldValue('ANIMATION') } };
+};
+
+Blockly.JSON['led_display_5'] = function(block) {
+    return {
+        type: 'command',
+        cmd: 'led_display',
+        args: { colors: ['C1','C2','C3','C4','C5'].map(k => block.getFieldValue(k)) }
+    };
+};
+
+Blockly.JSON['led_roll_right'] = function(block) {
+    return { type: 'command', cmd: 'led_roll_right', args: { steps: _jsonGetValue(block, 'NUM', 1) } };
+};
+
+Blockly.JSON['led_display_color'] = function(block) {
+    return {
+        type: 'command',
+        cmd: 'led_display_color',
+        args: { target: block.getFieldValue('TARGET'), color: block.getFieldValue('COLOR') }
+    };
+};
+
+Blockly.JSON['led_display_color_for'] = function(block) {
+    return {
+        type: 'command',
+        cmd: 'led_display_color',
+        args: { target: block.getFieldValue('TARGET'), color: block.getFieldValue('COLOR'), duration: _jsonGetValue(block, 'SECS', 1) }
+    };
+};
+
+Blockly.JSON['led_display_rgb'] = function(block) {
+    return {
+        type: 'command',
+        cmd: 'led_display_rgb',
+        args: { target: block.getFieldValue('TARGET'), r: _jsonGetValue(block, 'R', 255), g: _jsonGetValue(block, 'G', 0), b: _jsonGetValue(block, 'B', 0) }
+    };
+};
+
+Blockly.JSON['led_display_rgb_for'] = function(block) {
+    return {
+        type: 'command',
+        cmd: 'led_display_rgb',
+        args: { target: block.getFieldValue('TARGET'), r: _jsonGetValue(block, 'R', 255), g: _jsonGetValue(block, 'G', 0), b: _jsonGetValue(block, 'B', 0), duration: _jsonGetValue(block, 'SECS', 1) }
+    };
+};
+
+Blockly.JSON['led_increase_brightness'] = function(block) {
+    return { type: 'command', cmd: 'led_increase_brightness', args: { value: _jsonGetValue(block, 'BRIGHTNESS', 10) } };
+};
+
+Blockly.JSON['led_set_brightness'] = function(block) {
+    return { type: 'command', cmd: 'led_set_brightness', args: { value: _jsonGetValue(block, 'BRIGHTNESS', 30) } };
+};
+
+Blockly.JSON['led_brightness_reporter'] = function(block) {
+    return { type: 'query', cmd: 'led_get_brightness', args: {} };
+};
+
+Blockly.JSON['led_turn_off'] = function(block) {
+    return { type: 'command', cmd: 'led_turn_off', args: { target: block.getFieldValue('TARGET') } };
+};
+
+// ============================================================
+// 🔊 AUDIO (MockDevice — forwarded ke Agent sebagai stub)
+// ============================================================
+Blockly.JSON['audio_play_until_done'] = function(block) {
+    return { type: 'command', cmd: 'audio_play', args: { sound: block.getFieldValue('SOUND'), wait: true } };
+};
+Blockly.JSON['audio_play_sound'] = function(block) {
+    return { type: 'command', cmd: 'audio_play', args: { sound: block.getFieldValue('SOUND'), wait: false } };
+};
+Blockly.JSON['audio_start_recording'] = function(block) {
+    return { type: 'command', cmd: 'audio_start_recording', args: {} };
+};
+Blockly.JSON['audio_stop_recording'] = function(block) {
+    return { type: 'command', cmd: 'audio_stop_recording', args: {} };
+};
+Blockly.JSON['audio_play_recording_until_done'] = function(block) {
+    return { type: 'command', cmd: 'audio_play_recording', args: { wait: true } };
+};
+Blockly.JSON['audio_play_recording'] = function(block) {
+    return { type: 'command', cmd: 'audio_play_recording', args: { wait: false } };
+};
+Blockly.JSON['audio_play_note'] = function(block) {
+    return { type: 'command', cmd: 'audio_play_note', args: { note: _jsonGetValue(block, 'NOTE', 60), beat: _jsonGetValue(block, 'BEAT', 0.25) } };
+};
+Blockly.JSON['audio_play_drum'] = function(block) {
+    return { type: 'command', cmd: 'audio_play_drum', args: { drum: block.getFieldValue('DRUM'), beat: _jsonGetValue(block, 'BEAT', 0.25) } };
+};
+Blockly.JSON['audio_increase_speed'] = function(block) {
+    return { type: 'command', cmd: 'audio_set_speed_relative', args: { delta: _jsonGetValue(block, 'SPEED', 10) } };
+};
+Blockly.JSON['audio_set_speed'] = function(block) {
+    return { type: 'command', cmd: 'audio_set_speed', args: { value: _jsonGetValue(block, 'SPEED', 100) } };
+};
+Blockly.JSON['audio_speed_reporter'] = function(block) {
+    return { type: 'query', cmd: 'audio_get_speed', args: {} };
+};
+Blockly.JSON['audio_increase_volume'] = function(block) {
+    return { type: 'command', cmd: 'audio_set_volume_relative', args: { delta: _jsonGetValue(block, 'VOL', 10) } };
+};
+Blockly.JSON['audio_set_volume'] = function(block) {
+    return { type: 'command', cmd: 'audio_set_volume', args: { value: _jsonGetValue(block, 'VOL', 30) } };
+};
+Blockly.JSON['audio_volume_reporter'] = function(block) {
+    return { type: 'query', cmd: 'audio_get_volume', args: {} };
+};
+Blockly.JSON['audio_play_sound_hz_for'] = function(block) {
+    return { type: 'command', cmd: 'audio_play_hz', args: { hz: _jsonGetValue(block, 'HZ', 700), duration: _jsonGetValue(block, 'SECS', 1) } };
+};
+Blockly.JSON['audio_play_sound_hz'] = function(block) {
+    return { type: 'command', cmd: 'audio_play_hz', args: { hz: _jsonGetValue(block, 'HZ', 700) } };
+};
+Blockly.JSON['audio_stop_all'] = function(block) {
+    return { type: 'command', cmd: 'audio_stop_all', args: {} };
+};
+
+// ==========================================================================
+// 🧭 MOTION BLOCKS (MPU6050 accelerometer)
+// ==========================================================================
+
+Blockly.Blocks['motion_is_shaking'] = {
+    init: function () {
+        this.appendDummyInput().appendField("🧭 Sedang diguncang?");
+        this.setOutput(true, "Boolean");
+        this.setColour("#FF6B35");
+    }
+};
+Blockly.Python['motion_is_shaking'] = function (block) {
+    _hal_require_motion();
+    return [`motion.is_shaking()`, Blockly.Python.ORDER_ATOMIC];
+};
+Blockly.JSON['motion_is_shaking'] = function (block) {
+    return { type: 'query', cmd: 'motion_is_shaking', args: {} };
+};
+
+Blockly.Blocks['motion_get_acceleration'] = {
+    init: function () {
+        this.appendDummyInput()
+            .appendField("🧭 Akselerasi sumbu")
+            .appendField(new Blockly.FieldDropdown([["X", "x"], ["Y", "y"], ["Z", "z"]]), "AXIS");
+        this.setOutput(true, "Number");
+        this.setColour("#FF6B35");
+    }
+};
+Blockly.Python['motion_get_acceleration'] = function (block) {
+    _hal_require_motion();
+    let axis = block.getFieldValue('AXIS');
+    let idx = { x: 0, y: 1, z: 2 }[axis];
+    return [`motion.get_acceleration()[${idx}]`, Blockly.Python.ORDER_ATOMIC];
+};
+Blockly.JSON['motion_get_acceleration'] = function (block) {
+    return { type: 'query', cmd: 'motion_get_acceleration', args: { axis: block.getFieldValue('AXIS') } };
+};
+
+// ==========================================================================
+// 🌐 LAN BLOCKS (UDP broadcast)
+// ==========================================================================
+
+Blockly.Blocks['lan_send_message'] = {
+    init: function () {
+        this.appendValueInput("MESSAGE")
+            .setCheck(null)
+            .appendField("🌐 Kirim pesan ke LAN:");
+        this.setInputsInline(true);
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour("#00BCD4");
+    }
+};
+Blockly.Python['lan_send_message'] = function (block) {
+    _hal_require_lan();
+    let msg = Blockly.Python.valueToCode(block, 'MESSAGE', Blockly.Python.ORDER_ATOMIC) || '""';
+    return `lan.broadcast(${msg})\n`;
+};
+Blockly.JSON['lan_send_message'] = function (block) {
+    return { type: 'command', cmd: 'lan_broadcast', args: { message: _jsonGetValue(block, 'MESSAGE', '') } };
+};
+
+// ==========================================================================
+// 🤖 AI BLOCKS (Speech Recognition)
+// ==========================================================================
+
+Blockly.Blocks['ai_recognize_speech'] = {
+    init: function () {
+        this.appendDummyInput().appendField("🤖 Kenali ucapan (teks)");
+        this.setOutput(true, "String");
+        this.setColour("#9C27B0");
+    }
+};
+Blockly.Python['ai_recognize_speech'] = function (block) {
+    _hal_require_ai();
+    return [`ai.recognize_speech()`, Blockly.Python.ORDER_ATOMIC];
+};
+Blockly.JSON['ai_recognize_speech'] = function (block) {
+    return { type: 'query', cmd: 'ai_recognize_speech', args: {} };
+};
+
+// ==========================================================================
+// 📺 DISPLAY BLOCKS (OLED SSD1306 via luma.oled)
+// ==========================================================================
+
+Blockly.Blocks['display_print'] = {
+    init: function () {
+        this.appendValueInput("TEXT")
+            .setCheck(null)
+            .appendField("📺 Tampilkan teks:");
+        this.setInputsInline(true);
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour("#4CAF50");
+    }
+};
+Blockly.Python['display_print'] = function (block) {
+    _hal_require_display();
+    let text = Blockly.Python.valueToCode(block, 'TEXT', Blockly.Python.ORDER_ATOMIC) || '""';
+    return `display.print(${text})\n`;
+};
+Blockly.JSON['display_print'] = function (block) {
+    return { type: 'command', cmd: 'display_print', args: { text: _jsonGetValue(block, 'TEXT', '') } };
+};
+
+Blockly.Blocks['display_print_size'] = {
+    init: function () {
+        this.appendValueInput("TEXT")
+            .setCheck(null)
+            .appendField("📺 Tampilkan teks:");
+        this.appendDummyInput()
+            .appendField("ukuran")
+            .appendField(new Blockly.FieldDropdown([["Kecil", "SMALL"], ["Sedang", "MEDIUM"], ["Besar", "LARGE"]]), "SIZE");
+        this.setInputsInline(true);
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour("#4CAF50");
+    }
+};
+Blockly.Python['display_print_size'] = function (block) {
+    _hal_require_display();
+    let text = Blockly.Python.valueToCode(block, 'TEXT', Blockly.Python.ORDER_ATOMIC) || '""';
+    let size = block.getFieldValue('SIZE');
+    return `display.print(${text}, "${size}")\n`;
+};
+Blockly.JSON['display_print_size'] = function (block) {
+    return { type: 'command', cmd: 'display_print', args: { text: _jsonGetValue(block, 'TEXT', ''), size: block.getFieldValue('SIZE') } };
+};
+
+Blockly.Blocks['display_clear'] = {
+    init: function () {
+        this.appendDummyInput().appendField("📺 Bersihkan layar display");
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour("#4CAF50");
+    }
+};
+Blockly.Python['display_clear'] = function (block) {
+    _hal_require_display();
+    return `display.clear()\n`;
+};
+Blockly.JSON['display_clear'] = function (block) {
+    return { type: 'command', cmd: 'display_clear', args: {} };
+};
+
+Blockly.Blocks['display_graph'] = {
+    init: function () {
+        this.appendValueInput("VAL")
+            .setCheck("Number")
+            .appendField("📺 Tampilkan grafik nilai:");
+        this.appendDummyInput().appendField("(0–100)");
+        this.setInputsInline(true);
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour("#4CAF50");
+    }
+};
+Blockly.Python['display_graph'] = function (block) {
+    _hal_require_display();
+    let val = Blockly.Python.valueToCode(block, 'VAL', Blockly.Python.ORDER_ATOMIC) || "0";
+    return `display.graph(${val})\n`;
+};
+Blockly.JSON['display_graph'] = function (block) {
+    return { type: 'command', cmd: 'display_graph', args: { value: _jsonGetValue(block, 'VAL', 0) } };
 };

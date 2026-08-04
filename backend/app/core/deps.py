@@ -13,7 +13,7 @@ from app.modules.users.schemas import TokenPayload
 
 # Menyiapkan skema OAuth2 Bearer (Otomatis memunculkan tombol 'Authorize' di Swagger UI /docs)
 reusable_oauth2 = OAuth2PasswordBearer(
-    tokenUrl=f"{settings.API_V1_STR}/auth/login"
+    tokenUrl=f"{settings.API_V1_STR}/auth/swagger-login"
 )
 
 

@@ -52,12 +52,18 @@ async def get_or_create_google_user(
     db: AsyncSession,
     google_sub: str,
     email: str,
-    full_name: Optional[str] = None
+    full_name: Optional[str] = None,
+    photo_url: Optional[str] = None
 ) -> User:
     """Mengambil atau membuat akun user baru secara otomatis via Google Sign-In."""
     # 1. Cek apakah google_sub sudah terdaftar
     user = await get_user_by_google_sub(db, google_sub=google_sub)
     if user:
+        # Update photo if it's missing but provided by Google
+        if not user.photo_url and photo_url:
+            user.photo_url = photo_url
+            await db.commit()
+            await db.refresh(user)
         return user
 
     # 2. Cek apakah email sudah terdaftar via email/password sebelumnya
@@ -67,6 +73,8 @@ async def get_or_create_google_user(
         user.google_sub = google_sub
         if not user.full_name and full_name:
             user.full_name = full_name
+        if not user.photo_url and photo_url:
+            user.photo_url = photo_url
         await db.commit()
         await db.refresh(user)
         return user
@@ -76,6 +84,7 @@ async def get_or_create_google_user(
         email=email,
         google_sub=google_sub,
         full_name=full_name,
+        photo_url=photo_url,
         hashed_password=None,
         role="user",
         is_premium=False,
@@ -85,3 +94,19 @@ async def get_or_create_google_user(
     await db.commit()
     await db.refresh(db_user)
     return db_user
+
+async def update_user_profile(
+    db: AsyncSession, 
+    user: User, 
+    full_name: Optional[str] = None, 
+    photo_url: Optional[str] = None
+) -> User:
+    """Memperbarui profil user (nama dan foto)."""
+    if full_name is not None:
+        user.full_name = full_name
+    if photo_url is not None:
+        user.photo_url = photo_url
+        
+    await db.commit()
+    await db.refresh(user)
+    return user

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../../domain/entities/blynk_widget_entity.dart';
 
 class AddWidgetModal extends StatefulWidget {
@@ -48,7 +49,7 @@ class _AddWidgetModalState extends State<AddWidgetModal> {
       );
 
       widget.onWidgetAdded(newWidget);
-      Navigator.pop(context);
+      context.pop();
     }
   }
 

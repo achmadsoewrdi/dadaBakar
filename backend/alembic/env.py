@@ -9,10 +9,14 @@ from app.core.config import settings
 from app.db.session import Base
 
 # Import all models so Alembic autogenerates migrations properly
-from app.modules.users.models import User
-from app.modules.projects.models import Project
-from app.modules.devices.models import DeviceProfile
-from app.modules.content.models import LearningModule
+import app.modules.users.models
+import app.modules.projects.models
+import app.modules.devices.models
+import app.modules.content.models
+import app.modules.blocks.models
+import app.modules.gamification.models
+import app.modules.hardware_types.models
+import app.modules.subscriptions.models
 
 config = context.config
 

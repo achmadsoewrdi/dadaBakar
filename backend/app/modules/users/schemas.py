@@ -23,7 +23,8 @@ class UserOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     id: UUID
     email: EmailStr
-    full_name: Optional[str] = None
+    full_name: str | None = None
+    photo_url: str | None = None
     role: str
     is_premium: bool
     is_active: bool
