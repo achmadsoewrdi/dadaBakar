@@ -57,9 +57,9 @@ class DeviceRemoteDataSource {
       body: json.encode({
         'label': label,
         'protocol': protocol,
-        if (host != null) 'host': host,
-        if (port != null) 'port': port,
-        if (macAddress != null) 'mac_address': macAddress,
+        'host': ?host,
+        'port': ?port,
+        'mac_address': ?macAddress,
       }),
     );
 

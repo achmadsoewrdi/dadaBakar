@@ -374,7 +374,7 @@ class _DeviceConnectionScreenState extends State<DeviceConnectionScreen> {
                     Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: isConnected ? Colors.green.withOpacity(0.1) : Colors.grey.shade100,
+                        color: isConnected ? Colors.green.withValues(alpha: 0.1) : Colors.grey.shade100,
                         shape: BoxShape.circle,
                       ),
                       child: Icon(
