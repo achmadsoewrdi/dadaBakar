@@ -21,6 +21,7 @@ from app.modules.content.router import router as content_router
 from app.modules.ai_insights.router import router as ai_insights_router
 from app.modules.hardware_logs.router import router as hardware_logs_router
 from app.modules.devices.router import router as devices_router
+from app.modules.subscriptions.router import router as subscriptions_router
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
@@ -47,6 +48,7 @@ app.include_router(content_router, prefix=settings.API_V1_STR)
 app.include_router(ai_insights_router, prefix=settings.API_V1_STR)
 app.include_router(hardware_logs_router, prefix=settings.API_V1_STR)
 app.include_router(devices_router, prefix=settings.API_V1_STR)
+app.include_router(subscriptions_router, prefix=settings.API_V1_STR)
 
 @app.get("/")
 async def root():
