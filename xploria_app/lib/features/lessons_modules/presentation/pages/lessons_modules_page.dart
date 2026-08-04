@@ -131,8 +131,15 @@ class _LessonsModulesPageState extends State<LessonsModulesPage> {
                     module: module,
                     index: index,
                     canAccess: canAccess,
-                    onTap: () {
-                      context.push('/module-detail', extra: {'module': module, 'canAccess': canAccess});
+                    onTap: () async {
+                      if (!canAccess) {
+                        final success = await context.push('/paywall');
+                        if (success == true) {
+                          setState(() {}); // Refresh UI
+                        }
+                      } else {
+                        context.push('/module-detail', extra: {'module': module, 'canAccess': canAccess});
+                      }
                     },
                   );
                 }),

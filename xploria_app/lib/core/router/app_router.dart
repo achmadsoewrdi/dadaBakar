@@ -16,6 +16,7 @@ import 'package:xploria_app/features/content/presentation/pages/module_detail_sc
 import 'package:xploria_app/features/iot_blynk/presentation/screens/blynk_canvas_screen.dart';
 import 'package:xploria_app/features/blockly_workspace/presentation/pages/python_editor_screen.dart';
 import 'package:xploria_app/features/projects/domain/models/project_model.dart';
+import 'package:xploria_app/features/subscriptions/presentation/pages/paywall_screen.dart';
 import 'package:xploria_app/features/content/domain/models/learning_module_model.dart';
 
 class AppRouter {
@@ -130,6 +131,10 @@ class AppRouter {
           final onSave = args['onSave'] as ValueChanged<ProjectModel>?;
           return BlynkCanvasScreen(project: project, onSaveBlynkConfig: onSave);
         },
+      ),
+      GoRoute(
+        path: '/paywall',
+        builder: (context, state) => const PaywallScreen(),
       ),
     ],
   );

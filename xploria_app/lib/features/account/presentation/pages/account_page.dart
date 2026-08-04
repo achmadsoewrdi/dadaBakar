@@ -438,12 +438,65 @@ class _AccountPageState extends State<AccountPage> {
                       ),
                     ),
                   ),
-                ],
+              ],
+            ),
+            const SizedBox(height: 24),
+            
+            // Premium Banner
+            if (_user?.isPremium != true)
+              Container(
+                margin: const EdgeInsets.only(bottom: 24),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFF005CFF), Color(0xFF00E3A2)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFF005CFF).withValues(alpha: 0.3),
+                      blurRadius: 12,
+                      offset: const Offset(0, 4),
+                    )
+                  ]
+                ),
+                child: Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    onTap: () async {
+                      final success = await context.push('/paywall');
+                      if (success == true) {
+                        _loadData();
+                      }
+                    },
+                    borderRadius: BorderRadius.circular(16),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.workspace_premium_rounded, color: Colors.white, size: 36),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text('Upgrade ke Xploria Pro', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+                                const SizedBox(height: 4),
+                                Text('Dapatkan akses modul tanpa batas!', style: TextStyle(color: Colors.white.withValues(alpha: 0.9), fontSize: 13)),
+                              ],
+                            ),
+                          ),
+                          const Icon(Icons.arrow_forward_ios_rounded, color: Colors.white, size: 16),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
               ),
-              const SizedBox(height: 32),
 
-              // Stats Row: Max Streak & Lifetime XP
-              Row(
+            // Stats Row: Max Streak & Lifetime XP
+            Row(
                 children: [
                   Expanded(
                     child: Container(
