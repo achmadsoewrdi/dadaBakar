@@ -1,5 +1,5 @@
 import 'dart:convert';
-
+import 'dart:async';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_bluetooth_serial/flutter_bluetooth_serial.dart';
@@ -36,6 +36,10 @@ class DeviceConnectionService extends ChangeNotifier {
 
   String? _connectedDeviceId;
   String? get connectedDeviceId => _connectedDeviceId;
+
+  // Telemetry Stream
+  final StreamController<Map<String, dynamic>> _telemetryController = StreamController<Map<String, dynamic>>.broadcast();
+  Stream<Map<String, dynamic>> get telemetryStream => _telemetryController.stream;
 
   // Generic State
   bool _isConnected = false;
@@ -287,7 +291,9 @@ class DeviceConnectionService extends ChangeNotifier {
             debugPrint("Menerima Balasan (WiFi): $msgStr");
             try {
               final data = jsonDecode(msgStr);
-              if (data['type'] == 'output') {
+              if (data['type'] == 'telemetry') {
+                _telemetryController.add(data);
+              } else if (data['type'] == 'output') {
                 addLog("[RX] ${data['payload']}");
               } else if (data['type'] == 'error') {
                 addLog("[ERROR] ${data['payload']}");
@@ -385,6 +391,36 @@ class DeviceConnectionService extends ChangeNotifier {
         _webSocketChannel!.sink.add("$jsonPayload\n");
       }
     }
+  }
+
+  void sendCodePayload(Map<String, dynamic> payload) {
+    if (_connectionMode == ConnectionMode.wifi) {
+      if (_webSocketChannel != null) {
+        final jsonPayload = jsonEncode(payload);
+        _webSocketChannel!.sink.add("$jsonPayload\n");
+        addLog("[TX] Dikirim via WiFi");
+      } else {
+        addLog("[ERROR] WiFi belum tersambung.");
+      }
+    } else {
+      if (_bluetoothConnection != null && _bluetoothConnection!.isConnected) {
+        final jsonPayload = jsonEncode(payload);
+        _bluetoothConnection!.output
+            .add(Uint8List.fromList(utf8.encode("$jsonPayload\n")));
+        addLog("[TX] Dikirim via Bluetooth");
+      } else {
+        addLog("[ERROR] Bluetooth belum tersambung.");
+      }
+    }
+  }
+
+  void sendControl(String pin, dynamic value) {
+    final payload = {
+      "type": "control",
+      "pin": pin,
+      "value": value,
+    };
+    sendCodePayload(payload);
   }
 
   Future<bool> deleteSavedDevice(String deviceId) async {

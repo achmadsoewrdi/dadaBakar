@@ -32,7 +32,7 @@ class _BlynkCanvasScreenState extends State<BlynkCanvasScreen> {
   final Map<String, List<double>> _chartHistories = {};
 
   bool _isEditMode = false;
-  Timer? _telemetryTimer;
+  StreamSubscription<Map<String, dynamic>>? _telemetrySubscription;
   Timer? _autoSaveTimer;
   final Random _random = Random();
 
@@ -40,7 +40,7 @@ class _BlynkCanvasScreenState extends State<BlynkCanvasScreen> {
   void initState() {
     super.initState();
     _initWidgetsFromConfig();
-    _startLiveSimulation();
+    _subscribeToTelemetry();
     _startAutoSave();
   }
 
@@ -58,7 +58,13 @@ class _BlynkCanvasScreenState extends State<BlynkCanvasScreen> {
   void _initWidgetsFromConfig() {
     if (widget.project.blynkConfigJson != null && widget.project.blynkConfigJson!.isNotEmpty) {
       _widgetNotifiers = widget.project.blynkConfigJson!
-          .map((json) => ValueNotifier(BlynkWidgetEntity.fromJson(json)))
+          .map((json) {
+            final w = BlynkWidgetEntity.fromJson(json);
+            return ValueNotifier(w.copyWith(
+              currentValueNum: 0.0,
+              currentValueBool: false,
+            ));
+          })
           .toList();
     } else {
       // Default initial Blynk widgets if freshly created
@@ -69,30 +75,37 @@ class _BlynkCanvasScreenState extends State<BlynkCanvasScreen> {
     for (var notifier in _widgetNotifiers) {
       final w = notifier.value;
       if (w.type == BlynkWidgetType.chart) {
-        _chartHistories[w.id] = [28.0, 28.5, 29.0, 29.2, 28.8, 29.5];
+        _chartHistories[w.id] = [0.0];
       }
     }
   }
 
-  void _startLiveSimulation() {
-    _telemetryTimer = Timer.periodic(const Duration(seconds: 2), (timer) {
+  void _subscribeToTelemetry() {
+    _telemetrySubscription = DeviceConnectionService.instance.telemetryStream.listen((data) {
       if (!mounted) return;
       
-      for (int i = 0; i < _widgetNotifiers.length; i++) {
-        final notifier = _widgetNotifiers[i];
+      final String? pin = data['pin']?.toString();
+      final dynamic value = data['value'];
+      
+      if (pin == null || value == null) return;
+      
+      double numVal = 0.0;
+      if (value is num) {
+        numVal = value.toDouble();
+      } else if (value is String) {
+        numVal = double.tryParse(value) ?? 0.0;
+      }
+
+      for (var notifier in _widgetNotifiers) {
         final w = notifier.value;
-        if (w.type == BlynkWidgetType.chart || w.type == BlynkWidgetType.gauge || w.type == BlynkWidgetType.value) {
-          double delta = (_random.nextDouble() - 0.5) * 0.8;
-          double newVal = (w.currentValueNum + delta).clamp(w.minValue, w.maxValue);
-          
+        if (w.sensorPin == pin) {
           if (w.type == BlynkWidgetType.chart) {
             final list = _chartHistories[w.id] ?? [];
-            list.add(newVal);
+            list.add(numVal);
             if (list.length > 20) list.removeAt(0);
             _chartHistories[w.id] = list;
           }
-          
-          notifier.value = w.copyWith(currentValueNum: double.parse(newVal.toStringAsFixed(1)));
+          notifier.value = w.copyWith(currentValueNum: double.parse(numVal.toStringAsFixed(1)));
         }
       }
     });
@@ -100,7 +113,7 @@ class _BlynkCanvasScreenState extends State<BlynkCanvasScreen> {
 
   @override
   void dispose() {
-    _telemetryTimer?.cancel();
+    _telemetrySubscription?.cancel();
     _autoSaveTimer?.cancel();
     super.dispose();
   }
@@ -140,9 +153,10 @@ class _BlynkCanvasScreenState extends State<BlynkCanvasScreen> {
       builder: (context) => AddWidgetModal(
         onWidgetAdded: (newWidget) {
           setState(() {
-            _widgetNotifiers.add(ValueNotifier(newWidget));
+            final zeroedWidget = newWidget.copyWith(currentValueNum: 0.0, currentValueBool: false);
+            _widgetNotifiers.add(ValueNotifier(zeroedWidget));
             if (newWidget.type == BlynkWidgetType.chart) {
-              _chartHistories[newWidget.id] = [25.0, 26.0, 27.0];
+              _chartHistories[newWidget.id] = [0.0];
             }
           });
           _saveConfiguration();
@@ -441,6 +455,7 @@ class _BlynkCanvasScreenState extends State<BlynkCanvasScreen> {
           onDelete: onDeleteAction,
           onChanged: (val) {
             _widgetNotifiers[index].value = w.copyWith(currentValueBool: val);
+            DeviceConnectionService.instance.sendControl(w.sensorPin, val ? 1 : 0);
           },
         );
       case BlynkWidgetType.value:

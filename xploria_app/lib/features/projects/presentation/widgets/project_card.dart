@@ -94,11 +94,15 @@ class ProjectCard extends StatelessWidget {
                   const SizedBox(height: 4),
                   Row(
                     children: [
-                      Text(
-                        'Last edited ${_timeAgo(project.updatedAt)}',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey.shade500,
+                      Flexible(
+                        child: Text(
+                          'Last edited ${_timeAgo(project.updatedAt)}',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey.shade500,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
                       if (project.blynkConfigJson != null) ...[
