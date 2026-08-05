@@ -71,8 +71,13 @@ class _BlocklyWorkspaceScreenState extends State<BlocklyWorkspaceScreen> {
     );
   }
 
-  // Pop-up validasi konfirmasi sebelum membuat IoT Lab
+  // Buka IoT Lab Canvas (dengan Validasi Pop-up hanya jika belum pernah dibuat)
   void _confirmAndCreateIotLab() {
+    if (_currentProject != null && _currentProject!.blynkConfigJson != null && _currentProject!.blynkConfigJson!.isNotEmpty) {
+      _navigateToIotLab(_currentProject!);
+      return;
+    }
+
     showDialog(
       context: context,
       builder: (context) {
@@ -134,7 +139,7 @@ class _BlocklyWorkspaceScreenState extends State<BlocklyWorkspaceScreen> {
                       child: ElevatedButton(
                         onPressed: () {
                           context.pop(); // Close popup
-                          final demoProject = ProjectModel(
+                          final project = _currentProject ?? ProjectModel(
                             id: 'proj_${DateTime.now().millisecondsSinceEpoch}',
                             ownerId: 'user_1',
                             name: _projectName,
@@ -143,8 +148,7 @@ class _BlocklyWorkspaceScreenState extends State<BlocklyWorkspaceScreen> {
                             createdAt: DateTime.now(),
                             updatedAt: DateTime.now(),
                           );
-
-                          context.push('/blynk-canvas', extra: {'project': demoProject});
+                          _navigateToIotLab(project);
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFF005CFF),
@@ -165,6 +169,23 @@ class _BlocklyWorkspaceScreenState extends State<BlocklyWorkspaceScreen> {
         );
       },
     );
+  }
+
+  void _navigateToIotLab(ProjectModel project) {
+    context.push('/blynk-canvas', extra: {
+      'project': project,
+      'onSaveBlynkConfig': (ProjectModel updatedProject) {
+        if (!updatedProject.id.startsWith('proj_')) {
+          ProjectRepositoryImpl().updateProject(
+            updatedProject.id,
+            blynkConfigJson: updatedProject.blynkConfigJson,
+          );
+        }
+        setState(() {
+          _currentProject = updatedProject;
+        });
+      },
+    });
   }
 
   @override

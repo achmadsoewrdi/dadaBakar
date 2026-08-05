@@ -6,6 +6,7 @@ import '../widgets/dashboard_bottom_navbar.dart';
 import '../../../projects/presentation/pages/project_list_screen.dart';
 import '../../../device/presentation/pages/device_connection_screen.dart';
 import '../../../account/presentation/pages/account_page.dart';
+import '../../../../features/lab/presentation/pages/lab_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -38,6 +39,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
       case 2:
         return const DeviceConnectionScreen(key: ValueKey('devices'));
       case 3:
+        return const LabScreen(key: ValueKey('lab'));
+      case 4:
         return const AccountPage(key: ValueKey('account'));
       default:
         return const SizedBox.shrink(key: ValueKey('empty'));

@@ -62,6 +62,13 @@ class DashboardBottomNavbar extends StatelessWidget {
             BottomNavigationBarItem(
               icon: Padding(
                 padding: EdgeInsets.only(bottom: 4),
+                child: Icon(Icons.science),
+              ),
+              label: 'Lab',
+            ),
+            BottomNavigationBarItem(
+              icon: Padding(
+                padding: EdgeInsets.only(bottom: 4),
                 child: Icon(Icons.person_outline_rounded),
               ),
               label: 'Profile',

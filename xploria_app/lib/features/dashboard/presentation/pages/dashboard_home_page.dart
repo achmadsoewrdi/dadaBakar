@@ -5,6 +5,8 @@ import 'package:go_router/go_router.dart';
 import '../../../projects/domain/models/project_model.dart';
 import '../../data/repositories/dashboard_repository.dart';
 import '../../../projects/data/repositories/project_repository_impl.dart';
+import '../../../projects/presentation/widgets/project_card.dart';
+import '../../../projects/data/data_sources/project_category_service.dart';
 import '../../../auth/data/data_sources/auth_storage_service.dart';
 import '../../../auth/domain/models/user_model.dart';
 import '../../../../core/config/app_constants.dart';
@@ -25,6 +27,7 @@ class DashboardHomePage extends StatefulWidget {
 
 class DashboardHomePageState extends State<DashboardHomePage> with AutomaticKeepAliveClientMixin {
   final DashboardRepository _repository = DashboardRepository();
+  final ProjectCategoryService _categoryService = ProjectCategoryService();
   bool _isLoading = true;
   List<ProjectModel> _projects = [];
   UserModel? _user;
@@ -40,6 +43,7 @@ class DashboardHomePageState extends State<DashboardHomePage> with AutomaticKeep
   }
 
   Future<void> _loadData() async {
+    await _categoryService.init();
     final projects = await _repository.getRecentProjects();
     final user = AuthStorageService().currentUser;
     
@@ -304,76 +308,14 @@ class DashboardHomePageState extends State<DashboardHomePage> with AutomaticKeep
   }
 
   Widget _buildProjectItemCard(ProjectModel project) {
-    IconData icon;
-    Color color;
-    
-    if (project.name.toLowerCase().contains("garden") || project.name.toLowerCase().contains("agri") || project.name.toLowerCase().contains("taman")) {
-      icon = Icons.water_drop_outlined;
-      color = const Color(0xFF005CFF);
-    } else if (project.name.toLowerCase().contains("temp") || project.name.toLowerCase().contains("suhu")) {
-      icon = Icons.thermostat_rounded;
-      color = const Color(0xFF005CFF);
-    } else {
-      icon = Icons.security_rounded;
-      color = const Color(0xFF005CFF);
-    }
-
-    return GestureDetector(
+    return ProjectCard(
+      project: project,
+      categoryService: _categoryService,
+      showChevron: true,
       onTap: () async {
         await context.push('/blockly', extra: project);
         _loadData();
       },
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(20),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.grey.withValues(alpha: 0.05),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: const BoxDecoration(
-                color: Color(0xFFE0F2FE),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(icon, color: color, size: 20),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    project.name,
-                    style: const TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF0A122C),
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    "Last edited recently",
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.grey.shade500,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const Icon(Icons.chevron_right_rounded, color: Colors.grey, size: 20),
-          ],
-        ),
-      ),
     );
   }
 }

@@ -4,6 +4,7 @@ import '../../../dashboard/data/repositories/dashboard_repository.dart';
 import '../../data/repositories/project_repository_impl.dart';
 import '../../domain/models/project_model.dart';
 import '../../data/data_sources/project_category_service.dart';
+import '../widgets/project_card.dart';
 
 class ProjectListScreen extends StatefulWidget {
   const ProjectListScreen({super.key});
@@ -629,96 +630,26 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
                   final project = _filteredProjects[index];
                   final isFavorite = index == 0; // Just mock favorite for demo based on UI
 
-                  Widget projectCardWidget = Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(20),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.03),
-                          blurRadius: 10,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
-                    ),
-                    child: Row(
-                      children: [
-                        if (_isEditMode)
-                          Padding(
-                            padding: const EdgeInsets.only(right: 12),
-                            child: Icon(Icons.drag_indicator_rounded, color: Colors.grey.shade400),
-                          ),
-                        Image.asset(
-                          _categoryService.getIconForCategory(_categoryService.getCategoryForProject(project.id)),
-                          width: _isEditMode ? 50 : 60,
-                          height: _isEditMode ? 50 : 60,
-                          fit: BoxFit.contain,
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Expanded(
-                                    child: Text(
-                                      project.name,
-                                      style: const TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold,
-                                        color: Color(0xFF0A122C),
-                                      ),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                  if (isFavorite && !_isEditMode)
-                                    const Icon(Icons.star_rounded, color: Color(0xFFFFC107), size: 20),
-                                ],
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                'Last edited ${_timeAgo(project.updatedAt)}',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.grey.shade500,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        if (_isEditMode)
-                          IconButton(
-                            icon: const Icon(Icons.delete_outline_rounded, color: Colors.red),
-                            onPressed: () => _deleteProject(project),
-                          )
-                        else
-                          PopupMenuButton<String>(
-                            icon: Icon(Icons.more_vert_rounded, color: Colors.grey.shade400),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                            onSelected: (String newCategory) async {
-                              await _categoryService.setProjectCategory(project.id, newCategory);
-                              if (mounted) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(content: Text('Project moved to $newCategory')),
-                                );
-                                _initData();
-                              }
-                            },
-                            itemBuilder: (BuildContext context) {
-                              return _categoryService.categories.map((String choice) {
-                                return PopupMenuItem<String>(
-                                  value: choice,
-                                  child: Text('Move to $choice'),
-                                );
-                              }).toList();
-                            },
-                          ),
-                      ],
-                    ),
+                  Widget projectCardWidget = ProjectCard(
+                    project: project,
+                    isEditMode: _isEditMode,
+                    isFavorite: isFavorite,
+                    categoryService: _categoryService,
+                    showPopupMenu: !_isEditMode,
+                    onDelete: () => _deleteProject(project),
+                    onCategorySelected: (String newCategory) async {
+                      await _categoryService.setProjectCategory(project.id, newCategory);
+                      if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Project moved to $newCategory')),
+                        );
+                        _initData();
+                      }
+                    },
+                    onTap: () async {
+                      await context.push('/blockly', extra: project);
+                      _initData();
+                    },
                   );
 
                   if (_isEditMode) {
@@ -742,13 +673,7 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
                     );
                   }
 
-                  return GestureDetector(
-                    onTap: () async {
-                      await context.push('/blockly', extra: project);
-                      _initData();
-                    },
-                    child: projectCardWidget,
-                  );
+                  return projectCardWidget;
                 },
               ),
             ),

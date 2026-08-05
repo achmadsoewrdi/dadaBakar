@@ -12,6 +12,7 @@ async def create_project(db: AsyncSession, project_in: ProjectCreate, owner_id: 
         name=project_in.name,
         workspace_xml=project_in.workspace_xml,
         generated_code=project_in.generated_code,
+        blynk_config_json=project_in.blynk_config_json,
         device_profile_id=project_in.device_profile_id,
     )
     db.add(project)
@@ -60,14 +61,9 @@ async def update_project(db: AsyncSession, project_id: UUID, owner_id: UUID, pro
     if not project:
         return None
     
-    if project_update.name is not None:
-        project.name = project_update.name
-    if project_update.workspace_xml is not None:
-        project.workspace_xml = project_update.workspace_xml
-    if project_update.generated_code is not None:
-        project.generated_code = project_update.generated_code
-    if project_update.device_profile_id is not None:
-        project.device_profile_id = project_update.device_profile_id
+    update_data = project_update.model_dump(exclude_unset=True)
+    for key, value in update_data.items():
+        setattr(project, key, value)
     
     project.updated_at = datetime.utcnow()
     await db.commit()

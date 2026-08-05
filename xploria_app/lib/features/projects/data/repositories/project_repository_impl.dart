@@ -16,12 +16,14 @@ class ProjectRepositoryImpl {
     String? name,
     String? workspaceXml,
     String? generatedCode,
+    List<dynamic>? blynkConfigJson,
   }) {
     return _apiService.updateProject(
       projectId,
       name: name,
       workspaceXml: workspaceXml,
       generatedCode: generatedCode,
+      blynkConfigJson: blynkConfigJson,
     );
   }
 

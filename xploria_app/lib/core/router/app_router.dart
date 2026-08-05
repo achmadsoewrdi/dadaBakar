@@ -17,7 +17,7 @@ import 'package:xploria_app/features/auth/data/data_sources/auth_storage_service
 import 'package:xploria_app/features/account/presentation/pages/account_page.dart';
 import 'package:xploria_app/features/account/presentation/pages/edit_account_screen.dart';
 import 'package:xploria_app/features/content/presentation/pages/module_detail_screen.dart';
-import 'package:xploria_app/features/iot_blynk/presentation/screens/blynk_canvas_screen.dart';
+import 'package:xploria_app/features/iot_lab/presentation/screens/blynk_canvas_screen.dart';
 import 'package:xploria_app/features/blockly_workspace/presentation/pages/python_editor_screen.dart';
 import 'package:xploria_app/features/projects/domain/models/project_model.dart';
 import 'package:xploria_app/features/subscriptions/presentation/pages/paywall_screen.dart';
@@ -146,10 +146,13 @@ class AppRouter {
       GoRoute(
         path: '/blynk-canvas',
         builder: (context, state) {
-          final args = state.extra as Map<String, dynamic>? ?? {};
-          final project = args['project'] as ProjectModel;
-          final onSave = args['onSave'] as ValueChanged<ProjectModel>?;
-          return BlynkCanvasScreen(project: project, onSaveBlynkConfig: onSave);
+          final extra = state.extra as Map<String, dynamic>;
+          final project = extra['project'] as ProjectModel;
+          final onSave = extra['onSaveBlynkConfig'] as void Function(ProjectModel)?;
+          return BlynkCanvasScreen(
+            project: project,
+            onSaveBlynkConfig: onSave,
+          );
         },
       ),
       GoRoute(

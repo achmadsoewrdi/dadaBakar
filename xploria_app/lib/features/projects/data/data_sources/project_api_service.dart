@@ -68,6 +68,7 @@ class ProjectApiService {
     String? name,
     String? workspaceXml,
     String? generatedCode,
+    List<dynamic>? blynkConfigJson,
   }) async {
     final url = Uri.parse('$baseUrl/projects/$projectId');
     final headers = await _getHeaders();
@@ -76,6 +77,7 @@ class ProjectApiService {
     if (name != null) body['name'] = name;
     if (workspaceXml != null) body['workspace_xml'] = workspaceXml;
     if (generatedCode != null) body['generated_code'] = {"python": generatedCode};
+    if (blynkConfigJson != null) body['blynk_config_json'] = blynkConfigJson;
 
     final response = await http
         .put(url, headers: headers, body: jsonEncode(body))

@@ -14,11 +14,13 @@ import '../../../../core/services/device_connection_service.dart';
 class BlynkCanvasScreen extends StatefulWidget {
   final ProjectModel project;
   final ValueChanged<ProjectModel>? onSaveBlynkConfig;
+  final bool isEmbedded;
 
   const BlynkCanvasScreen({
     super.key,
     required this.project,
     this.onSaveBlynkConfig,
+    this.isEmbedded = false,
   });
 
   @override
@@ -31,6 +33,7 @@ class _BlynkCanvasScreenState extends State<BlynkCanvasScreen> {
 
   bool _isEditMode = false;
   Timer? _telemetryTimer;
+  Timer? _autoSaveTimer;
   final Random _random = Random();
 
   @override
@@ -38,6 +41,18 @@ class _BlynkCanvasScreenState extends State<BlynkCanvasScreen> {
     super.initState();
     _initWidgetsFromConfig();
     _startLiveSimulation();
+    _startAutoSave();
+  }
+
+  @override
+  void didUpdateWidget(BlynkCanvasScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.project.blynkConfigJson != oldWidget.project.blynkConfigJson) {
+      // Avoid overwriting local changes if edit mode is active
+      if (!_isEditMode) {
+        _initWidgetsFromConfig();
+      }
+    }
   }
 
   void _initWidgetsFromConfig() {
@@ -86,10 +101,18 @@ class _BlynkCanvasScreenState extends State<BlynkCanvasScreen> {
   @override
   void dispose() {
     _telemetryTimer?.cancel();
+    _autoSaveTimer?.cancel();
     super.dispose();
   }
 
-  void _saveConfiguration() {
+  void _startAutoSave() {
+    _autoSaveTimer = Timer.periodic(const Duration(seconds: 2), (timer) {
+      if (!mounted) return;
+      _saveConfiguration(silent: true);
+    });
+  }
+
+  void _saveConfiguration({bool silent = false}) {
     final updatedJson = _widgetNotifiers.map((n) => n.value.toJson()).toList();
     final updatedProject = widget.project.copyWith(blynkConfigJson: updatedJson);
 
@@ -97,14 +120,16 @@ class _BlynkCanvasScreenState extends State<BlynkCanvasScreen> {
       widget.onSaveBlynkConfig!(updatedProject);
     }
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Text('Layout Blynk IoT berhasil disimpan!'),
-        backgroundColor: const Color(0xFF005CFF),
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      ),
-    );
+    if (!silent) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Layout Blynk IoT berhasil disimpan!'),
+          backgroundColor: const Color(0xFF005CFF),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        ),
+      );
+    }
   }
 
   void _showAddWidgetModal() {
@@ -128,6 +153,84 @@ class _BlynkCanvasScreenState extends State<BlynkCanvasScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final bodyContent = Column(
+      children: [
+        // Status Header
+        _buildStatusHeader(),
+        const SizedBox(height: 24),
+
+        // Canvas Title & Add Widget
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Text(
+              'Kanvas IoT Real-Time',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w900,
+                color: Color(0xFF0A122C),
+              ),
+            ),
+            Row(
+              children: [
+                if (widget.isEmbedded)
+                  IconButton(
+                    icon: Icon(
+                      _isEditMode ? Icons.check_circle_rounded : Icons.edit_note_rounded,
+                      color: _isEditMode ? const Color(0xFFFF9F1C) : Colors.grey,
+                      size: 26,
+                    ),
+                    tooltip: _isEditMode ? 'Selesai Edit' : 'Edit Mode',
+                    onPressed: () {
+                      setState(() {
+                        _isEditMode = !_isEditMode;
+                      });
+                      if (!_isEditMode) {
+                        _saveConfiguration();
+                      }
+                    },
+                  ),
+                const SizedBox(width: 4),
+                ElevatedButton(
+                  onPressed: _showAddWidgetModal,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF005CFF),
+                    foregroundColor: Colors.white,
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  ),
+                  child: const Text('+ Widget', style: TextStyle(fontWeight: FontWeight.bold)),
+                ),
+              ],
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        if (_widgetNotifiers.isEmpty)
+          _buildEmptyState()
+        else
+          ListView.separated(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: _widgetNotifiers.length,
+            separatorBuilder: (context, index) => const SizedBox(height: 14),
+            itemBuilder: (context, index) {
+              return ValueListenableBuilder<BlynkWidgetEntity>(
+                valueListenable: _widgetNotifiers[index],
+                builder: (context, w, child) {
+                  final color = Color(w.primaryColorHex);
+                  return _buildWidgetCard(w, color, index);
+                },
+              );
+            },
+          ),
+      ],
+    );
+
+    if (widget.isEmbedded) {
+      return bodyContent;
+    }
+
     return Scaffold(
       backgroundColor: const Color(0xFFF6F8FD),
       appBar: AppBar(
@@ -182,69 +285,58 @@ class _BlynkCanvasScreenState extends State<BlynkCanvasScreen> {
       body: SingleChildScrollView(
         physics: const BouncingScrollPhysics(),
         padding: const EdgeInsets.only(top: 20, left: 20, right: 20, bottom: 100),
-        child: Column(
-          children: [
-            // Status Header
-            _buildStatusHeader(),
-            const SizedBox(height: 24),
-
-            // Canvas Title & Add Widget
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text(
-                  'Kanvas IoT Real-Time',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w900,
-                    color: Color(0xFF0A122C),
-                  ),
-                ),
-                ElevatedButton(
-                  onPressed: _showAddWidgetModal,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF005CFF),
-                    foregroundColor: Colors.white,
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                  ),
-                  child: const Text('+ Widget', style: TextStyle(fontWeight: FontWeight.bold)),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            if (_widgetNotifiers.isEmpty)
-              _buildEmptyState()
-            else
-              ListView.separated(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: _widgetNotifiers.length,
-                separatorBuilder: (context, index) => const SizedBox(height: 14),
-                itemBuilder: (context, index) {
-                  return ValueListenableBuilder<BlynkWidgetEntity>(
-                    valueListenable: _widgetNotifiers[index],
-                    builder: (context, w, child) {
-                      final color = Color(w.primaryColorHex);
-                      return _buildWidgetCard(w, color, index);
-                    },
-                  );
-                },
-              ),
-          ],
-        ),
+        child: bodyContent,
       ),
     );
   }
 
   Widget _buildStatusHeader() {
-    final connectedDeviceName = DeviceConnectionService.instance.selectedDevice?.name;
-    final deviceNameDisplay = connectedDeviceName != null ? connectedDeviceName.toUpperCase() : widget.project.deviceType.toUpperCase();
+    return ListenableBuilder(
+      listenable: DeviceConnectionService.instance,
+      builder: (context, _) {
+        final connService = DeviceConnectionService.instance;
+        String? displayLabel;
+
+    if (connService.connectedDeviceId != null) {
+      try {
+        final connectedDevice = connService.savedDevices.firstWhere(
+            (d) => d.id == connService.connectedDeviceId);
+        displayLabel = connectedDevice.label;
+      } catch (_) {}
+    }
     
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
+    if (displayLabel == null) {
+      if (connService.connectionMode == ConnectionMode.bluetooth && connService.selectedDevice != null) {
+        displayLabel = connService.selectedDevice!.name;
+      } else if (connService.connectedIp != null) {
+        displayLabel = connService.connectedIp;
+      }
+    }
+
+    if (displayLabel == null) {
+      final projectDeviceTypeClean = widget.project.deviceType.replaceAll('_', ' ').toLowerCase();
+      try {
+        final matchingDevice = connService.savedDevices.firstWhere(
+            (d) => d.label.toLowerCase().contains(projectDeviceTypeClean));
+        displayLabel = matchingDevice.label;
+      } catch (_) {}
+    }
+
+    if (displayLabel == null) {
+      displayLabel = widget.project.deviceType.replaceAll('_', ' ').toUpperCase();
+      if (widget.project.deviceType == 'raspberry_pi') displayLabel = 'RASPBERRY PI';
+      if (widget.project.deviceType == 'orange_pi') displayLabel = 'ORANGE PI';
+    } else {
+      displayLabel = displayLabel.toUpperCase();
+    }
+    
+        final deviceNameDisplay = displayLabel;
+        final isOnline = connService.isConnected;
+
+        return Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: Colors.white,
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
@@ -282,10 +374,17 @@ class _BlynkCanvasScreenState extends State<BlynkCanvasScreen> {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF00E3A2).withValues(alpha: 0.15),
+                        color: (isOnline ? const Color(0xFF00E3A2) : Colors.red).withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(10),
                       ),
-                      child: const Text('ONLINE', style: TextStyle(color: Color(0xFF00E3A2), fontSize: 11, fontWeight: FontWeight.bold)),
+                      child: Text(
+                        isOnline ? 'ONLINE' : 'OFFLINE', 
+                        style: TextStyle(
+                          color: isOnline ? const Color(0xFF00E3A2) : Colors.red, 
+                          fontSize: 11, 
+                          fontWeight: FontWeight.bold
+                        ),
+                      ),
                     ),
                   ],
                 ),
@@ -300,7 +399,8 @@ class _BlynkCanvasScreenState extends State<BlynkCanvasScreen> {
         ],
       ),
     );
-  }
+  });
+}
 
   Widget _buildWidgetCard(BlynkWidgetEntity w, Color color, int index) {
     VoidCallback? onDeleteAction = _isEditMode
