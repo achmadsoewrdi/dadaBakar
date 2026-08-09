@@ -169,7 +169,7 @@ class _DeviceConnectionScreenState extends State<DeviceConnectionScreen> {
               (a.protocol == 'bluetooth' &&
                   service.isConnected &&
                   service.connectionMode == ConnectionMode.bluetooth &&
-                  service.selectedDevice?.address == a.macAddress) ||
+                  service.selectedDevice?.remoteId.str == a.macAddress) ||
               (a.protocol == 'websocket' &&
                   service.isConnected &&
                   service.connectionMode == ConnectionMode.wifi &&
@@ -178,7 +178,7 @@ class _DeviceConnectionScreenState extends State<DeviceConnectionScreen> {
               (b.protocol == 'bluetooth' &&
                   service.isConnected &&
                   service.connectionMode == ConnectionMode.bluetooth &&
-                  service.selectedDevice?.address == b.macAddress) ||
+                  service.selectedDevice?.remoteId.str == b.macAddress) ||
               (b.protocol == 'websocket' &&
                   service.isConnected &&
                   service.connectionMode == ConnectionMode.wifi &&

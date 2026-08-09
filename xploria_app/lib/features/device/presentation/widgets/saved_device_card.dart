@@ -26,7 +26,7 @@ class SavedDeviceCard extends StatelessWidget {
     final isOnline = isBluetooth
         ? (service.isConnected &&
               service.connectionMode == ConnectionMode.bluetooth &&
-              service.selectedDevice?.address == device.macAddress)
+              service.selectedDevice?.remoteId.str == device.macAddress)
         : (service.isConnected &&
               service.connectionMode == ConnectionMode.wifi &&
               service.connectedIp == device.host);
