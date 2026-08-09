@@ -1,12 +1,46 @@
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select, func
 from datetime import datetime, timedelta
 from uuid import UUID
+from fastapi import HTTPException, status
 from app.modules.projects.models import Project
 from app.modules.projects.schemas import ProjectCreate, ProjectUpdate
+from app.core.config import settings
 
 
-async def create_project(db: AsyncSession, project_in: ProjectCreate, owner_id: UUID) -> Project:
+async def _count_active_projects(db: AsyncSession, owner_id: UUID) -> int:
+    """Menghitung jumlah proyek aktif (non-soft-deleted) milik owner."""
+    result = await db.execute(
+        select(func.count()).where(
+            Project.owner_id == owner_id,
+            Project.deleted_at.is_(None),
+        )
+    )
+    return result.scalar_one()
+
+
+async def create_project(
+    db: AsyncSession,
+    project_in: ProjectCreate,
+    owner_id: UUID,
+    is_premium: bool = False,
+) -> Project:
+    """Membuat proyek baru.
+
+    Untuk user free/demo, jumlah proyek aktif dibatasi oleh ``settings.FREE_PROJECT_QUOTA``
+    sesuai plan.md §1.2 FR #7: enforcement di backend, bukan hanya di client.
+    """
+    if not is_premium:
+        count = await _count_active_projects(db, owner_id)
+        if count >= settings.FREE_PROJECT_QUOTA:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=(
+                    f"Batas proyek untuk akun free adalah {settings.FREE_PROJECT_QUOTA}. "
+                    "Upgrade ke Xploria Pro untuk proyek tanpa batas."
+                ),
+            )
+
     project = Project(
         owner_id=owner_id,
         name=project_in.name,

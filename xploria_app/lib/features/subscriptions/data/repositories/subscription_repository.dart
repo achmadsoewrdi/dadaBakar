@@ -1,20 +1,21 @@
 import '../data_sources/subscription_remote_data_source.dart';
 import '../models/subscription_model.dart';
+import '../../domain/models/subscription_tier.dart';
+import '../../domain/repositories/i_subscription_repository.dart';
 
+class SubscriptionRepository implements ISubscriptionRepository {
+  final SubscriptionRemoteDataSource _remoteDataSource;
 
-class SubscriptionRepository {
-  final SubscriptionRemoteDataSource _remoteDataSource = SubscriptionRemoteDataSource();
-  
+  SubscriptionRepository({SubscriptionRemoteDataSource? remoteDataSource})
+      : _remoteDataSource = remoteDataSource ?? SubscriptionRemoteDataSource();
 
-  Future<SubscriptionModel> getMySubscription() async {
-    final sub = await _remoteDataSource.getMySubscription();
-    // Cache the premium status in the auth storage if we want to
-    // For simplicity we could just save a boolean indicating premium status
-    // or rely on fetching this each time the app loads
-    return sub;
+  @override
+  Future<SubscriptionModel> getMySubscription() {
+    return _remoteDataSource.getMySubscription();
   }
 
-  Future<SubscriptionModel> subscribe(String tier) async {
-    return await _remoteDataSource.subscribe(tier);
+  @override
+  Future<SubscriptionModel> subscribe(SubscriptionTier tier) {
+    return _remoteDataSource.subscribe(tier);
   }
 }

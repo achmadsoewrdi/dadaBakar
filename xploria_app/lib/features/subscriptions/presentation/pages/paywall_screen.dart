@@ -2,6 +2,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../data/repositories/subscription_repository.dart';
+import '../../domain/models/subscription_tier.dart';
 import '../../../auth/data/data_sources/auth_storage_service.dart';
 
 class PaywallScreen extends StatefulWidget {
@@ -14,21 +15,14 @@ class PaywallScreen extends StatefulWidget {
 class _PaywallScreenState extends State<PaywallScreen> {
   final SubscriptionRepository _repository = SubscriptionRepository();
   bool _isLoading = false;
-  String _selectedTier =
-      'pro'; // default ke tahunan, biar konsisten sama badge hemat
+  SubscriptionTier _selectedTier = SubscriptionTier.yearly;
 
   // Light Mode Colors (Headspace inspired)
-  static const Color _bg = Color(0xFFFDFBF7); // Creamy white background
-  static const Color _card = Color(
-    0xFFF5F4F0,
-  ); // Light grey/cream for unselected card
-  static const Color _accentBtn = Color(
-    0xFF0066FF,
-  ); // Blue for button and links
-  static const Color _accentCard = Color(
-    0xFFFF7A00,
-  ); // Orange for selected card and ticks
-  static const Color _textColor = Color(0xFF2D2D2D); // Dark grey/black for text
+  static const Color _bg = Color(0xFFFDFBF7);
+  static const Color _card = Color(0xFFF5F4F0);
+  static const Color _accentBtn = Color(0xFF0066FF);
+  static const Color _accentCard = Color(0xFFFF7A00);
+  static const Color _textColor = Color(0xFF2D2D2D);
 
   Future<void> _handleSubscribe() async {
     setState(() => _isLoading = true);
@@ -39,7 +33,7 @@ class _PaywallScreenState extends State<PaywallScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: const Text(
-              'Pembayaran Berhasil! Selamat datang di Xploria Pro! 🚀',
+              'Pembayaran Berhasil! Selamat datang di Xploria Pro!',
             ),
             backgroundColor: Colors.green.shade600,
             behavior: SnackBarBehavior.floating,
@@ -54,7 +48,7 @@ class _PaywallScreenState extends State<PaywallScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Gagal berlangganan: '),
+            content: Text('Gagal berlangganan: ${e.toString()}'),
             backgroundColor: Colors.red,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
@@ -79,10 +73,9 @@ class _PaywallScreenState extends State<PaywallScreen> {
             child: SingleChildScrollView(
               padding: EdgeInsets.fromLTRB(
                 24,
-                MediaQuery.of(context).padding.top + 60, // Padding for header
+                MediaQuery.of(context).padding.top + 60,
                 24,
-                MediaQuery.of(context).padding.bottom +
-                    160, // Padding for footer
+                MediaQuery.of(context).padding.bottom + 160,
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -119,42 +112,42 @@ class _PaywallScreenState extends State<PaywallScreen> {
                   ),
                   const SizedBox(height: 32),
 
-                  // Features
+                  // Features — gunakan Column biasa tanpa isLast flag
                   Container(
                     padding: const EdgeInsets.symmetric(
                       vertical: 4,
                       horizontal: 8,
                     ),
                     child: Column(
-                      children: [
-                        _buildFeatureItem('Akses ke semua modul Premium'),
-                        _buildFeatureItem('Proyek Blockly tanpa batas'),
-                        _buildFeatureItem('Template Blynk Canvas VIP'),
-                        _buildFeatureItem(
-                          'Sertifikat kelulusan digital',
-                          isLast: true,
-                        ),
+                      children: const [
+                        _FeatureItem(text: 'Akses ke semua modul Premium'),
+                        SizedBox(height: 16),
+                        _FeatureItem(text: 'Proyek Blockly tanpa batas'),
+                        SizedBox(height: 16),
+                        _FeatureItem(text: 'Template Blynk Canvas VIP'),
+                        SizedBox(height: 16),
+                        _FeatureItem(text: 'Sertifikat kelulusan digital'),
                       ],
                     ),
                   ),
 
                   const SizedBox(height: 32),
 
-                  // Pricing
+                  // Pricing tiles
                   _buildPricingTile(
-                    tier: 'pro',
+                    tier: SubscriptionTier.yearly,
                     title: 'Tahunan',
                     price: 'Rp 490.000',
-                    duration: '(Rp 40.833/bulan)',
+                    priceDetail: '(Rp 40.833/bulan)',
                     subtitle: 'ditagih tahunan setelah percobaan 14 hari',
                     badge: 'Best value',
                   ),
                   const SizedBox(height: 12),
                   _buildPricingTile(
-                    tier: 'premium',
+                    tier: SubscriptionTier.monthly,
                     title: 'Bulanan',
                     price: 'Rp 49.000',
-                    duration: '/bulan',
+                    priceDetail: '/bulan',
                     subtitle: 'ditagih bulanan setelah percobaan 7 hari',
                   ),
                 ],
@@ -174,7 +167,7 @@ class _PaywallScreenState extends State<PaywallScreen> {
                   padding: EdgeInsets.only(
                     top: MediaQuery.of(context).padding.top,
                   ),
-                  color: _bg.withValues(alpha: 0.8), // Transparan putih
+                  color: _bg.withValues(alpha: 0.8),
                   child: Padding(
                     padding: const EdgeInsets.fromLTRB(8, 8, 16, 8),
                     child: Row(
@@ -212,7 +205,7 @@ class _PaywallScreenState extends State<PaywallScreen> {
                     MediaQuery.of(context).padding.bottom + 16,
                   ),
                   decoration: BoxDecoration(
-                    color: _bg.withValues(alpha: 0.8), // Transparan putih
+                    color: _bg.withValues(alpha: 0.8),
                     border: Border(
                       top: BorderSide(
                         color: Colors.black.withValues(alpha: 0.05),
@@ -309,33 +302,11 @@ class _PaywallScreenState extends State<PaywallScreen> {
     );
   }
 
-  Widget _buildFeatureItem(String text, {bool isLast = false}) {
-    return Padding(
-      padding: EdgeInsets.only(bottom: isLast ? 0 : 16.0),
-      child: Row(
-        children: [
-          const Icon(Icons.check_rounded, color: _accentCard, size: 22),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Text(
-              text,
-              style: const TextStyle(
-                color: _textColor,
-                fontSize: 15,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildPricingTile({
-    required String tier,
+    required SubscriptionTier tier,
     required String title,
     required String price,
-    required String duration,
+    required String priceDetail, // previously misnamed 'duration'
     required String subtitle,
     String? badge,
   }) {
@@ -385,7 +356,7 @@ class _PaywallScreenState extends State<PaywallScreen> {
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
-                            TextSpan(text: ' $duration setelah percobaan'),
+                            TextSpan(text: ' $priceDetail setelah percobaan'),
                           ],
                         ),
                       ),
@@ -430,6 +401,36 @@ class _PaywallScreenState extends State<PaywallScreen> {
             ),
         ],
       ),
+    );
+  }
+}
+
+/// Widget stateless untuk item fitur — tidak butuh isLast flag.
+/// Jarak antar item diatur oleh parent dengan SizedBox.
+class _FeatureItem extends StatelessWidget {
+  final String text;
+  const _FeatureItem({required this.text});
+
+  static const Color _accentCard = Color(0xFFFF7A00);
+  static const Color _textColor = Color(0xFF2D2D2D);
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        const Icon(Icons.check_rounded, color: _accentCard, size: 22),
+        const SizedBox(width: 14),
+        Expanded(
+          child: Text(
+            text,
+            style: const TextStyle(
+              color: _textColor,
+              fontSize: 15,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
