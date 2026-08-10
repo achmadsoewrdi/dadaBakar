@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import '../../../projects/domain/models/project_model.dart';
 import '../../data/repositories/dashboard_repository.dart';
@@ -89,14 +90,12 @@ class DashboardHomePageState extends State<DashboardHomePage> with AutomaticKeep
           ? const Center(child: CircularProgressIndicator())
           : SafeArea(
               bottom: false,
-              child: SingleChildScrollView(
-                physics: const BouncingScrollPhysics(),
-                padding: const EdgeInsets.fromLTRB(24, 16, 24, 100),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    // Top Bar (Profile + Streak)
-                    Row(
+              child: Column(
+                children: [
+                  // Fixed Top Bar
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(24, 16, 24, 16),
+                    child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Row(
@@ -172,7 +171,17 @@ class DashboardHomePageState extends State<DashboardHomePage> with AutomaticKeep
                         ),
                       ],
                     ),
-                    const SizedBox(height: 32),
+                  ),
+
+                  // Scrollable Content
+                  Expanded(
+                    child: SingleChildScrollView(
+                      physics: const BouncingScrollPhysics(),
+                      padding: const EdgeInsets.fromLTRB(24, 16, 24, 100),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                    // Top content starts here
 
                     // Carousel Header
                     DashboardHeroCarousel(
@@ -186,10 +195,11 @@ class DashboardHomePageState extends State<DashboardHomePage> with AutomaticKeep
 
                     // Let's Start Building Action Card
                     _buildHeroActionCard(),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 16), // Reduced from 24
 
                     // Projects List
                     ListView.separated(
+                      padding: EdgeInsets.zero, // Remove implicit Flutter padding
                       shrinkWrap: true,
                       physics: const NeverScrollableScrollPhysics(),
                       itemCount: _projects.length > 3 ? 3 : _projects.length,
@@ -198,7 +208,7 @@ class DashboardHomePageState extends State<DashboardHomePage> with AutomaticKeep
                         return _buildProjectItemCard(_projects[index]);
                       },
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 8), // Reduced from 16
 
                     // View All Projects Text Button
                     if (_projects.isNotEmpty)
@@ -223,11 +233,14 @@ class DashboardHomePageState extends State<DashboardHomePage> with AutomaticKeep
                           ],
                         ),
                       ),
-                    const SizedBox(height: 80),
+                    const SizedBox(height: 16),
                   ],
                 ),
               ),
             ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -378,9 +391,9 @@ class _DashboardHeroCarouselState extends State<DashboardHeroCarousel> {
             _carouselItems[_currentIndex]['title']!,
             key: ValueKey<int>(_currentIndex),
             textAlign: TextAlign.center,
-            style: TextStyle(
+            style: GoogleFonts.poppins(
               fontSize: 32,
-              fontWeight: FontWeight.w900,
+              fontWeight: FontWeight.bold,
               color: _carouselItems[_currentIndex]['color'] as Color,
               height: 1.1,
             ),

@@ -177,12 +177,16 @@ class _BlynkCanvasScreenState extends State<BlynkCanvasScreen> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text(
-              'Kanvas IoT Real-Time',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w900,
-                color: Color(0xFF0A122C),
+            Expanded(
+              child: const Text(
+                'Kanvas IoT Real-Time',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w900,
+                  color: Color(0xFF0A122C),
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
             ),
             Row(

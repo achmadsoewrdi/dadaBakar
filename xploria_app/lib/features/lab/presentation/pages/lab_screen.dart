@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../../../../features/projects/domain/models/project_model.dart';
 import '../../../../features/projects/data/data_sources/project_api_service.dart';
 import '../../../../features/iot_lab/presentation/screens/blynk_canvas_screen.dart';
@@ -62,9 +63,9 @@ class _LabScreenState extends State<LabScreen> {
                 children: [
                   AnimatedDefaultTextStyle(
                     duration: const Duration(milliseconds: 300),
-                    style: TextStyle(
+                    style: GoogleFonts.poppins(
                       fontSize: 32,
-                      fontWeight: FontWeight.w900,
+                      fontWeight: FontWeight.bold,
                       color: _currentTab == 0 ? const Color(0xFF005CFF) : const Color(0xFF8B5CF6),
                     ),
                     child: const Text('Lab'),
@@ -123,7 +124,6 @@ class _LabScreenState extends State<LabScreen> {
                                         color: _currentTab == 0 ? Colors.white : Colors.grey.shade600,
                                         fontWeight: FontWeight.bold,
                                         fontSize: 16,
-                                        fontFamily: 'Roboto', // Avoid default font inheritance issues
                                       ),
                                       child: const Text('IoT Lab'),
                                     ),
@@ -141,7 +141,6 @@ class _LabScreenState extends State<LabScreen> {
                                         color: _currentTab == 1 ? Colors.white : Colors.grey.shade600,
                                         fontWeight: FontWeight.bold,
                                         fontSize: 16,
-                                        fontFamily: 'Roboto', // Avoid default font inheritance issues
                                       ),
                                       child: const Text('AI Lab'),
                                     ),
@@ -160,15 +159,15 @@ class _LabScreenState extends State<LabScreen> {
 
               // Shared Dropdown
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
                 decoration: BoxDecoration(
                   color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(24),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.02),
-                      blurRadius: 10,
-                      offset: const Offset(0, 4),
+                      color: Colors.black.withValues(alpha: 0.04),
+                      blurRadius: 12,
+                      offset: const Offset(0, 6),
                     ),
                   ],
                 ),
@@ -184,35 +183,97 @@ class _LabScreenState extends State<LabScreen> {
                               'Belum ada project tersedia',
                               style: TextStyle(
                                 fontSize: 16,
-                                fontWeight: FontWeight.w500,
+                                fontWeight: FontWeight.w600,
                                 color: Colors.grey,
                               ),
                             ),
                           )
-                        : DropdownButtonHideUnderline(
-                            child: DropdownButton<ProjectModel>(
+                        : Theme(
+                            data: Theme.of(context).copyWith(
+                              focusColor: Colors.transparent,
+                              hoverColor: Colors.transparent,
+                              highlightColor: Colors.transparent,
+                              splashColor: Colors.transparent,
+                            ),
+                            child: DropdownButtonHideUnderline(
+                              child: DropdownButton<ProjectModel>(
                               value: _selectedProject,
                               isExpanded: true,
-                              icon: const Icon(Icons.keyboard_arrow_down_rounded, color: Colors.grey),
-                              items: _projects.map((ProjectModel project) {
-                                return DropdownMenuItem<ProjectModel>(
-                                  value: project,
-                                  child: Row(
+                              borderRadius: BorderRadius.circular(24),
+                              dropdownColor: Colors.white,
+                              icon: const Icon(Icons.keyboard_arrow_down_rounded, color: Color(0xFF005CFF), size: 28),
+                              itemHeight: 64, // Make items taller for padding
+                              focusColor: Colors.transparent,
+                              selectedItemBuilder: (BuildContext context) {
+                                return _projects.map<Widget>((ProjectModel project) {
+                                  return Row(
                                     children: [
-                                      const Text('🌱', style: TextStyle(fontSize: 18)),
-                                      const SizedBox(width: 12),
+                                      Container(
+                                        padding: const EdgeInsets.all(8),
+                                        decoration: BoxDecoration(
+                                          color: const Color(0xFF005CFF).withValues(alpha: 0.1),
+                                          shape: BoxShape.circle,
+                                        ),
+                                        child: const Text('🌱', style: TextStyle(fontSize: 14)),
+                                      ),
+                                      const SizedBox(width: 14),
                                       Expanded(
                                         child: Text(
                                           project.name,
                                           style: const TextStyle(
                                             fontSize: 16,
-                                            fontWeight: FontWeight.w700,
-                                            color: Color(0xFF0F172A),
+                                            fontWeight: FontWeight.w800,
+                                            color: Color(0xFF0A122C),
                                           ),
                                           overflow: TextOverflow.ellipsis,
                                         ),
                                       ),
                                     ],
+                                  );
+                                }).toList();
+                              },
+                              items: _projects.map((ProjectModel project) {
+                                final isSelected = project.id == _selectedProject?.id;
+                                return DropdownMenuItem<ProjectModel>(
+                                  value: project,
+                                  child: Container(
+                                    height: 52,
+                                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                                    margin: const EdgeInsets.symmetric(horizontal: 8),
+                                    decoration: BoxDecoration(
+                                      color: isSelected 
+                                          ? const Color(0xFF005CFF).withValues(alpha: 0.1) 
+                                          : Colors.transparent,
+                                      borderRadius: BorderRadius.circular(16),
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        Container(
+                                          padding: const EdgeInsets.all(8),
+                                          decoration: BoxDecoration(
+                                            color: isSelected 
+                                                ? const Color(0xFF005CFF).withValues(alpha: 0.2)
+                                                : const Color(0xFF005CFF).withValues(alpha: 0.05),
+                                            shape: BoxShape.circle,
+                                          ),
+                                          child: const Text('🌱', style: TextStyle(fontSize: 14)),
+                                        ),
+                                        const SizedBox(width: 14),
+                                        Expanded(
+                                          child: Text(
+                                            project.name,
+                                            style: TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+                                              color: isSelected ? const Color(0xFF005CFF) : const Color(0xFF0A122C),
+                                            ),
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                        ),
+                                        if (isSelected)
+                                          const Icon(Icons.check_circle_rounded, color: Color(0xFF005CFF), size: 20),
+                                      ],
+                                    ),
                                   ),
                                 );
                               }).toList(),
@@ -225,6 +286,7 @@ class _LabScreenState extends State<LabScreen> {
                               },
                             ),
                           ),
+                        ),
               ),
               const SizedBox(height: 24),
 

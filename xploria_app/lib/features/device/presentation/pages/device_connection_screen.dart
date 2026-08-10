@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/services/device_connection_service.dart';
 import '../../data/data_sources/device_api_service.dart';
 import '../../data/models/device_profile_model.dart';
@@ -225,12 +226,12 @@ class _DeviceConnectionScreenState extends State<DeviceConnectionScreen> {
                             ),
                           ),
                         ),
-                      const Text(
+                      Text(
                         'My Devices',
-                        style: TextStyle(
+                        style: GoogleFonts.poppins(
                           fontSize: 24,
-                          fontWeight: FontWeight.w900,
-                          color: Color(0xFF003092),
+                          fontWeight: FontWeight.bold,
+                          color: const Color(0xFF003092),
                         ),
                       ),
                     ],

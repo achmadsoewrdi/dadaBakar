@@ -79,15 +79,15 @@ class _AiLabScreenState extends State<AiLabScreen> {
 
               // Dropdown
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
                 decoration: BoxDecoration(
                   color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(24),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.02),
-                      blurRadius: 10,
-                      offset: const Offset(0, 4),
+                      color: Colors.black.withValues(alpha: 0.04),
+                      blurRadius: 12,
+                      offset: const Offset(0, 6),
                     ),
                   ],
                 ),
@@ -103,7 +103,7 @@ class _AiLabScreenState extends State<AiLabScreen> {
                               'Belum ada project tersedia',
                               style: TextStyle(
                                 fontSize: 16,
-                                fontWeight: FontWeight.w500,
+                                fontWeight: FontWeight.w600,
                                 color: Colors.grey,
                               ),
                             ),
@@ -112,21 +112,30 @@ class _AiLabScreenState extends State<AiLabScreen> {
                             child: DropdownButton<ProjectModel>(
                               value: _selectedProject,
                               isExpanded: true,
-                              icon: const Icon(Icons.keyboard_arrow_down_rounded, color: Colors.grey),
+                              borderRadius: BorderRadius.circular(24),
+                              dropdownColor: Colors.white,
+                              icon: const Icon(Icons.keyboard_arrow_down_rounded, color: Color(0xFF005CFF), size: 28),
                               items: _projects.map((ProjectModel project) {
                                 return DropdownMenuItem<ProjectModel>(
                                   value: project,
                                   child: Row(
                                     children: [
-                                      const Text('🌱', style: TextStyle(fontSize: 18)),
-                                      const SizedBox(width: 12),
+                                      Container(
+                                        padding: const EdgeInsets.all(8),
+                                        decoration: BoxDecoration(
+                                          color: const Color(0xFF005CFF).withValues(alpha: 0.1),
+                                          shape: BoxShape.circle,
+                                        ),
+                                        child: const Text('🌱', style: TextStyle(fontSize: 14)),
+                                      ),
+                                      const SizedBox(width: 14),
                                       Expanded(
                                         child: Text(
                                           project.name,
                                           style: const TextStyle(
                                             fontSize: 16,
-                                            fontWeight: FontWeight.w700,
-                                            color: Color(0xFF0F172A),
+                                            fontWeight: FontWeight.w800,
+                                            color: Color(0xFF0A122C),
                                           ),
                                           overflow: TextOverflow.ellipsis,
                                         ),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../../../dashboard/data/repositories/dashboard_repository.dart';
 import '../../data/repositories/project_repository_impl.dart';
 import '../../domain/models/project_model.dart';
@@ -324,12 +325,12 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
+                  Text(
                     'My Projects',
-                    style: TextStyle(
+                    style: GoogleFonts.poppins(
                       fontSize: 22,
                       fontWeight: FontWeight.bold,
-                      color: Color(0xFF0A122C),
+                      color: const Color(0xFF0A122C),
                     ),
                   ),
                   TextButton.icon(
@@ -512,7 +513,6 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
               padding: const EdgeInsets.all(24.0),
               child: Container(
                 width: double.infinity,
-                padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
                   color: const Color(0xFFE8F0FE),
                   borderRadius: BorderRadius.circular(20),
@@ -524,71 +524,102 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
                     ),
                   ],
                 ),
-                child: Stack(
-                  children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'COLLECTION',
-                          style: TextStyle(
-                            fontSize: 10,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.grey.shade600,
-                            letterSpacing: 1.2,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(20),
+                  child: Stack(
+                    children: [
+                      Positioned(
+                        right: -30,
+                        bottom: -30,
+                        child: Container(
+                          width: 120,
+                          height: 120,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            gradient: RadialGradient(
+                              colors: [
+                                Colors.orange.withValues(alpha: 0.4),
+                                Colors.orange.withValues(alpha: 0.0),
+                              ],
+                            ),
                           ),
-                        ),
-                        const SizedBox(height: 4),
-                        const Text(
-                          'All Projects',
-                          style: TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF0A122C),
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          'Manage all your IoT\ncreations',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.grey.shade700,
-                            height: 1.4,
-                          ),
-                        ),
-                      ],
-                    ),
-                    Positioned(
-                      right: -20,
-                      bottom: -20,
-                      child: Container(
-                        width: 100,
-                        height: 100,
-                        decoration: BoxDecoration(
-                          color: Colors.orange.withValues(alpha: 0.2),
-                          shape: BoxShape.circle,
-                        ),
-                        child: Center(
-                          child: Container(
-                            width: 60,
-                            height: 60,
-                            decoration: BoxDecoration(
-                              color: Colors.orange.withValues(alpha: 0.6),
-                              shape: BoxShape.circle,
+                          child: Center(
+                            child: Container(
+                              width: 60,
+                              height: 60,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: Colors.orange.withValues(alpha: 0.5),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.orange.withValues(alpha: 0.5),
+                                    blurRadius: 20,
+                                    spreadRadius: 10,
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
                         ),
                       ),
-                    ),
-                  ],
+                      Padding(
+                        padding: const EdgeInsets.all(20),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'COLLECTION',
+                              style: TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.grey.shade600,
+                                letterSpacing: 1.2,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            const Text(
+                              'All Projects',
+                              style: TextStyle(
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF0A122C),
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'Manage all your IoT\ncreations',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Colors.grey.shade700,
+                                height: 1.4,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
             
             // Project List
             Expanded(
-              child: ListView.separated(
-                padding: const EdgeInsets.fromLTRB(24, 0, 24, 100),
+              child: ShaderMask(
+                shaderCallback: (Rect rect) {
+                  return const LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      Colors.transparent,
+                      Colors.black,
+                    ],
+                    stops: [0.0, 0.05], // Fades out the top 5% of the list view
+                  ).createShader(rect);
+                },
+                blendMode: BlendMode.dstIn,
+                child: ListView.separated(
+                  padding: const EdgeInsets.fromLTRB(24, 0, 24, 100),
                 itemCount: _filteredProjects.length + 1,
                 separatorBuilder: (context, index) => const SizedBox(height: 16),
                 itemBuilder: (context, index) {
@@ -675,6 +706,7 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
 
                   return projectCardWidget;
                 },
+              ),
               ),
             ),
           ],
