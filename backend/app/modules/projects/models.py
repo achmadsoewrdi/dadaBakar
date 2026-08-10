@@ -20,6 +20,7 @@ class Project(Base):
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     workspace_xml: Mapped[str] = mapped_column(Text, nullable=False)
     generated_code: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
+    blynk_config_json: Mapped[list | None] = mapped_column(JSONB, nullable=True)
     
     # STEM Fields
     target_hardware_type: Mapped[str | None] = mapped_column(String(50), nullable=True)

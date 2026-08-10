@@ -5,6 +5,9 @@ import 'package:xploria_app/features/auth/presentation/pages/welcome_screen.dart
 import 'package:xploria_app/features/auth/presentation/pages/login_screen.dart';
 import 'package:xploria_app/features/auth/presentation/pages/register_screen.dart';
 import 'package:xploria_app/features/dashboard/presentation/pages/dashboard_screen.dart';
+import 'package:xploria_app/features/dashboard/presentation/pages/teacher_dashboard_screen.dart';
+import 'package:xploria_app/features/classroom/presentation/pages/classroom_mockup_screen.dart';
+import 'package:xploria_app/features/assignments/presentation/pages/assignments_mockup_screen.dart';
 import 'package:xploria_app/features/projects/presentation/pages/project_list_screen.dart';
 import 'package:xploria_app/features/lessons_modules/presentation/pages/lessons_modules_page.dart';
 import 'package:xploria_app/features/device/presentation/pages/device_connection_screen.dart';
@@ -14,11 +17,12 @@ import 'package:xploria_app/features/auth/data/data_sources/auth_storage_service
 import 'package:xploria_app/features/account/presentation/pages/account_page.dart';
 import 'package:xploria_app/features/account/presentation/pages/edit_account_screen.dart';
 import 'package:xploria_app/features/content/presentation/pages/module_detail_screen.dart';
-import 'package:xploria_app/features/iot_blynk/presentation/screens/blynk_canvas_screen.dart';
+import 'package:xploria_app/features/iot_lab/presentation/screens/blynk_canvas_screen.dart';
 import 'package:xploria_app/features/blockly_workspace/presentation/pages/python_editor_screen.dart';
 import 'package:xploria_app/features/projects/domain/models/project_model.dart';
 import 'package:xploria_app/features/subscriptions/presentation/pages/paywall_screen.dart';
 import 'package:xploria_app/features/content/domain/models/learning_module_model.dart';
+import 'package:xploria_app/features/ai_lab/presentation/pages/ai_analysis_result_screen.dart';
 
 class AppRouter {
   static final _rootNavigatorKey = GlobalKey<NavigatorState>();
@@ -86,6 +90,18 @@ class AppRouter {
         builder: (context, state) => const DashboardScreen(),
       ),
       GoRoute(
+        path: '/teacher-dashboard',
+        builder: (context, state) => const TeacherDashboardScreen(),
+      ),
+      GoRoute(
+        path: '/classroom-mockup',
+        builder: (context, state) => const ClassroomMockupScreen(),
+      ),
+      GoRoute(
+        path: '/assignments-mockup',
+        builder: (context, state) => const AssignmentsMockupScreen(),
+      ),
+      GoRoute(
         path: '/projects',
         builder: (context, state) => const ProjectListScreen(),
       ),
@@ -131,15 +147,22 @@ class AppRouter {
       GoRoute(
         path: '/blynk-canvas',
         builder: (context, state) {
-          final args = state.extra as Map<String, dynamic>? ?? {};
-          final project = args['project'] as ProjectModel;
-          final onSave = args['onSave'] as ValueChanged<ProjectModel>?;
-          return BlynkCanvasScreen(project: project, onSaveBlynkConfig: onSave);
+          final extra = state.extra as Map<String, dynamic>;
+          final project = extra['project'] as ProjectModel;
+          final onSave = extra['onSaveBlynkConfig'] as void Function(ProjectModel)?;
+          return BlynkCanvasScreen(
+            project: project,
+            onSaveBlynkConfig: onSave,
+          );
         },
       ),
       GoRoute(
         path: '/paywall',
         builder: (context, state) => const PaywallScreen(),
+      ),
+      GoRoute(
+        path: '/ai-analysis-result',
+        builder: (context, state) => const AiAnalysisResultScreen(),
       ),
     ],
   );

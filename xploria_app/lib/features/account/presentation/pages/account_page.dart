@@ -387,8 +387,9 @@ class _AccountPageState extends State<AccountPage> {
     return Scaffold(
       backgroundColor: const Color(0xFFF4F6F9),
       body: SafeArea(
+        bottom: false,
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24.0),
+          padding: const EdgeInsets.fromLTRB(24, 24, 24, 100),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [

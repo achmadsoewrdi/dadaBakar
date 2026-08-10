@@ -8,6 +8,7 @@ class ProjectCreate(BaseModel):
     name: str
     workspace_xml: str
     generated_code: Optional[dict] = None
+    blynk_config_json: Optional[list] = None
     device_profile_id: Optional[UUID] = None
     target_hardware_type: Optional[str] = None
     execution_target: Optional[str] = "hardware"
@@ -17,6 +18,7 @@ class ProjectUpdate(BaseModel):
     name: Optional[str] = None
     workspace_xml: Optional[str] = None
     generated_code: Optional[dict] = None
+    blynk_config_json: Optional[list] = None
     device_profile_id: Optional[UUID] = None
     target_hardware_type: Optional[str] = None
     execution_target: Optional[str] = None
@@ -31,6 +33,7 @@ class ProjectOut(BaseModel):
     name: str
     workspace_xml: str
     generated_code: Optional[dict] = None
+    blynk_config_json: Optional[list] = None
     device_profile_id: Optional[UUID] = None
     target_hardware_type: Optional[str] = None
     execution_target: Optional[str] = "hardware"

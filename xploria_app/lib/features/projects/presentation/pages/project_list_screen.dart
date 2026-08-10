@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../../../dashboard/data/repositories/dashboard_repository.dart';
 import '../../data/repositories/project_repository_impl.dart';
 import '../../domain/models/project_model.dart';
 import '../../data/data_sources/project_category_service.dart';
+import '../widgets/project_card.dart';
 
 class ProjectListScreen extends StatefulWidget {
   const ProjectListScreen({super.key});
@@ -313,6 +315,7 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFFF4F7FB),
       body: SafeArea(
+        bottom: false,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -322,12 +325,12 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
+                  Text(
                     'My Projects',
-                    style: TextStyle(
+                    style: GoogleFonts.poppins(
                       fontSize: 22,
                       fontWeight: FontWeight.bold,
-                      color: Color(0xFF0A122C),
+                      color: const Color(0xFF0A122C),
                     ),
                   ),
                   TextButton.icon(
@@ -510,7 +513,6 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
               padding: const EdgeInsets.all(24.0),
               child: Container(
                 width: double.infinity,
-                padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
                   color: const Color(0xFFE8F0FE),
                   borderRadius: BorderRadius.circular(20),
@@ -522,71 +524,102 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
                     ),
                   ],
                 ),
-                child: Stack(
-                  children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'COLLECTION',
-                          style: TextStyle(
-                            fontSize: 10,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.grey.shade600,
-                            letterSpacing: 1.2,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(20),
+                  child: Stack(
+                    children: [
+                      Positioned(
+                        right: -30,
+                        bottom: -30,
+                        child: Container(
+                          width: 120,
+                          height: 120,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            gradient: RadialGradient(
+                              colors: [
+                                Colors.orange.withValues(alpha: 0.4),
+                                Colors.orange.withValues(alpha: 0.0),
+                              ],
+                            ),
                           ),
-                        ),
-                        const SizedBox(height: 4),
-                        const Text(
-                          'All Projects',
-                          style: TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF0A122C),
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          'Manage all your IoT\ncreations',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.grey.shade700,
-                            height: 1.4,
-                          ),
-                        ),
-                      ],
-                    ),
-                    Positioned(
-                      right: -20,
-                      bottom: -20,
-                      child: Container(
-                        width: 100,
-                        height: 100,
-                        decoration: BoxDecoration(
-                          color: Colors.orange.withValues(alpha: 0.2),
-                          shape: BoxShape.circle,
-                        ),
-                        child: Center(
-                          child: Container(
-                            width: 60,
-                            height: 60,
-                            decoration: BoxDecoration(
-                              color: Colors.orange.withValues(alpha: 0.6),
-                              shape: BoxShape.circle,
+                          child: Center(
+                            child: Container(
+                              width: 60,
+                              height: 60,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: Colors.orange.withValues(alpha: 0.5),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.orange.withValues(alpha: 0.5),
+                                    blurRadius: 20,
+                                    spreadRadius: 10,
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
                         ),
                       ),
-                    ),
-                  ],
+                      Padding(
+                        padding: const EdgeInsets.all(20),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'COLLECTION',
+                              style: TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.grey.shade600,
+                                letterSpacing: 1.2,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            const Text(
+                              'All Projects',
+                              style: TextStyle(
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF0A122C),
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'Manage all your IoT\ncreations',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Colors.grey.shade700,
+                                height: 1.4,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
             
             // Project List
             Expanded(
-              child: ListView.separated(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: ShaderMask(
+                shaderCallback: (Rect rect) {
+                  return const LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      Colors.transparent,
+                      Colors.black,
+                    ],
+                    stops: [0.0, 0.05], // Fades out the top 5% of the list view
+                  ).createShader(rect);
+                },
+                blendMode: BlendMode.dstIn,
+                child: ListView.separated(
+                  padding: const EdgeInsets.fromLTRB(24, 0, 24, 100),
                 itemCount: _filteredProjects.length + 1,
                 separatorBuilder: (context, index) => const SizedBox(height: 16),
                 itemBuilder: (context, index) {
@@ -628,96 +661,26 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
                   final project = _filteredProjects[index];
                   final isFavorite = index == 0; // Just mock favorite for demo based on UI
 
-                  Widget projectCardWidget = Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(20),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.03),
-                          blurRadius: 10,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
-                    ),
-                    child: Row(
-                      children: [
-                        if (_isEditMode)
-                          Padding(
-                            padding: const EdgeInsets.only(right: 12),
-                            child: Icon(Icons.drag_indicator_rounded, color: Colors.grey.shade400),
-                          ),
-                        Image.asset(
-                          _categoryService.getIconForCategory(_categoryService.getCategoryForProject(project.id)),
-                          width: _isEditMode ? 50 : 60,
-                          height: _isEditMode ? 50 : 60,
-                          fit: BoxFit.contain,
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Expanded(
-                                    child: Text(
-                                      project.name,
-                                      style: const TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold,
-                                        color: Color(0xFF0A122C),
-                                      ),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                  if (isFavorite && !_isEditMode)
-                                    const Icon(Icons.star_rounded, color: Color(0xFFFFC107), size: 20),
-                                ],
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                'Last edited ${_timeAgo(project.updatedAt)}',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.grey.shade500,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        if (_isEditMode)
-                          IconButton(
-                            icon: const Icon(Icons.delete_outline_rounded, color: Colors.red),
-                            onPressed: () => _deleteProject(project),
-                          )
-                        else
-                          PopupMenuButton<String>(
-                            icon: Icon(Icons.more_vert_rounded, color: Colors.grey.shade400),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                            onSelected: (String newCategory) async {
-                              await _categoryService.setProjectCategory(project.id, newCategory);
-                              if (mounted) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(content: Text('Project moved to $newCategory')),
-                                );
-                                _initData();
-                              }
-                            },
-                            itemBuilder: (BuildContext context) {
-                              return _categoryService.categories.map((String choice) {
-                                return PopupMenuItem<String>(
-                                  value: choice,
-                                  child: Text('Move to $choice'),
-                                );
-                              }).toList();
-                            },
-                          ),
-                      ],
-                    ),
+                  Widget projectCardWidget = ProjectCard(
+                    project: project,
+                    isEditMode: _isEditMode,
+                    isFavorite: isFavorite,
+                    categoryService: _categoryService,
+                    showPopupMenu: !_isEditMode,
+                    onDelete: () => _deleteProject(project),
+                    onCategorySelected: (String newCategory) async {
+                      await _categoryService.setProjectCategory(project.id, newCategory);
+                      if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Project moved to $newCategory')),
+                        );
+                        _initData();
+                      }
+                    },
+                    onTap: () async {
+                      await context.push('/blockly', extra: project);
+                      _initData();
+                    },
                   );
 
                   if (_isEditMode) {
@@ -741,14 +704,9 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
                     );
                   }
 
-                  return GestureDetector(
-                    onTap: () async {
-                      await context.push('/blockly', extra: project);
-                      _initData();
-                    },
-                    child: projectCardWidget,
-                  );
+                  return projectCardWidget;
                 },
+              ),
               ),
             ),
           ],

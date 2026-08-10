@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import '../../../projects/domain/models/project_model.dart';
 import '../../data/repositories/dashboard_repository.dart';
 import '../../../projects/data/repositories/project_repository_impl.dart';
+import '../../../projects/presentation/widgets/project_card.dart';
+import '../../../projects/data/data_sources/project_category_service.dart';
 import '../../../auth/data/data_sources/auth_storage_service.dart';
 import '../../../auth/domain/models/user_model.dart';
 import '../../../../core/config/app_constants.dart';
@@ -24,9 +28,11 @@ class DashboardHomePage extends StatefulWidget {
 
 class DashboardHomePageState extends State<DashboardHomePage> with AutomaticKeepAliveClientMixin {
   final DashboardRepository _repository = DashboardRepository();
+  final ProjectCategoryService _categoryService = ProjectCategoryService();
   bool _isLoading = true;
   List<ProjectModel> _projects = [];
   UserModel? _user;
+  Color _heroColor = const Color(0xFF005CFF);
 
   @override
   bool get wantKeepAlive => true;
@@ -38,6 +44,7 @@ class DashboardHomePageState extends State<DashboardHomePage> with AutomaticKeep
   }
 
   Future<void> _loadData() async {
+    await _categoryService.init();
     final projects = await _repository.getRecentProjects();
     final user = AuthStorageService().currentUser;
     
@@ -82,14 +89,13 @@ class DashboardHomePageState extends State<DashboardHomePage> with AutomaticKeep
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : SafeArea(
-              child: SingleChildScrollView(
-                physics: const BouncingScrollPhysics(),
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    // Top Bar (Profile + Streak)
-                    Row(
+              bottom: false,
+              child: Column(
+                children: [
+                  // Fixed Top Bar
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(24, 16, 24, 16),
+                    child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Row(
@@ -127,38 +133,73 @@ class DashboardHomePageState extends State<DashboardHomePage> with AutomaticKeep
                             ),
                           ],
                         ),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(color: Colors.grey.shade200),
-                          ),
-                          child: const Row(
-                            children: [
-                              Text(
-                                '5',
-                                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                        Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(20),
+                                border: Border.all(color: Colors.grey.shade200),
                               ),
-                              SizedBox(width: 4),
-                              Text('🔥', style: TextStyle(fontSize: 16)),
-                            ],
-                          ),
+                              child: const Row(
+                                children: [
+                                  Text(
+                                    '5',
+                                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                                  ),
+                                  SizedBox(width: 4),
+                                  Text('🔥', style: TextStyle(fontSize: 16)),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Container(
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF3B5BDB).withValues(alpha: 0.1),
+                                shape: BoxShape.circle,
+                              ),
+                              child: IconButton(
+                                icon: const Icon(Icons.school, color: Color(0xFF3B5BDB), size: 20),
+                                tooltip: 'Simulasi Mode Guru',
+                                onPressed: () {
+                                  context.push('/teacher-dashboard');
+                                },
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),
-                    const SizedBox(height: 32),
+                  ),
+
+                  // Scrollable Content
+                  Expanded(
+                    child: SingleChildScrollView(
+                      physics: const BouncingScrollPhysics(),
+                      padding: const EdgeInsets.fromLTRB(24, 16, 24, 100),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                    // Top content starts here
 
                     // Carousel Header
-                    const DashboardHeroCarousel(),
+                    DashboardHeroCarousel(
+                      onColorChanged: (color) {
+                        setState(() {
+                          _heroColor = color;
+                        });
+                      },
+                    ),
                     const SizedBox(height: 32),
 
                     // Let's Start Building Action Card
                     _buildHeroActionCard(),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 16), // Reduced from 24
 
                     // Projects List
                     ListView.separated(
+                      padding: EdgeInsets.zero, // Remove implicit Flutter padding
                       shrinkWrap: true,
                       physics: const NeverScrollableScrollPhysics(),
                       itemCount: _projects.length > 3 ? 3 : _projects.length,
@@ -167,7 +208,7 @@ class DashboardHomePageState extends State<DashboardHomePage> with AutomaticKeep
                         return _buildProjectItemCard(_projects[index]);
                       },
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 8), // Reduced from 16
 
                     // View All Projects Text Button
                     if (_projects.isNotEmpty)
@@ -192,11 +233,14 @@ class DashboardHomePageState extends State<DashboardHomePage> with AutomaticKeep
                           ],
                         ),
                       ),
-                    const SizedBox(height: 80),
+                    const SizedBox(height: 16),
                   ],
                 ),
               ),
             ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -221,10 +265,10 @@ class DashboardHomePageState extends State<DashboardHomePage> with AutomaticKeep
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: const Color(0xFFE0F2FE),
+              color: _heroColor.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(16),
             ),
-            child: const Icon(Icons.rocket_launch_rounded, color: Color(0xFF005CFF), size: 28),
+            child: Icon(Icons.rocket_launch_rounded, color: _heroColor, size: 28),
           ),
           const SizedBox(width: 16),
           Expanded(
@@ -251,7 +295,7 @@ class DashboardHomePageState extends State<DashboardHomePage> with AutomaticKeep
                 ElevatedButton(
                   onPressed: () => _addNewProject("New Project", "raspberry_pi"),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF005CFF),
+                    backgroundColor: _heroColor,
                     foregroundColor: Colors.white,
                     elevation: 0,
                     shape: RoundedRectangleBorder(
@@ -277,105 +321,58 @@ class DashboardHomePageState extends State<DashboardHomePage> with AutomaticKeep
   }
 
   Widget _buildProjectItemCard(ProjectModel project) {
-    IconData icon;
-    Color color;
-    
-    if (project.name.toLowerCase().contains("garden") || project.name.toLowerCase().contains("agri") || project.name.toLowerCase().contains("taman")) {
-      icon = Icons.water_drop_outlined;
-      color = const Color(0xFF005CFF);
-    } else if (project.name.toLowerCase().contains("temp") || project.name.toLowerCase().contains("suhu")) {
-      icon = Icons.thermostat_rounded;
-      color = const Color(0xFF005CFF);
-    } else {
-      icon = Icons.security_rounded;
-      color = const Color(0xFF005CFF);
-    }
-
-    return GestureDetector(
+    return ProjectCard(
+      project: project,
+      categoryService: _categoryService,
+      showChevron: true,
       onTap: () async {
         await context.push('/blockly', extra: project);
         _loadData();
       },
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(20),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.grey.withValues(alpha: 0.05),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: const BoxDecoration(
-                color: Color(0xFFE0F2FE),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(icon, color: color, size: 20),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    project.name,
-                    style: const TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF0A122C),
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    "Last edited recently",
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.grey.shade500,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const Icon(Icons.chevron_right_rounded, color: Colors.grey, size: 20),
-          ],
-        ),
-      ),
     );
   }
 }
 
 class DashboardHeroCarousel extends StatefulWidget {
-  const DashboardHeroCarousel({super.key});
+  final Function(Color) onColorChanged;
+
+  const DashboardHeroCarousel({super.key, required this.onColorChanged});
 
   @override
   State<DashboardHeroCarousel> createState() => _DashboardHeroCarouselState();
 }
 
 class _DashboardHeroCarouselState extends State<DashboardHeroCarousel> {
-  final PageController _pageController = PageController(initialPage: 0);
+  final PageController _pageController = PageController(initialPage: 0, viewportFraction: 0.85);
   int _currentIndex = 0;
 
-  final List<Map<String, String>> _carouselItems = [
-    {
-      'title': 'SMART\nAGRICULTURE',
-      'image': 'assets/images/modules/dashboard/smart_farm 1.png',
-    },
+  final List<Map<String, dynamic>> _carouselItems = [
     {
       'title': 'SMART\nCITY',
       'image': 'assets/images/modules/dashboard/smart_city 1.png',
+      'color': const Color(0xFF005CFF),
+    },
+    {
+      'title': 'SMART\nAGRICULTURE',
+      'image': 'assets/images/modules/dashboard/smart_farm 1.png',
+      'color': const Color(0xFF22C55E),
     },
     {
       'title': 'SMART\nHOME',
       'image': 'assets/images/modules/dashboard/smart_home 1.png',
+      'color': const Color(0xFF8B5CF6),
     },
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        widget.onColorChanged(_carouselItems[_currentIndex]['color'] as Color);
+      }
+    });
+  }
 
   @override
   void dispose() {
@@ -388,17 +385,16 @@ class _DashboardHeroCarouselState extends State<DashboardHeroCarousel> {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        // Fixed Title that changes with cross-fade animation
         AnimatedSwitcher(
           duration: const Duration(milliseconds: 300),
           child: Text(
             _carouselItems[_currentIndex]['title']!,
             key: ValueKey<int>(_currentIndex),
             textAlign: TextAlign.center,
-            style: const TextStyle(
+            style: GoogleFonts.poppins(
               fontSize: 32,
-              fontWeight: FontWeight.w900,
-              color: Color(0xFF005CFF),
+              fontWeight: FontWeight.bold,
+              color: _carouselItems[_currentIndex]['color'] as Color,
               height: 1.1,
             ),
           ),
@@ -406,21 +402,49 @@ class _DashboardHeroCarouselState extends State<DashboardHeroCarousel> {
         const SizedBox(height: 24),
         // The Carousel containing only images
         SizedBox(
-          height: 200, 
+          height: 250, 
           child: PageView.builder(
+            clipBehavior: Clip.none,
             controller: _pageController,
             onPageChanged: (index) {
-              setState(() {
-                _currentIndex = index;
-              });
+              if (_currentIndex != index) {
+                HapticFeedback.selectionClick(); //efek geter
+                setState(() {
+                  _currentIndex = index;
+                });
+                widget.onColorChanged(_carouselItems[index]['color'] as Color);
+              }
             },
             itemCount: _carouselItems.length,
             itemBuilder: (context, index) {
               final item = _carouselItems[index];
-              return Image.asset(
-                item['image']!,
-                height: 200,
-                fit: BoxFit.contain,
+              return AnimatedBuilder(
+                animation: _pageController,
+                builder: (context, child) {
+                  double value = 1.0;
+                  if (_pageController.position.haveDimensions) {
+                    value = _pageController.page! - index;
+                    value = (1 - (value.abs() * 0.2)).clamp(0.8, 1.0);
+                  } else if (index != _currentIndex) {
+                    value = 0.8;
+                  }
+                  
+                  return Center(
+                    child: Transform.scale(
+                      scale: Curves.easeOut.transform(value),
+                      child: child,
+                    ),
+                  );
+                },
+                child: Container(
+                  color: Colors.transparent,
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 24.0),
+                  child: Image.asset(
+                    item['image']!,
+                    height: 200,
+                    fit: BoxFit.contain,
+                  ),
+                ),
               );
             },
           ),
@@ -445,10 +469,9 @@ class _DashboardHeroCarouselState extends State<DashboardHeroCarousel> {
       width: active ? 24 : 8,
       height: 8,
       decoration: BoxDecoration(
-        color: active ? const Color(0xFF005CFF) : Colors.grey.shade300,
+        color: active ? (_carouselItems[_currentIndex]['color'] as Color) : Colors.grey.shade300,
         borderRadius: BorderRadius.circular(4),
       ),
     );
   }
 }
-

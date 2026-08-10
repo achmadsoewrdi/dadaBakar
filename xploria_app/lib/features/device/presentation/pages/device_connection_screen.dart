@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/services/device_connection_service.dart';
 import '../../data/data_sources/device_api_service.dart';
 import '../../data/models/device_profile_model.dart';
@@ -205,6 +206,7 @@ class _DeviceConnectionScreenState extends State<DeviceConnectionScreen> {
         return Scaffold(
           backgroundColor: const Color(0xFFF4F7FB),
           body: SafeArea(
+            bottom: false,
             child: Padding(
               padding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
               child: Column(
@@ -224,12 +226,12 @@ class _DeviceConnectionScreenState extends State<DeviceConnectionScreen> {
                             ),
                           ),
                         ),
-                      const Text(
+                      Text(
                         'My Devices',
-                        style: TextStyle(
+                        style: GoogleFonts.poppins(
                           fontSize: 24,
-                          fontWeight: FontWeight.w900,
-                          color: Color(0xFF003092),
+                          fontWeight: FontWeight.bold,
+                          color: const Color(0xFF003092),
                         ),
                       ),
                     ],
@@ -253,64 +255,90 @@ class _DeviceConnectionScreenState extends State<DeviceConnectionScreen> {
                     child: Row(
                       children: [
                         // Vertical Toggle
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            vertical: 8,
-                            horizontal: 8,
-                          ),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFF4F7FB),
-                            borderRadius: BorderRadius.circular(30),
-                          ),
-                          child: Column(
-                            children: [
-                              GestureDetector(
-                                onTap: () => service.setConnectionMode(
-                                  ConnectionMode.bluetooth,
-                                ),
+                        GestureDetector(
+                          onVerticalDragUpdate: (details) {
+                            if (details.delta.dy > 0 && isBluetoothMode) {
+                              // Dragging down -> switch to WiFi
+                              service.setConnectionMode(ConnectionMode.wifi);
+                            } else if (details.delta.dy < 0 && !isBluetoothMode) {
+                              // Dragging up -> switch to Bluetooth
+                              service.setConnectionMode(ConnectionMode.bluetooth);
+                            }
+                          },
+                          child: Container(
+                            width: 56,
+                            height: 104,
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFF4F7FB),
+                              borderRadius: BorderRadius.circular(30),
+                            ),
+                            child: Stack(
+                              clipBehavior: Clip.none,
+                              children: [
+                              AnimatedPositioned(
+                                duration: const Duration(milliseconds: 300),
+                                curve: Curves.easeInOutBack,
+                                top: isBluetoothMode ? 0 : 48,
+                                left: 0,
+                                right: 0,
                                 child: Container(
-                                  width: 40,
                                   height: 40,
                                   decoration: BoxDecoration(
-                                    color: isBluetoothMode
-                                        ? primaryColor
-                                        : Colors.transparent,
+                                    color: primaryColor,
                                     shape: BoxShape.circle,
-                                  ),
-                                  child: Icon(
-                                    Icons.bluetooth,
-                                    color: isBluetoothMode
-                                        ? Colors.white
-                                        : unselectedIconColor,
-                                    size: 20,
                                   ),
                                 ),
                               ),
-                              const SizedBox(height: 8),
-                              GestureDetector(
-                                onTap: () => service.setConnectionMode(
-                                  ConnectionMode.wifi,
-                                ),
-                                child: Container(
-                                  width: 40,
-                                  height: 40,
-                                  decoration: BoxDecoration(
-                                    color: !isBluetoothMode
-                                        ? primaryColor
-                                        : Colors.transparent,
-                                    shape: BoxShape.circle,
+                              Positioned(
+                                top: 0,
+                                left: 0,
+                                right: 0,
+                                child: GestureDetector(
+                                  onTap: () => service.setConnectionMode(
+                                    ConnectionMode.bluetooth,
                                   ),
-                                  child: Icon(
-                                    Icons.wifi,
-                                    color: !isBluetoothMode
-                                        ? Colors.white
-                                        : unselectedIconColor,
-                                    size: 20,
+                                  child: Container(
+                                    height: 40,
+                                    color: Colors.transparent,
+                                    child: Center(
+                                      child: Icon(
+                                        Icons.bluetooth,
+                                        color: isBluetoothMode
+                                            ? Colors.white
+                                            : unselectedIconColor,
+                                        size: 20,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              Positioned(
+                                top: 48,
+                                left: 0,
+                                right: 0,
+                                child: GestureDetector(
+                                  onTap: () => service.setConnectionMode(
+                                    ConnectionMode.wifi,
+                                  ),
+                                  child: Container(
+                                    height: 40,
+                                    color: Colors.transparent,
+                                    child: Center(
+                                      child: Icon(
+                                        Icons.wifi,
+                                        color: !isBluetoothMode
+                                            ? Colors.white
+                                            : unselectedIconColor,
+                                        size: 20,
+                                      ),
+                                    ),
                                   ),
                                 ),
                               ),
                             ],
                           ),
+                        ),
                         ),
                         const SizedBox(width: 16),
                         // Content
