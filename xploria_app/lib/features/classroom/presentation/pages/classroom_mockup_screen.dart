@@ -16,7 +16,6 @@ class ClassroomMockupScreen extends StatefulWidget {
 
 class _ClassroomMockupScreenState extends State<ClassroomMockupScreen> {
   int _selectedTab = 0; // 0: Tugas, 1: Murid, 2: Leaderboard
-  int _currentIndex = 1; // For bottom navbar (Kelas)
 
   @override
   Widget build(BuildContext context) {

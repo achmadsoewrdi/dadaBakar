@@ -156,7 +156,7 @@ class _AiLabContentState extends State<AiLabContent> {
           physics: const NeverScrollableScrollPhysics(),
           mainAxisSpacing: 16,
           crossAxisSpacing: 16,
-          childAspectRatio: 1.55,
+          childAspectRatio: 1.25, // Diubah agar kotak menjadi lebih tinggi/proporsional
           children: [
             AnalysisOptionCard(
               title: 'Optimal\nTemperature',

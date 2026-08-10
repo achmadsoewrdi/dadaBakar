@@ -219,7 +219,7 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
                 onPressed: () async {
                   if (controller.text.isNotEmpty) {
                     await _categoryService.addCategory(controller.text.trim(), selectedIcon);
-                    if (mounted) {
+                    if (mounted && context.mounted) {
                       setState(() {});
                       context.pop();
                     }
@@ -256,7 +256,7 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
                 ),
                 const SizedBox(height: 16),
                 DropdownButtonFormField<String>(
-                  value: selectedCat,
+                  initialValue: selectedCat,
                   items: _categoryService.categories.map((c) {
                     return DropdownMenuItem(value: c, child: Text(c));
                   }).toList(),
@@ -286,17 +286,6 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
         }
       ),
     );
-  }
-
-  String _timeAgo(DateTime d) {
-    Duration diff = DateTime.now().difference(d);
-    if (diff.inDays > 365) return "${(diff.inDays / 365).floor()} ${(diff.inDays / 365).floor() == 1 ? "year" : "years"} ago";
-    if (diff.inDays > 30) return "${(diff.inDays / 30).floor()} ${(diff.inDays / 30).floor() == 1 ? "month" : "months"} ago";
-    if (diff.inDays > 7) return "${(diff.inDays / 7).floor()} ${(diff.inDays / 7).floor() == 1 ? "week" : "weeks"} ago";
-    if (diff.inDays > 0) return "${diff.inDays} ${diff.inDays == 1 ? "day" : "days"} ago";
-    if (diff.inHours > 0) return "${diff.inHours} ${diff.inHours == 1 ? "hour" : "hours"} ago";
-    if (diff.inMinutes > 0) return "${diff.inMinutes} ${diff.inMinutes == 1 ? "minute" : "minutes"} ago";
-    return "Just now";
   }
 
 
@@ -401,10 +390,15 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
                     catIcon = Icons.grid_view_rounded;
                   } else {
                     final iconPath = _categoryService.getIconForCategory(cat);
-                    if (iconPath.contains('plant')) catIcon = Icons.eco;
-                    else if (iconPath.contains('robot')) catIcon = Icons.smart_toy_rounded;
-                    else if (iconPath.contains('camera')) catIcon = Icons.camera_alt_rounded;
-                    else if (iconPath.contains('term')) catIcon = Icons.thermostat_rounded;
+                    if (iconPath.contains('plant')) {
+                      catIcon = Icons.eco;
+                    } else if (iconPath.contains('robot')) {
+                      catIcon = Icons.smart_toy_rounded;
+                    } else if (iconPath.contains('camera')) {
+                      catIcon = Icons.camera_alt_rounded;
+                    } else if (iconPath.contains('term')) {
+                      catIcon = Icons.thermostat_rounded;
+                    }
                   }
                   
                   return DragTarget<ProjectModel>(
@@ -412,11 +406,10 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
                       final draggedProject = details.data;
                       if (cat != 'All' && _categoryService.getCategoryForProject(draggedProject.id) != cat) {
                         await _categoryService.setProjectCategory(draggedProject.id, cat);
-                        if (mounted) {
+                        if (mounted && context.mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(content: Text('${draggedProject.name} moved to $cat')),
                           );
-                          _initData(); 
                         }
                       }
                     },
@@ -670,7 +663,7 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
                     onDelete: () => _deleteProject(project),
                     onCategorySelected: (String newCategory) async {
                       await _categoryService.setProjectCategory(project.id, newCategory);
-                      if (mounted) {
+                      if (mounted && context.mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(content: Text('Project moved to $newCategory')),
                         );

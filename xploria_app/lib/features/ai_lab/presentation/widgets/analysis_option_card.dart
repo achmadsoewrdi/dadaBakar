@@ -57,14 +57,20 @@ class AnalysisOptionCard extends StatelessWidget {
                     size: 20,
                   ),
                 ),
-                const Spacer(),
-                Text(
-                  title,
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: isSelected ? const Color(0xFF8B5CF6) : const Color(0xFF0F172A),
-                    height: 1.2,
+                Expanded(
+                  child: Align(
+                    alignment: Alignment.bottomLeft,
+                    child: Text(
+                      title,
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: isSelected ? const Color(0xFF8B5CF6) : const Color(0xFF0F172A),
+                        height: 1.2,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ),
                 ),
               ],

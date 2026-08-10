@@ -1,7 +1,5 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:async';
-import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -455,14 +453,16 @@ class DeviceConnectionService extends ChangeNotifier {
         addLog("[ERROR] WiFi belum tersambung.");
       }
     } else {
-      if (_bluetoothConnection != null && _bluetoothConnection!.isConnected) {
+      if (_writeCharacteristic != null) {
         final jsonPayload = jsonEncode(payload);
-        _bluetoothConnection!.output.add(
-          Uint8List.fromList(utf8.encode("$jsonPayload\n")),
-        );
-        addLog("[TX] Dikirim via Bluetooth");
+        try {
+          _writeCharacteristic!.write(utf8.encode("$jsonPayload\n"));
+          addLog("[TX] Dikirim via Bluetooth");
+        } catch(e) {
+            addLog("[ERROR] Gagal mengirim data bluetooth: $e");
+        }
       } else {
-        addLog("[ERROR] Bluetooth belum tersambung.");
+        addLog("[ERROR] Bluetooth belum tersambung atau write characteristic tidak ditemukan.");
       }
     }
   }
