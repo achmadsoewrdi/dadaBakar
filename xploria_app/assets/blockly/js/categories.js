@@ -65,15 +65,36 @@ const BLOCK_CATEGORIES = [
     // THEMATIC KITS CATEGORIES (SHOWN CONDITIONALLY)
     // ----------------------------------------------------
     {
-        name: 'Drone Tello',
+        name: 'Drone: Dasar',
         icon: '🚁',
         color: '#FF4D4D',
-        desc: 'Terbangkan drone',
+        desc: 'Terbang & Mendarat',
         moduleCategory: 'drone',
         blocks: [
             { name: 'Terbang', desc: 'Takeoff', xml: '<block type="drone_takeoff"></block>' },
             { name: 'Mendarat', desc: 'Land', xml: '<block type="drone_land"></block>' },
-            { name: 'Maju', desc: 'Gerak maju (cm)', xml: '<block type="drone_move"></block>' }
+            { name: 'Berhenti', desc: 'Stop & Hover', xml: '<block type="drone_stop"></block>' }
+        ]
+    },
+    {
+        name: 'Drone: Navigasi',
+        icon: '🧭',
+        color: '#FF4D4D',
+        desc: 'Atur arah terbang',
+        moduleCategory: 'drone',
+        blocks: [
+            { name: 'Gerak Arah', desc: 'Maju/Mundur/Kiri/Kanan', xml: '<block type="drone_move_direction"></block>' },
+            { name: 'Putar Arah', desc: 'Rotasi CW/CCW', xml: '<block type="drone_rotate"></block>' }
+        ]
+    },
+    {
+        name: 'Drone: Akrobat',
+        icon: '🤸',
+        color: '#FF4D4D',
+        desc: 'Gerakan salto 3D',
+        moduleCategory: 'drone',
+        blocks: [
+            { name: 'Salto (Flip)', desc: 'Flip ke 4 arah', xml: '<block type="drone_flip"></block>' }
         ]
     },
     {

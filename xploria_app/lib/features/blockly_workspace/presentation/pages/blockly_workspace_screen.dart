@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/services/device_connection_service.dart';
+import '../../../../core/services/tello_service.dart';
 import '../../data/blockly_bridge.dart';
 import '../../domain/workspace_state.dart';
 import '../../../projects/domain/models/project_model.dart';
@@ -347,9 +348,13 @@ class _BlocklyWorkspaceScreenState extends State<BlocklyWorkspaceScreen> {
           Padding(
             padding: const EdgeInsets.only(right: 12.0),
             child: ListenableBuilder(
-              listenable: DeviceConnectionService.instance,
+              listenable: Listenable.merge([
+                DeviceConnectionService.instance,
+                TelloService.instance,
+              ]),
               builder: (context, _) {
-                final isDeviceConnected = DeviceConnectionService.instance.isConnected;
+                final isDeviceConnected = DeviceConnectionService.instance.isConnected || 
+                                          TelloService.instance.isConnected;
                 return isDeviceConnected
                     ? ElevatedButton.icon(
                         style: ElevatedButton.styleFrom(
@@ -372,17 +377,26 @@ class _BlocklyWorkspaceScreenState extends State<BlocklyWorkspaceScreen> {
                                 if (widget.onRunCode != null) {
                                   widget.onRunCode!(_state.pythonCode);
                                 }
-                                // Send payload using the shared connection service
-                                DeviceConnectionService.instance.sendData(_state.pythonCode);
-                                
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text(
-                                      'Mengirim kode ke device...',
+
+                                if (DeviceConnectionService.instance.connectionMode == ConnectionMode.drone) {
+                                  // Use Tello Service directly
+                                  TelloService.instance.parseAndQueuePython(_state.pythonCode);
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text('Mengirim perintah ke Drone Tello...'),
+                                      duration: Duration(seconds: 2),
                                     ),
-                                    duration: Duration(seconds: 2),
-                                  ),
-                                );
+                                  );
+                                } else {
+                                  // Send payload using the shared connection service
+                                  DeviceConnectionService.instance.sendData(_state.pythonCode);
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text('Mengirim kode ke device...'),
+                                      duration: Duration(seconds: 2),
+                                    ),
+                                  );
+                                }
                               },
                       )
                     : ElevatedButton.icon(

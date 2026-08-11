@@ -7,7 +7,7 @@ import 'package:web_socket_channel/web_socket_channel.dart';
 import '../../features/device/domain/device_entity.dart';
 import '../../features/device/data/data_sources/device_remote_data_source.dart';
 
-enum ConnectionMode { bluetooth, wifi }
+enum ConnectionMode { bluetooth, wifi, drone }
 
 class DeviceConnectionService extends ChangeNotifier {
   static final DeviceConnectionService _instance =
