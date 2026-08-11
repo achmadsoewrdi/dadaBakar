@@ -33,6 +33,12 @@ function renderCategories() {
     sheetContent.innerHTML = '';
 
     BLOCK_CATEGORIES.forEach((cat, index) => {
+        // Filter based on active module category
+        const activeMod = window.activeModuleCategory || 'all';
+        if (activeMod !== 'all' && cat.moduleCategory && cat.moduleCategory !== activeMod) {
+            return;
+        }
+
         const card = document.createElement('div');
         card.className = 'category-card';
         card.onclick = function() { openCategory(index); };

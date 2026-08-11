@@ -17,8 +17,10 @@ class LearningModule(Base):
     order_index: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     # Kategori modul, misal: iot_basic | hardware | advanced | quiz
     category: Mapped[str] = mapped_column(String(50), nullable=False, default="iot_basic")
-    # Berapa XP yang diperoleh user setelah menyelesaikan modul ini
-    xp_reward: Mapped[int] = mapped_column(Integer, default=10, nullable=False)
+    
+    # BARU v3: mapping ke block category apa yang di-unlock modul ini
+    block_category: Mapped[str | None] = mapped_column(String(50), nullable=True)
+    
     thumbnail_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
     # Langkah-langkah dalam modul disimpan sebagai JSONB
     steps_json: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False)
@@ -43,7 +45,6 @@ class UserProgress(Base):
     # Menyimpan step mana saja yang sudah diselesaikan, misal: {"completed": [1, 2, 3]}
     completed_steps: Mapped[dict[str, Any] | None] = mapped_column(JSONB, nullable=True)
     completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
-    xp_earned: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
 
     # Relationships
     user = relationship("User", back_populates="user_progress")

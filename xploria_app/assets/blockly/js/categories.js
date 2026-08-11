@@ -3,6 +3,38 @@
  */
 const BLOCK_CATEGORIES = [
     {
+        name: 'Dasar',
+        icon: '🟢',
+        color: '#32C36C',
+        desc: 'Perintah dasar untuk pemula',
+        blocks: [
+            { name: 'Tampilkan', desc: 'Menampilkan teks/angka', xml: '<block type="friendly_print"></block>' },
+            { name: 'Tunggu', desc: 'Jeda program (detik)', xml: '<block type="friendly_wait"></block>' }
+        ]
+    },
+    {
+        name: 'Drone Tello',
+        icon: '🚁',
+        color: '#FF4D4D',
+        desc: 'Terbangkan drone',
+        moduleCategory: 'drone',
+        blocks: [
+            { name: 'Terbang', desc: 'Takeoff', xml: '<block type="drone_takeoff"></block>' },
+            { name: 'Mendarat', desc: 'Land', xml: '<block type="drone_land"></block>' },
+            { name: 'Maju', desc: 'Gerak maju (cm)', xml: '<block type="drone_move"></block>' }
+        ]
+    },
+    {
+        name: 'Smart Home',
+        icon: '🏠',
+        color: '#005CFF',
+        desc: 'Kontrol perangkat rumah',
+        moduleCategory: 'smart_home',
+        blocks: [
+            { name: 'Nyalakan Lampu', desc: 'LED Toggle', xml: '<block type="iot_led_toggle"></block>' }
+        ]
+    },
+    {
         name: 'Audio',
         icon: '🔊',
         color: '#D65CD6',

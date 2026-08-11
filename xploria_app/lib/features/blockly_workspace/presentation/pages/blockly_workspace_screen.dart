@@ -263,6 +263,10 @@ class _BlocklyWorkspaceScreenState extends State<BlocklyWorkspaceScreen> {
             if (_currentProject != null) {
                final xml = _currentProject!.workspaceXml.replaceAll('"', '\\"').replaceAll('\n', '');
                _controller?.runJavaScript('loadWorkspaceXml("$xml")');
+               
+               // Set active module category untuk memfilter toolbox
+               final moduleCategory = _currentProject!.moduleCategory ?? 'all';
+               _controller?.runJavaScript('setActiveModule("$moduleCategory")');
             }
           },
         ),

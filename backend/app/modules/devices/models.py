@@ -20,10 +20,15 @@ class DeviceProfile(Base):
     label: Mapped[str] = mapped_column(String(100), nullable=False)
     # Varian spesifik board, misal: "zero_3w", "4B", "S3", "pico"
     hardware_variant: Mapped[str | None] = mapped_column(String(50), nullable=True)
-    protocol: Mapped[str] = mapped_column(String(20), nullable=False)  # websocket | bluetooth
+    protocol: Mapped[str] = mapped_column(String(20), nullable=False)  # websocket | bluetooth | udp
     host: Mapped[str | None] = mapped_column(String(255), nullable=True)
     port: Mapped[int | None] = mapped_column(Integer, nullable=True)
     use_tls: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    
+    # BARU v3: untuk support UDP (Tello)
+    device_category: Mapped[str | None] = mapped_column(String(30), nullable=True)  # drone | iot | general
+    udp_port: Mapped[int | None] = mapped_column(Integer, nullable=True)  # default 8889 untuk tello
+    
     mac_address: Mapped[str | None] = mapped_column(String(50), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)
 

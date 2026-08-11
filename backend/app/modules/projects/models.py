@@ -22,6 +22,9 @@ class Project(Base):
     generated_code: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
     blynk_config_json: Mapped[list | None] = mapped_column(JSONB, nullable=True)
     
+    # BARU v3: Menyimpan kategori modul (misal: 'drone', 'smart_home') saat project dibuat dari modul
+    module_category: Mapped[str | None] = mapped_column(String(50), nullable=True)
+    
     # STEM Fields
     target_hardware_type: Mapped[str | None] = mapped_column(String(50), nullable=True)
     execution_target: Mapped[str] = mapped_column(String(50), server_default="hardware", nullable=False)

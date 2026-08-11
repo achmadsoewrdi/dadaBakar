@@ -94,6 +94,15 @@ workspace.addChangeListener(function (event) {
     }
 });
 
+// Handle active module category filtering
+window.activeModuleCategory = 'all';
+function setActiveModule(moduleCategory) {
+    window.activeModuleCategory = moduleCategory;
+    if (typeof renderCategories === 'function') {
+        renderCategories();
+    }
+}
+
 // Initialize UI
 document.addEventListener('DOMContentLoaded', function () {
     renderCategories();

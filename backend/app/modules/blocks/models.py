@@ -28,6 +28,12 @@ class BlockDefinition(Base):
     generator_raspi: Mapped[str | None] = mapped_column(Text, nullable=True)
     generator_orangepi: Mapped[str | None] = mapped_column(Text, nullable=True)
     generator_esp32: Mapped[str | None] = mapped_column(Text, nullable=True)
+    
+    # BARU v3: generator kode untuk drone Tello
+    generator_tello: Mapped[str | None] = mapped_column(Text, nullable=True)
+    # BARU v3: filter kategori modul (drone, smart_home, dll)
+    module_category: Mapped[str | None] = mapped_column(String(50), nullable=True, index=True)
+    
     # Blok premium hanya bisa dipakai user berlangganan
     is_premium_only: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     # Urutan tampil di toolbox
