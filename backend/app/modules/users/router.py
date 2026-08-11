@@ -48,8 +48,19 @@ async def register_user(
     
     new_user = await create_user(db, user_in=user_in)
     
-    access_token = create_access_token(subject=new_user.id)
-    refresh_token = create_refresh_token(subject=new_user.id)
+    is_onboarding_complete = bool(new_user.school_id and new_user.onboarding_source)
+    access_token = create_access_token(
+        subject=new_user.id, 
+        role=new_user.role,
+        school_id=new_user.school_id,
+        onboarding_complete=is_onboarding_complete
+    )
+    refresh_token = create_refresh_token(
+        subject=new_user.id,
+        role=new_user.role,
+        school_id=new_user.school_id,
+        onboarding_complete=is_onboarding_complete
+    )
     
     return Token(
         access_token=access_token,
@@ -83,8 +94,19 @@ async def login_user(
         )
 
     # Buat Access Token dan Refresh Token berbasis ID user
-    access_token = create_access_token(subject=user.id)
-    refresh_token = create_refresh_token(subject=user.id)
+    is_onboarding_complete = bool(user.school_id and user.onboarding_source)
+    access_token = create_access_token(
+        subject=user.id, 
+        role=user.role,
+        school_id=user.school_id,
+        onboarding_complete=is_onboarding_complete
+    )
+    refresh_token = create_refresh_token(
+        subject=user.id,
+        role=user.role,
+        school_id=user.school_id,
+        onboarding_complete=is_onboarding_complete
+    )
 
     return Token(
         access_token=access_token,
@@ -116,8 +138,19 @@ async def swagger_login(
             detail="Akun Anda sedang dinonaktifkan."
         )
 
-    access_token = create_access_token(subject=user.id)
-    refresh_token = create_refresh_token(subject=user.id)
+    is_onboarding_complete = bool(user.school_id and user.onboarding_source)
+    access_token = create_access_token(
+        subject=user.id, 
+        role=user.role,
+        school_id=user.school_id,
+        onboarding_complete=is_onboarding_complete
+    )
+    refresh_token = create_refresh_token(
+        subject=user.id,
+        role=user.role,
+        school_id=user.school_id,
+        onboarding_complete=is_onboarding_complete
+    )
 
     return Token(
         access_token=access_token,
@@ -237,8 +270,19 @@ async def google_login(
         )
 
     # Buat JWT Access Token dan Refresh Token
-    access_token = create_access_token(subject=user.id)
-    refresh_token = create_refresh_token(subject=user.id)
+    is_onboarding_complete = bool(user.school_id and user.onboarding_source)
+    access_token = create_access_token(
+        subject=user.id, 
+        role=user.role,
+        school_id=user.school_id,
+        onboarding_complete=is_onboarding_complete
+    )
+    refresh_token = create_refresh_token(
+        subject=user.id,
+        role=user.role,
+        school_id=user.school_id,
+        onboarding_complete=is_onboarding_complete
+    )
 
     return Token(
         access_token=access_token,

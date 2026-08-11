@@ -14,7 +14,7 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
     # memverifikasi password
     return pwd_context.verify(plain_password, hashed_password)
 
-def create_access_token(subject: Union[str, Any], expires_delta: timedelta = None) -> str:
+def create_access_token(subject: Union[str, Any], role: str, school_id: Union[str, Any] = None, onboarding_complete: bool = False, expires_delta: timedelta = None) -> str:
     # membuat jwt access token (token sementara) autentikasi request API
     if expires_delta:
         expire = datetime.now(timezone.utc) + expires_delta
@@ -24,12 +24,15 @@ def create_access_token(subject: Union[str, Any], expires_delta: timedelta = Non
     to_encode = {
         "exp": expire,
         "sub": str(subject),
-        "type": "access"
+        "type": "access",
+        "role": role,
+        "school_id": str(school_id) if school_id else None,
+        "onboarding_complete": onboarding_complete
     }
     encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
     return encoded_jwt
 
-def create_refresh_token(subject: Union[str, Any], expires_delta: timedelta = None) -> str:
+def create_refresh_token(subject: Union[str, Any], role: str, school_id: Union[str, Any] = None, onboarding_complete: bool = False, expires_delta: timedelta = None) -> str:
     # membuat jwt refresh token (durasi panjang)
     if expires_delta:
         expire = datetime.now(timezone.utc) + expires_delta
@@ -39,7 +42,10 @@ def create_refresh_token(subject: Union[str, Any], expires_delta: timedelta = No
     to_encode = {
         "exp": expire,
         "sub": str(subject),
-        "type": "refresh"
+        "type": "refresh",
+        "role": role,
+        "school_id": str(school_id) if school_id else None,
+        "onboarding_complete": onboarding_complete
     }
     encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
     return encoded_jwt

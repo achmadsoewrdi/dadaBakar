@@ -1,6 +1,6 @@
 import uuid
 from datetime import datetime
-from sqlalchemy import String, Boolean, DateTime
+from sqlalchemy import String, Boolean, DateTime, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.dialects.postgresql import UUID
 from app.db.session import Base
@@ -19,6 +19,13 @@ class User(Base):
     # is_premium dipertahankan sebagai cache cepat, tapi sumber kebenaran ada di tabel subscriptions
     is_premium: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    
+    # Tambahan Kolom Baru dari School Module
+    school_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("schools.id", ondelete="SET NULL"), nullable=True
+    )
+    onboarding_source: Mapped[str | None] = mapped_column(String(50), nullable=True)
+
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False
@@ -31,3 +38,8 @@ class User(Base):
     gamification = relationship("UserGamification", back_populates="user", uselist=False, cascade="all, delete-orphan")
     user_badges = relationship("UserBadge", back_populates="user", cascade="all, delete-orphan")
     user_progress = relationship("UserProgress", back_populates="user", cascade="all, delete-orphan")
+    
+    # Tambahan Relationship dari School Module
+    school = relationship("School", back_populates="users")
+    teaching_classrooms = relationship("Classroom", back_populates="teacher", foreign_keys="[Classroom.teacher_id]")
+    enrollments = relationship("Enrollment", back_populates="student", foreign_keys="[Enrollment.student_id]")
