@@ -25,6 +25,8 @@ class SensorDataAnalysisRequest(BaseModel):
     threshold_min: Optional[Union[float, int]] = Field(default=None, description="Batas minimum aman untuk sensor")
     threshold_max: Optional[Union[float, int]] = Field(default=None, description="Batas maksimum aman untuk sensor")
     context: Optional[str] = Field(default=None, description="Konteks operasional atau deskripsi lingkungan sensor")
+    stem_subject: Optional[str] = Field(default="Sistem Embedded & IoT", description="Nama mata pelajaran/praktikum STEM (misal: Fisika Dasar, Kimia Analitik, Robotika, Biologi Lingkungan)")
+
 
 
 class SensorDataAnalysisResponse(BaseModel):
