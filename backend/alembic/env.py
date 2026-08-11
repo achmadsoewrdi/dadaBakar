@@ -14,7 +14,6 @@ import app.modules.projects.models
 import app.modules.devices.models
 import app.modules.content.models
 import app.modules.blocks.models
-import app.modules.gamification.models
 import app.modules.hardware_types.models
 import app.modules.subscriptions.models
 

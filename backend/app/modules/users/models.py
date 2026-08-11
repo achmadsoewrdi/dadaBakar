@@ -15,10 +15,12 @@ class User(Base):
     google_sub: Mapped[str | None] = mapped_column(String(255), unique=True, nullable=True)
     full_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
     photo_url: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    # v3: role disederhanakan menjadi 'user' | 'admin'
     role: Mapped[str] = mapped_column(String(20), default="user", nullable=False)
-    # is_premium dipertahankan sebagai cache cepat, tapi sumber kebenaran ada di tabel subscriptions
+    # is_premium dipertahankan sebagai cache cepat, sumber kebenaran ada di tabel subscriptions
     is_premium: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False
@@ -28,6 +30,4 @@ class User(Base):
     projects = relationship("Project", back_populates="owner", cascade="all, delete-orphan")
     device_profiles = relationship("DeviceProfile", back_populates="owner", cascade="all, delete-orphan")
     subscriptions = relationship("Subscription", back_populates="user", cascade="all, delete-orphan")
-    gamification = relationship("UserGamification", back_populates="user", uselist=False, cascade="all, delete-orphan")
-    user_badges = relationship("UserBadge", back_populates="user", cascade="all, delete-orphan")
     user_progress = relationship("UserProgress", back_populates="user", cascade="all, delete-orphan")

@@ -6,7 +6,6 @@ from sqlalchemy import select
 
 from app.modules.content.models import LearningModule, UserProgress
 from app.modules.content.schemas import LearningModuleCreate, LearningModuleUpdate
-from app.modules.gamification.service import add_xp
 
 
 async def get_all_modules(
@@ -68,7 +67,8 @@ async def update_progress(
     completed_steps: Optional[Dict[str, Any]] = None
 ) -> Optional[UserProgress]:
     """
-    Meng-update progress modul user dan memberikan XP reward jika pertama kali selesai.
+    Meng-update progress modul user.
+    v3: XP reward dihapus karena gamifikasi tidak lagi digunakan.
     """
     module = await get_module_by_id(db, module_id)
     if not module:
@@ -87,16 +87,13 @@ async def update_progress(
             user_id=user_id,
             module_id=module_id,
             completed_steps=completed_steps,
+            completed_at=datetime.utcnow(),
         )
         db.add(progress)
     else:
         progress.completed_steps = completed_steps
-
-    # Berikan XP reward jika user belum pernah mendapatkan XP untuk modul ini
-    if progress.xp_earned == 0 and module.xp_reward > 0:
-        progress.xp_earned = module.xp_reward
-        progress.completed_at = datetime.utcnow()
-        await add_xp(db, user_id=user_id, xp=module.xp_reward)
+        if not progress.completed_at:
+            progress.completed_at = datetime.utcnow()
 
     await db.commit()
     await db.refresh(progress)
