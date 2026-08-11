@@ -1,167 +1,20 @@
 /**
  * Block Categories Data Schema (mBlock Style)
+ * Xploria v3 - Thematic Kits Architecture
  */
 const BLOCK_CATEGORIES = [
+    // ----------------------------------------------------
+    // FUNDAMENTAL CATEGORIES (ALWAYS AVAILABLE)
+    // ----------------------------------------------------
     {
         name: 'Dasar',
         icon: '🟢',
         color: '#32C36C',
         desc: 'Perintah dasar untuk pemula',
         blocks: [
-            { name: 'Tampilkan', desc: 'Menampilkan teks/angka', xml: '<block type="friendly_print"></block>' },
-            { name: 'Tunggu', desc: 'Jeda program (detik)', xml: '<block type="friendly_wait"></block>' }
-        ]
-    },
-    {
-        name: 'Drone Tello',
-        icon: '🚁',
-        color: '#FF4D4D',
-        desc: 'Terbangkan drone',
-        moduleCategory: 'drone',
-        blocks: [
-            { name: 'Terbang', desc: 'Takeoff', xml: '<block type="drone_takeoff"></block>' },
-            { name: 'Mendarat', desc: 'Land', xml: '<block type="drone_land"></block>' },
-            { name: 'Maju', desc: 'Gerak maju (cm)', xml: '<block type="drone_move"></block>' }
-        ]
-    },
-    {
-        name: 'Smart Home',
-        icon: '🏠',
-        color: '#005CFF',
-        desc: 'Kontrol perangkat rumah',
-        moduleCategory: 'smart_home',
-        blocks: [
-            { name: 'Nyalakan Lampu', desc: 'LED Toggle', xml: '<block type="iot_led_toggle"></block>' }
-        ]
-    },
-    {
-        name: 'Audio',
-        icon: '🔊',
-        color: '#D65CD6',
-        desc: 'Kontrol suara dan musik',
-        blocks: [
-            { name: 'Mainkan (Tunggu)', desc: 'Mainkan sampai selesai', xml: '<block type="audio_play_until_done"></block>' },
-            { name: 'Mainkan Suara', desc: 'Mainkan efek suara', xml: '<block type="audio_play_sound"></block>' },
-            { name: 'Mulai Merekam', desc: 'Mulai rekam suara', xml: '<block type="audio_start_recording"></block>' },
-            { name: 'Berhenti Merekam', desc: 'Berhenti rekam', xml: '<block type="audio_stop_recording"></block>' },
-            { name: 'Mainkan Rekaman (T)', desc: 'Mainkan rekaman (tunggu)', xml: '<block type="audio_play_recording_until_done"></block>' },
-            { name: 'Mainkan Rekaman', desc: 'Mainkan hasil rekaman', xml: '<block type="audio_play_recording"></block>' },
-            { name: 'Mainkan Nada', desc: 'Mainkan nada piano', xml: '<block type="audio_play_note"><value name="NOTE"><shadow type="math_number"><field name="NUM">60</field></shadow></value><value name="BEAT"><shadow type="math_number"><field name="NUM">0.25</field></shadow></value></block>' },
-            { name: 'Mainkan Drum', desc: 'Mainkan instrumen drum', xml: '<block type="audio_play_drum"><value name="BEAT"><shadow type="math_number"><field name="NUM">0.25</field></shadow></value></block>' },
-            { name: 'Tambah Kecepatan', desc: 'Tambah speed audio', xml: '<block type="audio_increase_speed"><value name="SPEED"><shadow type="math_number"><field name="NUM">10</field></shadow></value></block>' },
-            { name: 'Atur Kecepatan', desc: 'Set speed audio', xml: '<block type="audio_set_speed"><value name="SPEED"><shadow type="math_number"><field name="NUM">100</field></shadow></value></block>' },
-            { name: 'Kecepatan', desc: 'Nilai kecepatan', xml: '<block type="audio_speed_reporter"></block>' },
-            { name: 'Tambah Volume', desc: 'Tambah volume', xml: '<block type="audio_increase_volume"><value name="VOL"><shadow type="math_number"><field name="NUM">10</field></shadow></value></block>' },
-            { name: 'Atur Volume', desc: 'Set volume suara', xml: '<block type="audio_set_volume"><value name="VOL"><shadow type="math_number"><field name="NUM">30</field></shadow></value></block>' },
-            { name: 'Volume (%)', desc: 'Nilai volume (%)', xml: '<block type="audio_volume_reporter"></block>' },
-            { name: 'Suara Hz (Durasi)', desc: 'Frekuensi spesifik', xml: '<block type="audio_play_sound_hz_for"><value name="HZ"><shadow type="math_number"><field name="NUM">700</field></shadow></value><value name="SECS"><shadow type="math_number"><field name="NUM">1</field></shadow></value></block>' },
-            { name: 'Suara Hz', desc: 'Frekuensi terus menerus', xml: '<block type="audio_play_sound_hz"><value name="HZ"><shadow type="math_number"><field name="NUM">700</field></shadow></value></block>' },
-            { name: 'Hentikan Semua', desc: 'Stop semua suara', xml: '<block type="audio_stop_all"></block>' }
-        ]
-    },
-    {
-        name: 'LED',
-        icon: '💡',
-        color: '#8A2BE2',
-        desc: 'Kontrol lampu dan warna',
-        blocks: [
-            { name: 'Mainkan Animasi', desc: 'Mainkan animasi LED', xml: '<block type="led_play_animation_until_done"></block>' },
-            { name: 'Tampilkan Warna', desc: 'Tampilkan 5 warna LED', xml: '<block type="led_display_5"></block>' },
-            { name: 'Geser LED', desc: 'Geser posisi LED', xml: '<block type="led_roll_right"><value name="NUM"><shadow type="math_number"><field name="NUM">1</field></shadow></value></block>' },
-            { name: 'Tampilkan Warna (T)', desc: 'Tampilkan warna dengan durasi', xml: '<block type="led_display_color_for"><value name="SECS"><shadow type="math_number"><field name="NUM">1</field></shadow></value></block>' },
-            { name: 'Tampilkan Warna ke', desc: 'Tampilkan warna terus menerus', xml: '<block type="led_display_color"></block>' },
-            { name: 'Tampilkan RGB (T)', desc: 'Tampilkan RGB dengan durasi', xml: '<block type="led_display_rgb_for"><value name="R"><shadow type="math_number"><field name="NUM">255</field></shadow></value><value name="G"><shadow type="math_number"><field name="NUM">0</field></shadow></value><value name="B"><shadow type="math_number"><field name="NUM">0</field></shadow></value><value name="SECS"><shadow type="math_number"><field name="NUM">1</field></shadow></value></block>' },
-            { name: 'Tampilkan RGB', desc: 'Tampilkan nilai RGB terus', xml: '<block type="led_display_rgb"><value name="R"><shadow type="math_number"><field name="NUM">255</field></shadow></value><value name="G"><shadow type="math_number"><field name="NUM">0</field></shadow></value><value name="B"><shadow type="math_number"><field name="NUM">0</field></shadow></value></block>' },
-            { name: 'Tambah Kecerahan', desc: 'Tambah % kecerahan', xml: '<block type="led_increase_brightness"><value name="BRIGHTNESS"><shadow type="math_number"><field name="NUM">10</field></shadow></value></block>' },
-            { name: 'Atur Kecerahan', desc: 'Set tingkat kecerahan', xml: '<block type="led_set_brightness"><value name="BRIGHTNESS"><shadow type="math_number"><field name="NUM">30</field></shadow></value></block>' },
-            { name: 'Kecerahan (%)', desc: 'Nilai kecerahan saat ini', xml: '<block type="led_brightness_reporter"></block>' },
-            { name: 'Matikan LED', desc: 'Matikan lampu LED target', xml: '<block type="led_turn_off"></block>' }
-        ]
-    },
-    {
-        name: 'Motion Sensing',
-        icon: '🧭',
-        color: '#4C97FF',
-        desc: 'Sensor gerak dan orientasi',
-        blocks: [
-            { name: 'Apakah diguncang?', desc: 'Sensor guncangan', xml: '<block type="motion_is_shaking"></block>' }
-        ]
-    },
-    {
-        name: 'Pin',
-        icon: '🔌',
-        color: '#FF6347',
-        desc: 'Kontrol input/output dasar',
-        blocks: [
-            { name: 'Setel Pin Digital', desc: 'Nyala/Mati', xml: '<block type="pin_set_digital"></block>' },
-            { name: 'Setel Pin Analog', desc: 'PWM 0-255', xml: '<block type="pin_set_analog"><value name="VAL"><shadow type="math_number"><field name="NUM">255</field></shadow></value></block>' },
-            { name: 'Baca Pin Digital', desc: 'Membaca tombol', xml: '<block type="pin_read_digital"></block>' },
-            { name: 'Baca Pin Analog', desc: 'Membaca potensiometer', xml: '<block type="pin_read_analog"></block>' }
-        ]
-    },
-    {
-        name: 'Motor',
-        icon: '⚙️',
-        color: '#4169E1',
-        desc: 'Penggerak robot',
-        blocks: [
-            { name: 'Putar Servo', desc: 'Derajat 0-180', xml: '<block type="motor_set_servo"><value name="DEGREE"><shadow type="math_number"><field name="NUM">90</field></shadow></value></block>' },
-            { name: 'Motor DC', desc: 'Jalankan motor DC', xml: '<block type="motor_dc_speed"><value name="SPEED"><shadow type="math_number"><field name="NUM">100</field></shadow></value></block>' },
-            { name: 'Hentikan Motor DC', desc: 'Stop motor', xml: '<block type="motor_dc_stop"></block>' }
-        ]
-    },
-    {
-        name: 'Sensor',
-        icon: '🌡️',
-        color: '#2E8B57',
-        desc: 'Sensor lingkungan',
-        blocks: [
-            { name: 'Jarak Ultrasonik', desc: 'Jarak (cm)', xml: '<block type="sensor_ultrasonic"></block>' },
-            { name: 'Print Jarak Ultrasonik', desc: 'Print Jarak (cm)', xml: '<block type="sensor_ultrasonic_print"></block>' },
-            { name: 'Jika Jarak Ultrasonik', desc: 'Logika Jarak', xml: '<block type="sensor_ultrasonic_if"></block>' },
-            { name: 'Sensor Garis', desc: 'Garis Hitam/Putih', xml: '<block type="sensor_line_follower"></block>' },
-            { name: 'Intensitas Cahaya', desc: 'LDR (%)', xml: '<block type="sensor_light"></block>' },
-            { name: 'Print Intensitas Cahaya', desc: 'Print LDR (%)', xml: '<block type="sensor_light_print"></block>' },
-            { name: 'Jika Intensitas Cahaya', desc: 'Logika LDR', xml: '<block type="sensor_light_if"></block>' },
-            { name: 'Suhu', desc: 'DHT22 (°C)', xml: '<block type="sensor_temperature"></block>' },
-            { name: 'Print Suhu', desc: 'Print Suhu (°C)', xml: '<block type="sensor_temperature_print"></block>' },
-            { name: 'Jika Suhu', desc: 'Logika Suhu', xml: '<block type="sensor_temperature_if"></block>' },
-            { name: 'Kelembapan', desc: 'DHT22 (%)', xml: '<block type="sensor_humidity"></block>' },
-            { name: 'Print Kelembapan', desc: 'Print Kelembapan (%)', xml: '<block type="sensor_humidity_print"></block>' },
-            { name: 'Jika Kelembapan', desc: 'Logika Kelembapan', xml: '<block type="sensor_humidity_if"></block>' },
-            { name: 'Deteksi Gas', desc: 'Sensor Gas (MQ-9)', xml: '<block type="sensor_gas"></block>' },
-            { name: 'Deteksi Gerakan', desc: 'Sensor PIR', xml: '<block type="sensor_motion"></block>' },
-            { name: 'Halangan IR', desc: 'Sensor MH-IR', xml: '<block type="sensor_ir_obstacle"></block>' }
-        ]
-    },
-    {
-        name: 'Display',
-        icon: '📺',
-        color: '#8B008B',
-        desc: 'Layar LCD/OLED',
-        blocks: [
-            { name: 'Tampilkan Teks', desc: 'Print teks', xml: '<block type="display_print"><value name="TEXT"><shadow type="text"><field name="TEXT">Halo!</field></shadow></value></block>' },
-            { name: 'Teks Ukuran', desc: 'Font size', xml: '<block type="display_print_size"><value name="TEXT"><shadow type="text"><field name="TEXT">Halo!</field></shadow></value></block>' },
-            { name: 'Bersihkan Layar', desc: 'Hapus layar', xml: '<block type="display_clear"></block>' },
-            { name: 'Grafik Data', desc: 'Plot grafik', xml: '<block type="display_graph"><value name="VAL"><shadow type="math_number"><field name="NUM">50</field></shadow></value></block>' }
-        ]
-    },
-    {
-        name: 'LAN',
-        icon: '🌐',
-        color: '#0FBD8C',
-        desc: 'Komunikasi jaringan lokal',
-        blocks: [
-            { name: 'Kirim Pesan', desc: 'Kirim pesan ke jaringan', xml: '<block type="lan_send_message"><value name="MESSAGE"><shadow type="text"><field name="TEXT">Halo</field></shadow></value></block>' }
-        ]
-    },
-    {
-        name: 'AI',
-        icon: '🤖',
-        color: '#00C3DA',
-        desc: 'Kecerdasan Buatan',
-        blocks: [
-            { name: 'Kenali Suara', desc: 'Speech to text', xml: '<block type="ai_recognize_speech"></block>' }
+            { name: 'Tampilkan Pesan', desc: 'Print teks', xml: '<block type="display_print"><value name="TEXT"><shadow type="text"><field name="TEXT">Halo!</field></shadow></value></block>' },
+            { name: 'Tunggu (detik)', desc: 'Jeda program', xml: '<block type="delay_seconds"><value name="SECONDS"><shadow type="math_number"><field name="NUM">1</field></shadow></value></block>' },
+            { name: 'Bersihkan Layar', desc: 'Hapus layar', xml: '<block type="display_clear"></block>' }
         ]
     },
     {
@@ -179,10 +32,9 @@ const BLOCK_CATEGORIES = [
         color: '#FFAB19',
         desc: 'Kontrol alur program',
         blocks: [
-            { name: 'Tunggu (detik)', desc: 'Jeda program', xml: '<block type="delay_seconds"><value name="SECONDS"><shadow type="math_number"><field name="NUM">1</field></shadow></value></block>' },
-            { name: 'Ulangi', desc: 'Loop N kali', xml: '<block type="controls_repeat_ext"><value name="TIMES"><shadow type="math_number"><field name="NUM">10</field></shadow></value></block>' },
+            { name: 'Ulangi Sebanyak', desc: 'Loop N kali', xml: '<block type="controls_repeat_ext"><value name="TIMES"><shadow type="math_number"><field name="NUM">10</field></shadow></value></block>' },
             { name: 'Ulangi Selama', desc: 'Loop While', xml: '<block type="controls_whileUntil"></block>' },
-            { name: 'Jika (If)', desc: 'Percabangan', xml: '<block type="controls_if"></block>' }
+            { name: 'Jika...Maka...Jika Tidak', desc: 'Percabangan', xml: '<block type="controls_if"></block>' }
         ]
     },
     {
@@ -195,24 +47,136 @@ const BLOCK_CATEGORIES = [
             { name: 'Bandingkan', desc: 'Lebih besar / kecil', xml: '<block type="logic_compare"></block>' },
             { name: 'Dan / Atau', desc: 'Logika boolean', xml: '<block type="logic_operation"></block>' },
             { name: 'Benar / Salah', desc: 'Nilai logika', xml: '<block type="logic_boolean"></block>' },
-            { name: 'Angka', desc: 'Input angka', xml: '<block type="math_number"><field name="NUM">0</field></block>' },
-            { name: 'Teks', desc: 'Input teks', xml: '<block type="text"><field name="TEXT"></field></block>' }
+            { name: 'Angka Acak', desc: 'Randomizer', xml: '<block type="math_random_int"><value name="FROM"><shadow type="math_number"><field name="NUM">1</field></shadow></value><value name="TO"><shadow type="math_number"><field name="NUM">100</field></shadow></value></block>' }
         ]
     },
     {
         name: 'Variabel',
-        icon: '📦',
+        icon: '🗃️',
         color: '#FF8C1A',
-        desc: 'Simpan data khusus',
-        isVariableCategory: true,
-        blocks: [] // Di-generate dinamis
+        desc: 'Penyimpan nilai',
+        blocks: [
+            { name: 'Variabel (Built-in)', desc: 'Variabel Blockly', xml: '<block type="variables_get"></block>' }
+            // Custom Variable Blocks are typically injected dynamically by the toolbox
+        ]
+    },
+    
+    // ----------------------------------------------------
+    // THEMATIC KITS CATEGORIES (SHOWN CONDITIONALLY)
+    // ----------------------------------------------------
+    {
+        name: 'Drone Tello',
+        icon: '🚁',
+        color: '#FF4D4D',
+        desc: 'Terbangkan drone',
+        moduleCategory: 'drone',
+        blocks: [
+            { name: 'Terbang', desc: 'Takeoff', xml: '<block type="drone_takeoff"></block>' },
+            { name: 'Mendarat', desc: 'Land', xml: '<block type="drone_land"></block>' },
+            { name: 'Maju', desc: 'Gerak maju (cm)', xml: '<block type="drone_move"></block>' }
+        ]
     },
     {
-        name: 'Blok Saya',
-        icon: '🧱',
-        color: '#FF6680',
-        desc: 'Fungsi kustom buatanmu',
-        isMyBlocksCategory: true,
-        blocks: [] // Di-generate dinamis
+        name: 'Smart City',
+        icon: '🏙️',
+        color: '#FFD700',
+        desc: 'Infrastruktur kota publik',
+        moduleCategory: 'smart_city',
+        blocks: [
+            { name: 'Atur Lampu Lalu Lintas', desc: 'Merah/Kuning/Hijau', xml: '<block type="city_traffic_light"></block>' },
+            { name: 'Atur Lampu Jalan', desc: 'Auto/On/Off', xml: '<block type="city_street_light"></block>' },
+            { name: 'Palang Parkir', desc: 'Buka/Tutup', xml: '<block type="city_parking_gate"></block>' },
+            { name: 'Cek Kapasitas Tempat Sampah', desc: '% Penuh', xml: '<block type="city_trash_level"></block>' },
+            { name: 'Cek Kualitas Udara', desc: 'Level Polusi', xml: '<block type="city_air_quality"></block>' }
+        ]
+    },
+    {
+        name: 'Smart Living',
+        icon: '🏠',
+        color: '#005CFF',
+        desc: 'Otomatisasi rumah pintar',
+        moduleCategory: 'smart_home',
+        blocks: [
+            { name: 'Nyalakan Lampu', desc: 'LED Toggle', xml: '<block type="iot_led_toggle"></block>' },
+            { name: 'Apakah Ada Gerakan', desc: 'Sensor PIR', xml: '<block type="sensor_motion"></block>' }
+            // Asumsikan ada blok pintu/alarm di custom_blocks / smart_home_blocks
+        ]
+    },
+    {
+        name: 'Smart Agriculture',
+        icon: '🌾',
+        color: '#2E8B57',
+        desc: 'Otomatisasi perkebunan',
+        moduleCategory: 'smart_agriculture',
+        blocks: [
+            { name: 'Baca Kelembapan Tanah', desc: 'Moisture (%)', xml: '<block type="agri_soil_moisture"></block>' },
+            { name: 'Pompa Air', desc: 'Siram Tanaman', xml: '<block type="agri_water_pump"></block>' },
+            { name: 'Lampu Tumbuh', desc: 'Grow Light', xml: '<block type="agri_grow_light"></block>' },
+            { name: 'Baca Suhu', desc: 'Suhu (°C)', xml: '<block type="agri_greenhouse_temp"></block>' },
+            { name: 'Baca Kelembapan Udara', desc: 'Humidity (%)', xml: '<block type="agri_greenhouse_humidity"></block>' }
+        ]
+    },
+    {
+        name: 'Smart Mobility',
+        icon: '🚗',
+        color: '#4169E1',
+        desc: 'Kendaraan logistik cerdas',
+        moduleCategory: 'smart_mobility',
+        blocks: [
+            { name: 'Jalankan Kendaraan', desc: 'Maju/Mundur', xml: '<block type="mobility_drive"></block>' },
+            { name: 'Belok Kendaraan', desc: 'Kanan/Kiri', xml: '<block type="mobility_turn"></block>' },
+            { name: 'Rem Darurat', desc: 'Stop Kendaraan', xml: '<block type="mobility_stop"></block>' },
+            { name: 'Cek Garis Hitam', desc: 'Line Follower', xml: '<block type="mobility_check_line"></block>' },
+            { name: 'Jarak Halangan', desc: 'Ultrasonik depan', xml: '<block type="mobility_obstacle_distance"></block>' }
+        ]
+    },
+    {
+        name: 'Smart Industry',
+        icon: '🏭',
+        color: '#708090',
+        desc: 'Otomasi pabrik',
+        moduleCategory: 'smart_industry',
+        blocks: [
+            { name: 'Ban Berjalan', desc: 'Conveyor Belt', xml: '<block type="industry_conveyor"></block>' },
+            { name: 'Hitung Barang Lewat', desc: 'Item Counter', xml: '<block type="industry_item_counter"></block>' },
+            { name: 'Cek Suhu Mesin', desc: 'Cegah Overheat', xml: '<block type="industry_machine_temp"></block>' },
+            { name: 'Tombol Darurat', desc: 'Emergency Stop', xml: '<block type="industry_emergency_stop"></block>' },
+            { name: 'Sirine Pabrik', desc: 'Alarm Pabrik', xml: '<block type="industry_siren"></block>' }
+        ]
+    },
+    {
+        name: 'Smart Society',
+        icon: '🤝',
+        color: '#FF4500',
+        desc: 'Interaksi publik darurat',
+        moduleCategory: 'smart_society',
+        blocks: [
+            { name: 'Tombol SOS', desc: 'Emergency Panic Button', xml: '<block type="society_sos_button"></block>' },
+            { name: 'Siarkan Pesan', desc: 'Broadcast Informasi', xml: '<block type="society_broadcast_message"><value name="MESSAGE"><shadow type="text"><field name="TEXT">Waspada Bencana</field></shadow></value></block>' },
+            { name: 'Cek Keramaian Area', desc: 'Crowd Detection', xml: '<block type="society_crowd_detection"></block>' }
+        ]
+    },
+    
+    // ----------------------------------------------------
+    // HARDWARE RAW CATEGORIES (OPTIONAL/ADVANCED)
+    // ----------------------------------------------------
+    {
+        name: 'Pin',
+        icon: '🔌',
+        color: '#FF6347',
+        desc: 'Kontrol input/output dasar',
+        moduleCategory: 'hardware',
+        blocks: [
+            { name: 'Nyalakan / Matikan Pin', desc: 'Nyala/Mati', xml: '<block type="pin_set_digital"></block>' },
+            { name: 'Baca Status Pin', desc: 'Membaca tombol', xml: '<block type="pin_read_digital"></block>' },
+            { name: 'Atur Kecerahan / Kecepatan', desc: 'PWM 0-255', xml: '<block type="pin_set_analog"><value name="VAL"><shadow type="math_number"><field name="NUM">255</field></shadow></value></block>' },
+            { name: 'Baca Nilai Sensor', desc: 'Membaca potensiometer', xml: '<block type="pin_read_analog"></block>' },
+            { name: 'Atur Pin sebagai Sensor', desc: 'Input Mode', xml: '<block type="pin_mode_input"></block>' },
+            { name: 'Atur Pin sebagai Output', desc: 'Output Mode', xml: '<block type="pin_mode_output"></block>' }
+        ]
     }
 ];
+
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = { BLOCK_CATEGORIES };
+}
