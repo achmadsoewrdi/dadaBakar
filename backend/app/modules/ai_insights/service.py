@@ -24,7 +24,7 @@ def _generate_groq_insights(
     context: Optional[str] = None,
     stem_subject: str = "Sistem Embedded & IoT",
 ) -> Optional[Tuple[str, List[str]]]:
-    """Menggunakan Groq Cloud API dengan Persona Asisten Lab STEM dan Rate Limiter Protection."""
+    """Menggunakan Groq Cloud API dengan Persona Asisten Lab STEM yang dispesialisasi berdasarkan disiplin ilmu."""
     if not settings.GROQ_API_KEY:
         return None
 
@@ -41,10 +41,11 @@ def _generate_groq_insights(
     unit_str = f" {unit}" if unit else ""
 
     prompt = f"""
-Kamu adalah Asisten Laboratorium {stem_subject} Senior. Tugas utamamu adalah membantu praktikan/mahasiswa dalam menginterpretasikan dan menarik kesimpulan teknis/ilmiah dari pembacaan data sensor.
+Kamu adalah Asisten Laboratorium {stem_subject} Senior yang berpengalaman, analitis, dan edukatif.
+Tugas utamamu adalah membantu siswa/mahasiswa dalam menganalisis data sensor, menarik kesimpulan ilmiah mendalam, dan membimbing troubleshooting berbasis teori disiplin ilmu **{stem_subject}**.
 
 **Konteks Sistem:**
-Data yang kamu terima telah melalui tahap ekstraksi awal dari endpoint `analyze-sensor`. Tugasmu bukan menghitung data dari nol, melainkan memberikan wawasan analitis tingkat tinggi, mendeteksi pola teknis/fisis, dan membimbing praktikan memahami makna fisis dari data tersebut sesuai bidang {stem_subject}.
+Data yang kamu terima telah melalui agregasi statistik dasar dari router `analyze-sensor`. Tugasmu bukan sekadar mengulang angka, melainkan memberikan interpretasi analitis tingkat tinggi, mendeteksi pola saintifik, serta menjelaskan korelasi ilmiah nyata di balik data sesuai sudut pandang **{stem_subject}**.
 
 **Data Input Sensor:**
 - Nama Sensor: {sensor_name}
@@ -53,26 +54,37 @@ Data yang kamu terima telah melalui tahap ekstraksi awal dari endpoint `analyze-
 - Status Kondisi: {status.upper()}
 - Statistik Data Agregasi:
   * Jumlah Sampel: {metrics.count}
-  * Nilai Rata-rata: {metrics.mean}{unit_str}
+  * Nilai Rata-rata (Mean): {metrics.mean}{unit_str}
   * Nilai Minimum: {metrics.min}{unit_str}
   * Nilai Maksimum: {metrics.max}{unit_str}
   * Rentang Nilai (Range): {metrics.range}{unit_str}
   * Deviasi Standar: {metrics.std_dev}{unit_str}
-- Jumlah Anomali: {len(anomalies)}
-- Detail Anomali Sampel: {json.dumps(anomaly_summary, ensure_ascii=False)}
+  * Nilai Tengah (Median): {metrics.median}{unit_str}
+- Jumlah Anomali Terdeteksi: {len(anomalies)}
+- Detail Sampel Anomali: {json.dumps(anomaly_summary, ensure_ascii=False)}
 
-**Instruksi Analisis (Wajib Sangat Detail & Komprehensif):**
-1. **Ringkasan Metrik & Tren:** Evaluasi tren utama data, nilai puncak, dan stabilitas pembacaan.
-2. **Korelasi Teori & Fenomena STEM:** Identifikasi penyebab anomali dan jelaskan fenomena di baliknya berdasarkan hukum/teori dasar bidang {stem_subject}.
-3. **Nada Bicara:** Bahasa Indonesia yang profesional, analitis, teknis, mendalam, namun tetap suportif dan edukatif layaknya asisten lab senior kepada mahasiswa.
+**Panduan Analisis Khusus Berdasarkan Disiplin Ilmu {stem_subject}:**
+- **Jika FISIKA**: Hubungkan fluktuasi/anomali data dengan hukum-hukum fisis (misal: Hukum Termodinamika, konduktivitas/resistivitas, transfer energi kalor, Hukum Ohm, gelombang/optik, gaya fisis, atau disipasi daya).
+- **Jika MATEMATIKA**: Fokus pada interpretasi data kuantitatif & statistika (misal: perbandingan mean vs median untuk melihat kemencengan/skewness data, signifikansi deviasi standar terhadap dispersi, analisis pola tren linier/periodik, dan probabilitas outlier).
+- **Jika BIOLOGI**: Hubungkan data sensor dengan proses biologis organisme & lingkungan (misal: laju fotosintesis, transpirasi stomata, respirasi seluler, aktivitas mikroba tanah, homeostasis, adaptasi lingkungan, atau faktor pembatas biotik/abiotik).
+- **Jika KIMIA**: Hubungkan data dengan kinetika dan kesetimbangan kimia (misal: derajat keasaman pH / ion H+, reaksi eksoterm/endoterm, larutan penyangga/buffer, konsentrasi ion nutrisi NPK/EC, titrasi, atau laju oksidasi).
+- **Jika SISTEM EMBEDDED / IOT / ROBOTIKA**: Hubungkan dengan integritas sinyal elektrik (noise ADC, drop tegangan baterai/voltage sag, latensi bus I2C/SPI, filter sinyal, ripple voltage, atau kalibrasi offset sensor).
+
+**Instruksi Format Output (Wajib Terstruktur & Edukatif):**
+1. **Summary (Minimal 2-3 Paragraf Mendalam)**:
+   - Paragraf 1: Ringkasan metrik utama, tren stabilitas data, dan perbandingan nilai ekstrem.
+   - Paragraf 2: Analisis mendalam mengenai *MENGAPA* fenomena tersebut terjadi berdasarkan hukum/teori ilmiah **{stem_subject}**.
+   - Paragraf 3: Penjelasan spesifik mengenai penyebab dan implikasi anomali/outlier yang terdeteksi terhadap pengujian.
+2. **Recommendations (3 Langkah Aksi Konkret)**:
+   - Berikan rekomendasi langkah praktis yang dapat langsung dieksekusi siswa di laboratorium (misal: kalibrasi instrumen, koreksi variabel eksperimen, penyesuaian hardware/software, atau tindakan preventif).
 
 Format Balasan HARUS berupa JSON valid dengan struktur persis berikut:
 {{
-  "summary": "Tuliskan analisis teknis/ilmiah yang sangat detail dan mendalam (minimal 2-3 paragraf komprehensif) mencakup ringkasan metrik, tren data, dan korelasi teori {stem_subject}.",
+  "summary": "Tuliskan ringkasan metrik dan analisis ilmiah mendalam (2-3 paragraf komprehensif) sesuai teori {stem_subject}.",
   "recommendations": [
-    "Langkah praktis 1 (pemeriksaan peralatan / instrumen / hardware)",
-    "Langkah praktis 2 (penyesuaian prosedur praktikum / software / kalibrasi)",
-    "Langkah praktis 3 (evaluasi ilmiah selanjutnya)"
+    "Langkah 1: [Tindakan pemeriksaan peralatan / instrumen]",
+    "Langkah 2: [Tindakan penyesuaian variabel praktikum / metode ilmiah]",
+    "Langkah 3: [Tindakan evaluasi / pencegahan teknis]"
   ]
 }}
 """
@@ -129,6 +141,82 @@ Format Balasan HARUS berupa JSON valid dengan struktur persis berikut:
         logger.warning(f"Groq HTTP Call Failed: {e}.")
 
     return None
+
+
+def _get_fallback_stem_insights(
+    stem_subject: str,
+    sensor_name_str: str,
+    unit_str: str,
+    status: str,
+    count: int,
+    metrics: MetricsSummary,
+    anomalies: List[AnomalyDetail],
+    context_info: str,
+) -> Tuple[str, List[str]]:
+    """Menghasilkan analisis fallback rule-based yang disesuaikan dengan subjek STEM."""
+    subject_lower = stem_subject.lower()
+
+    if "kimia" in subject_lower:
+        topic_desc = f"reaksi kimia dan kesetimbangan larutan pada {sensor_name_str}"
+        rec_1 = "Lakukan kalibrasi ulang probe sensor kimia menggunakan larutan buffer standar."
+        rec_2 = "Periksa konsentrasi larutan reaktan dan pastikan wadah reaksi dalam kondisi homogen."
+        rec_3 = "Waspadai perubahan suhu lingkungan yang dapat menggeser kesetimbangan kimiawi."
+    elif "biologi" in subject_lower:
+        topic_desc = f"kondisi lingkungan biologis dan aktivitas metabolisme spesimen pada {sensor_name_str}"
+        rec_1 = "Evaluasi faktor pembatas lingkungan (seperti aerasi, kelembapan, dan intensitas cahaya)."
+        rec_2 = "Pastikan media tumbuh tanaman atau kultur mikroba terlindung dari stres lingkungan ekstrem."
+        rec_3 = "Lakukan pencatatan berkala terhadap respon fisiologis spesimen terhadap fluktuasi sensor."
+    elif "fisika" in subject_lower:
+        topic_desc = f"fenomena fisis, transfer energi, dan karakteristik pengukuran {sensor_name_str}"
+        rec_1 = "Periksa isolasi termal, hambatan koneksi, dan stabilitas instrumen fisis pengujian."
+        rec_2 = "Verifikasi hukum-hukum fisis terkait (Hukum Ohm / Termodinamika) terhadap lonjakan nilai."
+        rec_3 = "Pastikan sensor terlindung dari gangguan interferensi mekanik atau elektromagnetik."
+    elif "matematika" in subject_lower:
+        topic_desc = f"distribusi statistika, dispersi data, dan pola tren kuantitatif {sensor_name_str}"
+        rec_1 = "Lakukan pembersihan data (data cleaning) terhadap titik pencilan (outlier) yang teridentifikasi."
+        rec_2 = "Tingkatkan ukuran sampel (sample size) untuk meningkatkan derajat signifikansi statistika."
+        rec_3 = "Gunakan metode Moving Average atau regresi untuk memodelkan tren data secara berkelanjutan."
+    else:
+        topic_desc = f"integritas sistem hardware dan akuisisi data sensor {sensor_name_str}"
+        rec_1 = "Periksa sambungan kabel jumper, pin header, dan stabilitas tegangan suplai VCC/GND."
+        rec_2 = "Lakukan verifikasi kalibrasi offset sensor pada firmware mikrokontroler."
+        rec_3 = "Terapkan digital filtering (Moving Average Filter) pada program pembacaan sensor."
+
+    if status == "normal":
+        summary = (
+            f"📊 [Analisis Asisten Lab {stem_subject} - Fallback System]\n\n"
+            f"Berdasarkan pengujian {topic_desc}{context_info}, kondisi sistem terpantau STABIL dan berada pada batas aman operasional. "
+            f"Dari total {count} sampel data, nilai rata-rata tercatat {metrics.mean}{unit_str} dengan median {metrics.median}{unit_str} "
+            f"dan deviasi standar {metrics.std_dev}{unit_str}. Rentang data berada pada interval [{metrics.min}{unit_str} - {metrics.max}{unit_str}] "
+            f"tanpa adanya penyimpangan signifikan."
+        )
+        recommendations = [
+            f"Kondisi {sensor_name_str} dalam keadaan optimal untuk praktikum {stem_subject}.",
+            rec_1,
+            rec_3,
+        ]
+    elif status == "warning":
+        summary = (
+            f"⚠️ [Analisis Asisten Lab {stem_subject} - Fallback System]\n\n"
+            f"Terdeteksi potensi penyimpangan pada {topic_desc}{context_info}. "
+            f"Sebanyak {len(anomalies)} dari {count} titik data mengalami deviasi dari batas normal dengan nilai rata-rata {metrics.mean}{unit_str} "
+            f"dan deviasi standar {metrics.std_dev}{unit_str}. Pola ini mengindikasikan adanya gangguan awal pada variabel praktikum {stem_subject}."
+        )
+        recommendations = [rec_1, rec_2, rec_3]
+    else:  # critical
+        summary = (
+            f"🚨 [Analisis Asisten Lab {stem_subject} - Fallback System]\n\n"
+            f"PERHATIAN SISWA: Terdeteksi KONDISI KRITIS pada {topic_desc}{context_info}! "
+            f"Sebanyak {len(anomalies)} anomali signifikan teridentifikasi dengan nilai puncak mencapai {metrics.max}{unit_str} (Rata-rata: {metrics.mean}{unit_str}). "
+            f"Penyimpangan ekstrem ini menunjukkan adanya anomali nyata yang memerlukan evaluasi segera sesuai prosedur laboratorium {stem_subject}."
+        )
+        recommendations = [
+            f"SEGERA evaluasi eksperimen dan periksa kondisi fisik instrumen {sensor_name_str}!",
+            rec_1,
+            rec_2,
+        ]
+
+    return summary, recommendations
 
 
 def analyze_sensor_data(request: SensorDataAnalysisRequest) -> SensorDataAnalysisResponse:
@@ -209,6 +297,7 @@ def analyze_sensor_data(request: SensorDataAnalysisRequest) -> SensorDataAnalysi
     # 4. Penyusunan Ringkasan & Rekomendasi (Groq API dengan Rate Limiter & Fallback)
     unit_str = f" {request.unit}" if request.unit else ""
     sensor_name_str = request.sensor_name or "Sensor"
+    stem_subject_str = request.stem_subject or "Sistem Embedded & IoT"
 
     groq_result = _generate_groq_insights(
         sensor_name=sensor_name_str,
@@ -217,50 +306,24 @@ def analyze_sensor_data(request: SensorDataAnalysisRequest) -> SensorDataAnalysi
         metrics=metrics,
         anomalies=anomalies,
         context=request.context,
-        stem_subject=request.stem_subject or "Sistem Embedded & IoT",
+        stem_subject=stem_subject_str,
     )
 
     if groq_result is not None:
         summary, recommendations = groq_result
     else:
-        # Fallback Rule-Based jika GROQ_API_KEY tidak diset, Rate Limit tercapai, atau Groq API error
+        # Fallback Rule-Based Khusus per Disiplin Ilmu STEM
         context_info = f" pada {request.context}" if request.context else ""
-        if status == "normal":
-            summary = (
-                f"📊 [Analisis Asisten Lab - Fallback System]\n\n"
-                f"Hasil pengujian pada {sensor_name_str}{context_info} menunjukkan kondisi operasional yang STABIL. "
-                f"Dari total {count} sampel data yang diamati, nilai rata-rata tercatat {metrics.mean}{unit_str} dengan deviasi standar {metrics.std_dev}{unit_str}. "
-                f"Rentang sinyal berada pada interval [{metrics.min}{unit_str} - {metrics.max}{unit_str}] tanpa adanya fluktuasi sinyal abnormal atau pelanggaran threshold."
-            )
-            recommendations = [
-                f"Kondisi fisis {sensor_name_str} dalam keadaan optimal dan siap digunakan untuk pengujian berikutnya.",
-                "Lanjutkan pemantauan rutin dan pastikan pembacaan disampingkan dari sumber interferensi elektromagnetik eksternal.",
-            ]
-        elif status == "warning":
-            summary = (
-                f"⚠️ [Analisis Asisten Lab - Fallback System]\n\n"
-                f"Terdeteksi potensi penyimpangan sinyal pada {sensor_name_str}{context_info}. "
-                f"Sebanyak {len(anomalies)} dari {count} titik data mengalami deviasi di luar batas normal operasional. "
-                f"Rata-rata pengukuran tercatat {metrics.mean}{unit_str} dengan deviasi standar cukup tinggi ({metrics.std_dev}{unit_str}). "
-                f"Kondisi ini umumnya disebabkan oleh noise sinyal pada jalur transmisi analog/digital atau penurunan kualitas sambungan fisik."
-            )
-            recommendations = [
-                f"Periksa kestabilan koneksi fisik kabel jumper dan pin header pada {sensor_name_str}.",
-                "Lakukan verifikasi tegangan suplai VCC/GND menggunakan multimeter untuk memastikan tidak terjadi ripple voltage.",
-                "Pertimbangkan untuk menerapkan software filtering (seperti Moving Average Filter) pada program mikrokontroler.",
-            ]
-        else:  # critical
-            summary = (
-                f"🚨 [Analisis Asisten Lab - Fallback System]\n\n"
-                f"PERHATIAN PRAKTIKAN: Terdeteksi KONDISI KRITIS pada {sensor_name_str}{context_info}! "
-                f"Sebanyak {len(anomalies)} anomali signifikan teridentifikasi dengan nilai lonjakan tertinggi mencapai {metrics.max}{unit_str} (Rata-rata: {metrics.mean}{unit_str}). "
-                f"Penyimpangan sebesar ini mengindikasikan adanya masalah fisis serius seperti bus-contention, drop tegangan suplai secara drastis, kelonggaran jalur ground (floating GND), atau komponen yang mengalami overheat."
-            )
-            recommendations = [
-                f"SEGERA periksa fisik hardware dan putuskan sambungan daya jika terindikasi adanya komponen yang panas berlebih!",
-                "Verifikasi konfigurasi pull-up/pull-down resistor serta keutuhan kabel komunikasi (I2C/SPI/UART).",
-                "Periksa ulang skema wiring dan pastikan tidak ada korsleting (short circuit) pada board praktikum.",
-            ]
+        summary, recommendations = _get_fallback_stem_insights(
+            stem_subject=stem_subject_str,
+            sensor_name_str=sensor_name_str,
+            unit_str=unit_str,
+            status=status,
+            count=count,
+            metrics=metrics,
+            anomalies=anomalies,
+            context_info=context_info,
+        )
 
     return SensorDataAnalysisResponse(
         status=status,
