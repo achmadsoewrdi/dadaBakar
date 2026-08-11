@@ -37,19 +37,40 @@ class ProjectCard extends StatelessWidget {
     return 'just now';
   }
 
+  // Menentukan warna tema berdasarkan mode proyek (Biru = Smart City, Hijau = Smart Agri, Ungu = Smart Living)
+  Color _getThemeColor() {
+    final cat = (project.moduleCategory ?? categoryService.getCategoryForProject(project.id) ?? '').toLowerCase();
+    final name = project.name.toLowerCase();
+
+    if (cat.contains('city') || cat == 'smart_city' || name.contains('city')) {
+      return const Color(0xFF005CFF); // Blue untuk Smart City
+    } else if (cat.contains('agri') || cat == 'smart_agriculture' || name.contains('agri') || name.contains('pertanian') || name.contains('kebun')) {
+      return const Color(0xFF22C55E); // Green untuk Smart Agriculture
+    } else if (cat.contains('home') || cat.contains('living') || cat == 'smart_home' || cat == 'smart_living' || name.contains('living') || name.contains('home') || name.contains('rumah')) {
+      return const Color(0xFF8B5CF6); // Purple untuk Smart Living
+    }
+    return const Color(0xFF005CFF); // Default Blue
+  }
+
   @override
   Widget build(BuildContext context) {
+    final themeColor = _getThemeColor();
+    // Warna background soft pastel transparan blended dengan putih
+    final cardBgColor = Color.alphaBlend(themeColor.withValues(alpha: 0.08), Colors.white);
+    final borderColor = themeColor.withValues(alpha: 0.25);
+
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: cardBgColor,
           borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: borderColor, width: 1.2),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.03),
-              blurRadius: 10,
+              color: themeColor.withValues(alpha: 0.06),
+              blurRadius: 12,
               offset: const Offset(0, 4),
             ),
           ],
@@ -99,7 +120,7 @@ class ProjectCard extends StatelessWidget {
                           'Last edited ${_timeAgo(project.updatedAt)}',
                           style: TextStyle(
                             fontSize: 12,
-                            color: Colors.grey.shade500,
+                            color: Colors.grey.shade600,
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
@@ -110,12 +131,13 @@ class ProjectCard extends StatelessWidget {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF005CFF).withValues(alpha: 0.1),
+                            color: themeColor.withValues(alpha: 0.12),
                             borderRadius: BorderRadius.circular(4),
                           ),
-                          child: const Text(
+                          child: Text(
                             'IoT Lab',
-                            style: TextStyle(fontSize: 10, color: Color(0xFF005CFF), fontWeight: FontWeight.bold),
+                            style: TextStyle(fontSize: 10, color: themeColor, fontWeight: FontWeight.bold),
+                          ),
                           ),
                         ),
                       ],
@@ -131,7 +153,7 @@ class ProjectCard extends StatelessWidget {
               )
             else if (showPopupMenu && onCategorySelected != null)
               PopupMenuButton<String>(
-                icon: Icon(Icons.more_vert_rounded, color: Colors.grey.shade400),
+                icon: Icon(Icons.more_vert_rounded, color: themeColor.withValues(alpha: 0.7)),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 onSelected: onCategorySelected,
                 itemBuilder: (BuildContext context) {
@@ -144,9 +166,10 @@ class ProjectCard extends StatelessWidget {
                 },
               )
             else if (showChevron)
-              const Padding(
-                padding: EdgeInsets.only(left: 8.0),
-                child: Icon(Icons.chevron_right_rounded, color: Colors.grey, size: 20),
+              Padding(
+                padding: const EdgeInsets.only(left: 8.0),
+                child: Icon(Icons.chevron_right_rounded, color: themeColor.withValues(alpha: 0.7), size: 22),
+              ),
               ),
           ],
         ),

@@ -234,6 +234,7 @@ class _BlocklyWorkspaceScreenState extends State<BlocklyWorkspaceScreen> {
     }
 
     _controller = WebViewController()
+      ..clearCache()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
       ..setBackgroundColor(const Color(0x00000000))
       ..addJavaScriptChannel(

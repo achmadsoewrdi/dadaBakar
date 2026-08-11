@@ -14,6 +14,7 @@ async def create_project(db: AsyncSession, project_in: ProjectCreate, owner_id: 
         generated_code=project_in.generated_code,
         blynk_config_json=project_in.blynk_config_json,
         device_profile_id=project_in.device_profile_id,
+        module_category=project_in.module_category,
     )
     db.add(project)
     await db.commit()

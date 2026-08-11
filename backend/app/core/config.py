@@ -17,6 +17,9 @@ class Settings(BaseSettings):
     REFRESH_TOKEN_EXPIRE_DAYS: int = 30
     GOOGLE_CLIENT_ID: str = ""
 
+    # Quota enforcement (FR #7 — plan.md §1.2): batas proyek untuk akun free/demo.
+    # Premium tidak dibatasi.
+    FREE_PROJECT_QUOTA: int = 100
     if SettingsConfigDict is not None:
         model_config = SettingsConfigDict(
             env_file=".env",
