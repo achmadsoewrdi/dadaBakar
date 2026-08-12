@@ -44,11 +44,6 @@ class DeviceConnectionService extends ChangeNotifier {
   String? _connectedDeviceId;
   String? get connectedDeviceId => _connectedDeviceId;
 
-  // Telemetry Stream
-  final StreamController<Map<String, dynamic>> _telemetryController =
-      StreamController<Map<String, dynamic>>.broadcast();
-  Stream<Map<String, dynamic>> get telemetryStream =>
-      _telemetryController.stream;
   // Generic State
   bool _isConnected = false;
   bool get isConnected => _isConnected;

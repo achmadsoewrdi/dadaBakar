@@ -35,7 +35,7 @@ const BLOCK_CATEGORIES = [
             { name: 'Tunggu (detik)', desc: 'Jeda program', xml: '<block type="delay_seconds"><value name="SECONDS"><shadow type="math_number"><field name="NUM">1</field></shadow></value></block>' },
             { name: 'Ulangi Sebanyak', desc: 'Loop N kali', xml: '<block type="controls_repeat_ext"><value name="TIMES"><shadow type="math_number"><field name="NUM">10</field></shadow></value></block>' },
             { name: 'Ulangi Selama', desc: 'Loop While', xml: '<block type="controls_whileUntil"></block>' },
-            { name: 'Jika...Maka...Jika Tidak', desc: 'Percabangan', xml: '<block type="controls_if"></block>' }
+            { name: 'Jika...Maka...Jika Tidak', desc: 'Percabangan', xml: '<block type="controls_if"></block>' },
             { name: 'Jika...Maka...Jika Tidak', desc: 'Percabangan', xml: '<block type="controls_if"></block>' }
         ]
     },
@@ -49,7 +49,6 @@ const BLOCK_CATEGORIES = [
             { name: 'Bandingkan', desc: 'Lebih besar / kecil', xml: '<block type="logic_compare"></block>' },
             { name: 'Dan / Atau', desc: 'Logika boolean', xml: '<block type="logic_operation"></block>' },
             { name: 'Benar / Salah', desc: 'Nilai logika', xml: '<block type="logic_boolean"></block>' },
-            { name: 'Angka Acak', desc: 'Randomizer', xml: '<block type="math_random_int"><value name="FROM"><shadow type="math_number"><field name="NUM">1</field></shadow></value><value name="TO"><shadow type="math_number"><field name="NUM">100</field></shadow></value></block>' }
             { name: 'Angka Acak', desc: 'Randomizer', xml: '<block type="math_random_int"><value name="FROM"><shadow type="math_number"><field name="NUM">1</field></shadow></value><value name="TO"><shadow type="math_number"><field name="NUM">100</field></shadow></value></block>' }
         ]
     },
@@ -270,7 +269,10 @@ const BLOCK_CATEGORIES = [
         blocks: [
             { name: 'Terbang', desc: 'Takeoff Drone', xml: '<block type="drone_takeoff"></block>', modes: ['drone'] },
             { name: 'Mendarat', desc: 'Land Drone', xml: '<block type="drone_land"></block>', modes: ['drone'] },
-            { name: 'Maju', desc: 'Gerak maju (cm)', xml: '<block type="drone_move"></block>', modes: ['drone'] }
+            { name: 'Berhenti & Hover', desc: 'Stop Drone', xml: '<block type="drone_stop"></block>', modes: ['drone'] },
+            { name: 'Gerak Arah', desc: 'Gerak maju/mundur/kiri/kanan/naik/turun', xml: '<block type="drone_move_direction"></block>', modes: ['drone'] },
+            { name: 'Rotasi', desc: 'Putar drone', xml: '<block type="drone_rotate"></block>', modes: ['drone'] },
+            { name: 'Salto (Flip)', desc: 'Salto 3D', xml: '<block type="drone_flip"></block>', modes: ['drone'] }
         ]
     }
 ];
