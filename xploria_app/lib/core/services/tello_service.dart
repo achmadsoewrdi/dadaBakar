@@ -232,11 +232,17 @@ class TelloService extends ChangeNotifier {
       return;
     }
     
-    // Beri jeda 500ms agar Tello sempat memproses state sebelum menerima command baru.
-    // Jika tidak ada jeda, Tello sering menolak/drop paket UDP yang datang terlalu cepat setelah balasan 'ok'.
-    await Future.delayed(const Duration(milliseconds: 500));
-
     final nextCmd = _commandQueue.removeAt(0);
+
+    // Beri jeda ekstra (2 detik) sebelum manuver rotasi/akrobatik agar IMU stabil setelah takeoff
+    if (nextCmd.startsWith('cw') || nextCmd.startsWith('ccw') || nextCmd.startsWith('flip')) {
+      addLog('Menunggu 2 detik agar sensor IMU stabil...');
+      await Future.delayed(const Duration(seconds: 2));
+    } else {
+      // Jeda standar 500ms
+      await Future.delayed(const Duration(milliseconds: 500));
+    }
+
     await sendCommand(nextCmd);
   }
 }

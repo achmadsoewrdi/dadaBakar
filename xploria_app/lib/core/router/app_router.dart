@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:xploria_app/features/splash/presentation/pages/new_splash_screen.dart';
 import 'package:xploria_app/features/auth/presentation/pages/welcome_screen.dart';
 import 'package:xploria_app/features/auth/presentation/pages/login_screen.dart';
 import 'package:xploria_app/features/auth/presentation/pages/register_screen.dart';
@@ -30,14 +31,18 @@ class AppRouter {
 
   static final GoRouter router = GoRouter(
     navigatorKey: _rootNavigatorKey,
-    initialLocation: '/welcome',
+    initialLocation: '/',
     redirect: (context, state) {
       final authStorage = AuthStorageService();
 
       final bool isAuthenticated = authStorage.isAuthenticated;
+      final bool isGoingToSplash = state.matchedLocation == '/';
       final bool isGoingToAuth = state.matchedLocation == '/welcome' ||
                                  state.matchedLocation == '/login' ||
                                  state.matchedLocation == '/register';
+
+      // Bypass redirect for splash screen to let it play its animation
+      if (isGoingToSplash) return null;
 
       // Proteksi rute internal
       if (!isAuthenticated && !isGoingToAuth) {
@@ -52,8 +57,10 @@ class AppRouter {
       return null;
     },
     routes: [
-      // v3: Splash lama dihapus. Route '/' sementara → WelcomeScreen.
-      // New premium splash akan dibuat di Phase 3.
+      GoRoute(
+        path: '/',
+        builder: (context, state) => const NewSplashScreen(),
+      ),
       GoRoute(
         path: '/welcome',
         builder: (context, state) => const WelcomeScreen(),
