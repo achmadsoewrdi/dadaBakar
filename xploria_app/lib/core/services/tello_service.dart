@@ -10,8 +10,13 @@ class TelloService extends ChangeNotifier {
   TelloService._internal();
 
   RawDatagramSocket? _socket;
+  RawDatagramSocket? _stateSocket;
   final String telloIp = '192.168.10.1';
   final int telloPort = 8889;
+  final int telloStatePort = 8890;
+
+  int _battery = 0;
+  int get battery => _battery;
 
   bool _isConnected = false;
   bool get isConnected => _isConnected;
@@ -48,6 +53,10 @@ class TelloService extends ChangeNotifier {
       _socket?.close();
       _socket = await RawDatagramSocket.bind(InternetAddress.anyIPv4, 0);
       _socket!.listen(_onReceiveData);
+
+      _stateSocket?.close();
+      _stateSocket = await RawDatagramSocket.bind(InternetAddress.anyIPv4, telloStatePort);
+      _stateSocket!.listen(_onReceiveStateData);
 
       _statusMessage = 'Mencoba terhubung...';
       notifyListeners();
@@ -88,12 +97,34 @@ class TelloService extends ChangeNotifier {
   void disconnect() {
     _socket?.close();
     _socket = null;
+    _stateSocket?.close();
+    _stateSocket = null;
     _isConnected = false;
     _statusMessage = 'Terputus dari Tello';
     _commandQueue.clear();
     _isWaitingForResponse = false;
     addLog('Koneksi UDP ditutup');
     notifyListeners();
+  }
+
+  void _onReceiveStateData(RawSocketEvent event) {
+    if (event == RawSocketEvent.read && _stateSocket != null) {
+      Datagram? datagram = _stateSocket!.receive();
+      if (datagram != null) {
+        final state = utf8.decode(datagram.data, allowMalformed: true).trim();
+        // format: pitch:0;roll:0;yaw:0;...;bat:87;...
+        final fields = state.split(';');
+        for (var field in fields) {
+          if (field.startsWith('bat:')) {
+            final batValue = int.tryParse(field.substring(4));
+            if (batValue != null && batValue != _battery) {
+              _battery = batValue;
+              notifyListeners();
+            }
+          }
+        }
+      }
+    }
   }
 
   void _onReceiveData(RawSocketEvent event) {
@@ -121,6 +152,15 @@ class TelloService extends ChangeNotifier {
         }
       }
     }
+  }
+  Future<bool> startVideoStream() async {
+    addLog('Meminta Tello untuk mengaktifkan video stream...');
+    return await sendCommand('streamon');
+  }
+
+  Future<bool> stopVideoStream() async {
+    addLog('Mematikan video stream...');
+    return await sendCommand('streamoff');
   }
 
   Future<bool> sendCommand(String cmd) async {

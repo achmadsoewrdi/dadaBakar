@@ -18,6 +18,7 @@ import 'package:xploria_app/features/blockly_workspace/presentation/pages/python
 import 'package:xploria_app/features/projects/domain/models/project_model.dart';
 import 'package:xploria_app/features/subscriptions/presentation/pages/paywall_screen.dart';
 import 'package:xploria_app/features/content/domain/models/learning_module_model.dart';
+import 'package:xploria_app/features/drone_controller/presentation/pages/drone_controller_screen.dart';
 
 // v3 — DIHAPUS (Phase 1):
 // - splash (dibuat ulang di Phase 3 sebagai new_splash_screen)
@@ -135,6 +136,10 @@ class AppRouter {
       GoRoute(
         path: '/paywall',
         builder: (context, state) => const PaywallScreen(),
+      ),
+      GoRoute(
+        path: '/drone-controller',
+        builder: (context, state) => const DroneControllerScreen(),
       ),
     ],
   );

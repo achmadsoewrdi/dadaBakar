@@ -281,6 +281,29 @@ class _BlocklyWorkspaceScreenState extends State<BlocklyWorkspaceScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       resizeToAvoidBottomInset: false,
+      floatingActionButton: ListenableBuilder(
+        listenable: DeviceConnectionService.instance,
+        builder: (context, _) {
+          if (DeviceConnectionService.instance.connectionMode == ConnectionMode.drone) {
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 64.0, right: 16.0),
+              child: FloatingActionButton.extended(
+                heroTag: 'drone_cam_btn',
+                onPressed: () {
+                  context.push('/drone-controller');
+                },
+                backgroundColor: Colors.blueAccent,
+                icon: const Icon(Icons.videocam, color: Colors.white),
+                label: const Text(
+                  'Kamera',
+                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                ),
+              ),
+            );
+          }
+          return const SizedBox.shrink();
+        },
+      ),
       appBar: AppBar(
         backgroundColor: AppColors.primary,
         elevation: 0,
@@ -301,28 +324,21 @@ class _BlocklyWorkspaceScreenState extends State<BlocklyWorkspaceScreen> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Flexible(
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Flexible(
-                        child: Text(
-                          _projectName,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w900,
-                            fontSize: 18,
-                          ),
-                        ),
-                      ),
-                      if (_isSaving)
-                         const Padding(
-                           padding: EdgeInsets.only(left: 8.0),
-                           child: SizedBox(width: 12, height: 12, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)),
-                         )
-                    ]
-                  )
+                  child: Text(
+                    _projectName,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w900,
+                      fontSize: 18,
+                    ),
+                  ),
                 ),
+                if (_isSaving)
+                  const Padding(
+                    padding: EdgeInsets.only(left: 8.0),
+                    child: SizedBox(width: 12, height: 12, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)),
+                  ),
                 const SizedBox(width: 8),
                 const Icon(Icons.edit, size: 18, color: Colors.white),
               ],
