@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../../projects/domain/models/project_model.dart';
@@ -34,7 +33,6 @@ class _BlynkCanvasScreenState extends State<BlynkCanvasScreen> {
   bool _isEditMode = false;
   StreamSubscription<Map<String, dynamic>>? _telemetrySubscription;
   Timer? _autoSaveTimer;
-  final Random _random = Random();
 
   @override
   void initState() {

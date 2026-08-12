@@ -53,10 +53,10 @@ void showDeviceSelectionModal(
                             itemBuilder: (context, index) {
                               final d = service.devicesList[index];
                               final isSelected =
-                                  service.selectedDevice?.address == d.address;
+                                  service.selectedDevice?.remoteId.str == d.remoteId.str;
                               return ListTile(
-                                title: Text(d.name ?? "Unknown Device"),
-                                subtitle: Text(d.address),
+                                title: Text(d.advName.isNotEmpty ? d.advName : "Unknown Device"),
+                                subtitle: Text(d.remoteId.str),
                                 trailing: isSelected
                                     ? const Icon(
                                         Icons.check_circle,
@@ -107,10 +107,11 @@ void showDeviceSelectionModal(
 
                                   if (service.isConnected) {
                                     context.pop();
+                                    final deviceName = service.selectedDevice?.advName;
                                     onDeviceSaved(
-                                      service.selectedDevice?.name ?? 'Xploria Bluetooth',
+                                      (deviceName != null && deviceName.isNotEmpty) ? deviceName : 'Xploria Bluetooth',
                                       'bluetooth',
-                                      macAddress: service.selectedDevice?.address,
+                                      macAddress: service.selectedDevice?.remoteId.str,
                                     );
                                   } else {
                                     setState(() {

@@ -16,7 +16,7 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
-  final GlobalKey<DashboardHomePageState> _homePageKey = GlobalKey<DashboardHomePageState>();
+
   int _currentIndex = 0;
 
   void _onTabTapped(int index) {

@@ -4,8 +4,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 import '../../../auth/data/data_sources/auth_storage_service.dart';
 import '../../../auth/domain/models/user_model.dart';
 import '../../data/repositories/account_repository.dart';
-import 'edit_account_screen.dart';
-import '../../../../core/config/app_constants.dart';
+import '../../../../core/utils/media_url.dart';
 
 class AccountPage extends StatefulWidget {
   const AccountPage({super.key});
@@ -110,9 +109,7 @@ class _AccountPageState extends State<AccountPage> {
                               title: 'Account',
                               onTap: () async {
                                 context.pop(); // close modal
-                                final result = await context.push<bool>('/edit-account') ?? 
-                                               await Navigator.push<bool>(context, MaterialPageRoute(builder: (_) => const EditAccountScreen()));
-                                
+                                final result = await context.push<bool>('/edit-account');
                                 if (result == true) {
                                   _loadData();
                                 }
@@ -399,14 +396,12 @@ class _AccountPageState extends State<AccountPage> {
               // Top Row: Avatar, Name, Settings
               Row(
                 children: [
-                  if (_user?.photoUrl != null && _user!.photoUrl!.isNotEmpty)
+                    if (_user?.photoUrl != null && _user!.photoUrl!.isNotEmpty)
                     CircleAvatar(
                       radius: 30,
                       backgroundColor: const Color(0xFFDDE5FF),
                       backgroundImage: NetworkImage(
-                        _user!.photoUrl!.startsWith('http') 
-                            ? _user!.photoUrl! 
-                            : '${AppConstants.apiBaseUrl.replaceAll('/api/v1', '')}${_user!.photoUrl}'
+                        resolveMediaUrl(_user!.photoUrl!)
                       ),
                     )
                   else

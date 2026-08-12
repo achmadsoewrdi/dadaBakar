@@ -4,7 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../../auth/data/data_sources/auth_storage_service.dart';
 import '../../data/repositories/account_repository.dart';
-import '../../../../core/config/app_constants.dart';
+import '../../../../core/utils/media_url.dart';
 
 class EditAccountScreen extends StatefulWidget {
   const EditAccountScreen({super.key});
@@ -93,10 +93,7 @@ class _EditAccountScreenState extends State<EditAccountScreen> {
     if (_selectedImage != null) {
       return FileImage(_selectedImage!);
     } else if (_existingPhotoUrl != null && _existingPhotoUrl!.isNotEmpty) {
-      final url = _existingPhotoUrl!.startsWith('http') 
-          ? _existingPhotoUrl! 
-          : '${AppConstants.apiBaseUrl.replaceAll('/api/v1', '')}$_existingPhotoUrl';
-      return NetworkImage(url);
+      return NetworkImage(resolveMediaUrl(_existingPhotoUrl!));
     }
     return const AssetImage('assets/images/placeholder.jpg'); // Fallback
   }

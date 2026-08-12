@@ -1,9 +1,13 @@
-from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Form
-from fastapi.security import OAuth2PasswordRequestForm
-from sqlalchemy.ext.asyncio import AsyncSession
+import logging
 import os
 import shutil
 import uuid
+
+from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Form
+from fastapi.security import OAuth2PasswordRequestForm
+from sqlalchemy.ext.asyncio import AsyncSession
+
+logger = logging.getLogger(__name__)
 
 from google.oauth2 import id_token as google_id_token  # type: ignore
 from google.auth.transport import requests as google_requests  # type: ignore
@@ -144,17 +148,36 @@ async def update_current_user_profile(
     """
     Update profil user (nama dan foto).
     """
+    _ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp"}
+    _ALLOWED_CONTENT_TYPES = {"image/jpeg", "image/png", "image/webp"}
+
     photo_url = None
     if photo:
+        # Validate file extension
+        file_extension = (
+            os.path.splitext(photo.filename)[1].lower() if photo.filename else ""
+        )
+        if file_extension not in _ALLOWED_EXTENSIONS:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Tipe file tidak diizinkan. Gunakan: {', '.join(_ALLOWED_EXTENSIONS)}",
+            )
+
+        # Validate MIME content-type declared by client
+        if photo.content_type not in _ALLOWED_CONTENT_TYPES:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Content-Type file tidak valid. Hanya gambar (JPEG/PNG/WebP) yang diizinkan.",
+            )
+
         upload_dir = "uploads/avatars"
         os.makedirs(upload_dir, exist_ok=True)
-        file_extension = os.path.splitext(photo.filename)[1] if photo.filename else ".jpg"
         file_name = f"{uuid.uuid4()}{file_extension}"
         file_path = os.path.join(upload_dir, file_name)
-        
+
         with open(file_path, "wb") as buffer:
             shutil.copyfileobj(photo.file, buffer)
-            
+
         photo_url = f"/{upload_dir}/{file_name}"
 
     updated_user = await update_user_profile(db, current_user, full_name=full_name, photo_url=photo_url)
@@ -181,7 +204,7 @@ async def google_login(
             audience=settings.GOOGLE_CLIENT_ID if settings.GOOGLE_CLIENT_ID else None
         )
     except Exception as e:
-        print(f"Google login failed: {e}")
+        logger.error("Google login failed: %s", e)
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"Token Google tidak valid: {str(e)}"

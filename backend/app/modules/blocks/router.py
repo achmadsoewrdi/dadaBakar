@@ -12,9 +12,13 @@ router = APIRouter(prefix="/blocks", tags=["blocks"])
 
 
 @router.get("/", response_model=list[BlockDefinitionSummary])
-async def list_blocks(category: Optional[str] = None, db: AsyncSession = Depends(get_db)):
-    """List semua blok, bisa difilter per kategori."""
-    return await service.get_all(db, category)
+async def list_blocks(
+    category: Optional[str] = None, 
+    module_category: Optional[str] = None,
+    db: AsyncSession = Depends(get_db)
+):
+    """List semua blok, bisa difilter per kategori hardware dan/atau per modul."""
+    return await service.get_all(db, category, module_category)
 
 
 @router.get("/{block_id}", response_model=BlockDefinitionOut)

@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:xploria_app/core/router/app_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:media_kit/media_kit.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: ".env");
+  MediaKit.ensureInitialized();
 
   runApp(const MyApp());
 }

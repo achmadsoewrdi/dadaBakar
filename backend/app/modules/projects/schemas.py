@@ -13,6 +13,7 @@ class ProjectCreate(BaseModel):
     target_hardware_type: Optional[str] = None
     execution_target: Optional[str] = "hardware"
     subject_context: Optional[str] = "coding"
+    module_category: Optional[str] = None
 
 class ProjectUpdate(BaseModel):
     name: Optional[str] = None
@@ -23,6 +24,7 @@ class ProjectUpdate(BaseModel):
     target_hardware_type: Optional[str] = None
     execution_target: Optional[str] = None
     subject_context: Optional[str] = None
+    module_category: Optional[str] = None
 
 
 class ProjectOut(BaseModel):
@@ -38,6 +40,7 @@ class ProjectOut(BaseModel):
     target_hardware_type: Optional[str] = None
     execution_target: Optional[str] = "hardware"
     subject_context: Optional[str] = "coding"
+    module_category: Optional[str] = None
     created_at: datetime
     updated_at: datetime
     deleted_at: Optional[datetime] = None

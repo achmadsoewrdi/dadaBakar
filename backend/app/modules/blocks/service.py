@@ -6,10 +6,12 @@ from app.modules.blocks.models import BlockDefinition
 from app.modules.blocks.schemas import BlockDefinitionCreate, BlockDefinitionUpdate
 
 
-async def get_all(db: AsyncSession, category: str | None = None) -> list[BlockDefinition]:
+async def get_all(db: AsyncSession, category: str | None = None, module_category: str | None = None) -> list[BlockDefinition]:
     query = select(BlockDefinition).order_by(BlockDefinition.category, BlockDefinition.order_index)
     if category:
         query = query.where(BlockDefinition.category == category)
+    if module_category:
+        query = query.where(BlockDefinition.module_category == module_category)
     result = await db.execute(query)
     return list(result.scalars().all())
 

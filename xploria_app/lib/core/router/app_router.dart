@@ -1,19 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:xploria_app/features/splash/presentation/pages/splash_screen.dart';
+import 'package:xploria_app/features/splash/presentation/pages/new_splash_screen.dart';
 import 'package:xploria_app/features/auth/presentation/pages/welcome_screen.dart';
 import 'package:xploria_app/features/auth/presentation/pages/login_screen.dart';
 import 'package:xploria_app/features/auth/presentation/pages/register_screen.dart';
 import 'package:xploria_app/features/dashboard/presentation/pages/dashboard_screen.dart';
-import 'package:xploria_app/features/dashboard/presentation/pages/teacher_dashboard_screen.dart';
-import 'package:xploria_app/features/classroom/presentation/pages/classroom_mockup_screen.dart';
-import 'package:xploria_app/features/assignments/presentation/pages/assignments_mockup_screen.dart';
 import 'package:xploria_app/features/projects/presentation/pages/project_list_screen.dart';
 import 'package:xploria_app/features/lessons_modules/presentation/pages/lessons_modules_page.dart';
 import 'package:xploria_app/features/device/presentation/pages/device_connection_screen.dart';
 import 'package:xploria_app/features/blockly_workspace/presentation/pages/blockly_workspace_screen.dart';
 import 'package:xploria_app/features/auth/data/data_sources/auth_storage_service.dart';
-
 import 'package:xploria_app/features/account/presentation/pages/account_page.dart';
 import 'package:xploria_app/features/account/presentation/pages/edit_account_screen.dart';
 import 'package:xploria_app/features/content/presentation/pages/module_detail_screen.dart';
@@ -22,7 +18,14 @@ import 'package:xploria_app/features/blockly_workspace/presentation/pages/python
 import 'package:xploria_app/features/projects/domain/models/project_model.dart';
 import 'package:xploria_app/features/subscriptions/presentation/pages/paywall_screen.dart';
 import 'package:xploria_app/features/content/domain/models/learning_module_model.dart';
-import 'package:xploria_app/features/ai_lab/presentation/pages/ai_analysis_result_screen.dart';
+import 'package:xploria_app/features/drone_controller/presentation/pages/drone_controller_screen.dart';
+
+// v3 — DIHAPUS (Phase 1):
+// - splash (dibuat ulang di Phase 3 sebagai new_splash_screen)
+// - teacher_dashboard_screen
+// - classroom_mockup_screen
+// - assignments_mockup_screen
+// - ai_analysis_result_screen
 
 class AppRouter {
   static final _rootNavigatorKey = GlobalKey<NavigatorState>();
@@ -32,46 +35,32 @@ class AppRouter {
     initialLocation: '/',
     redirect: (context, state) {
       final authStorage = AuthStorageService();
-      
-      // Jangan redirect jika masih di splash screen (sedang memuat info auth)
-      if (state.matchedLocation == '/') {
-        return null;
-      }
-      
+
       final bool isAuthenticated = authStorage.isAuthenticated;
-      final bool isGoingToAuth = state.matchedLocation == '/welcome' || 
-                                 state.matchedLocation == '/login' || 
+      final bool isGoingToSplash = state.matchedLocation == '/';
+      final bool isGoingToAuth = state.matchedLocation == '/welcome' ||
+                                 state.matchedLocation == '/login' ||
                                  state.matchedLocation == '/register';
+
+      // Bypass redirect for splash screen to let it play its animation
+      if (isGoingToSplash) return null;
 
       // Proteksi rute internal
       if (!isAuthenticated && !isGoingToAuth) {
         return '/welcome';
       }
-      
+
       // Cegah user yang sudah login kembali ke layar auth
       if (isAuthenticated && isGoingToAuth) {
         return '/dashboard';
       }
-      
+
       return null;
     },
     routes: [
       GoRoute(
         path: '/',
-        builder: (context, state) => SplashScreen(
-          onFinished: () async {
-            final authStorage = AuthStorageService();
-            await authStorage.init();
-            
-            if (context.mounted) {
-              if (authStorage.isAuthenticated) {
-                context.go('/dashboard');
-              } else {
-                context.go('/welcome');
-              }
-            }
-          },
-        ),
+        builder: (context, state) => const NewSplashScreen(),
       ),
       GoRoute(
         path: '/welcome',
@@ -88,18 +77,6 @@ class AppRouter {
       GoRoute(
         path: '/dashboard',
         builder: (context, state) => const DashboardScreen(),
-      ),
-      GoRoute(
-        path: '/teacher-dashboard',
-        builder: (context, state) => const TeacherDashboardScreen(),
-      ),
-      GoRoute(
-        path: '/classroom-mockup',
-        builder: (context, state) => const ClassroomMockupScreen(),
-      ),
-      GoRoute(
-        path: '/assignments-mockup',
-        builder: (context, state) => const AssignmentsMockupScreen(),
       ),
       GoRoute(
         path: '/projects',
@@ -161,8 +138,8 @@ class AppRouter {
         builder: (context, state) => const PaywallScreen(),
       ),
       GoRoute(
-        path: '/ai-analysis-result',
-        builder: (context, state) => const AiAnalysisResultScreen(),
+        path: '/drone-controller',
+        builder: (context, state) => const DroneControllerScreen(),
       ),
     ],
   );

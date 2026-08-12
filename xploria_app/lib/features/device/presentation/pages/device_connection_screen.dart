@@ -5,6 +5,7 @@ import '../../../../core/services/device_connection_service.dart';
 import '../../data/data_sources/device_api_service.dart';
 import '../../data/models/device_profile_model.dart';
 import '../../../auth/data/data_sources/auth_storage_service.dart';
+import '../../../../core/services/tello_service.dart';
 
 import '../widgets/device_selection_modal.dart';
 import '../widgets/wifi_connection_modal.dart';
@@ -149,19 +150,63 @@ class _DeviceConnectionScreenState extends State<DeviceConnectionScreen> {
     }
   }
 
+  Future<void> _connectToDrone() async {
+    final telloService = TelloService.instance;
+    
+    // Tampilkan loading dialog atau ubah state
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(child: CircularProgressIndicator()),
+    );
+
+    final success = await telloService.connect();
+    
+    if (mounted) {
+      Navigator.of(context).pop(); // Tutup loading
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(telloService.statusMessage),
+          backgroundColor: success ? Colors.green : Colors.red,
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return ListenableBuilder(
-      listenable: DeviceConnectionService.instance,
+      listenable: Listenable.merge([
+        DeviceConnectionService.instance,
+        TelloService.instance,
+      ]),
       builder: (context, _) {
         final service = DeviceConnectionService.instance;
+        final telloService = TelloService.instance;
+        
         final isBluetoothMode =
             service.connectionMode == ConnectionMode.bluetooth;
+        final isDroneMode =
+            service.connectionMode == ConnectionMode.drone;
 
         final primaryColor = isBluetoothMode
             ? const Color(0xFF2A5EE8)
-            : const Color(0xFFF79E66);
+            : isDroneMode
+                ? const Color(0xFFE82A2A) // Red for drone
+                : const Color(0xFFF79E66);
         final unselectedIconColor = Colors.grey.shade400;
+
+        // Determine Active Device Name
+        String? activeDeviceName;
+        if (telloService.isConnected) {
+          activeDeviceName = 'Drone Tello (UDP)';
+        } else if (service.isConnected) {
+          if (service.connectionMode == ConnectionMode.bluetooth) {
+            activeDeviceName = service.selectedDevice?.advName ?? 'Bluetooth Device';
+          } else {
+            activeDeviceName = service.connectedIp ?? 'Wi-Fi Device';
+          }
+        }
 
         // Sort devices: Online first
         List<DeviceProfileModel> sortedDevices = List.from(_savedDevices);
@@ -170,7 +215,7 @@ class _DeviceConnectionScreenState extends State<DeviceConnectionScreen> {
               (a.protocol == 'bluetooth' &&
                   service.isConnected &&
                   service.connectionMode == ConnectionMode.bluetooth &&
-                  service.selectedDevice?.address == a.macAddress) ||
+                  service.selectedDevice?.remoteId.str == a.macAddress) ||
               (a.protocol == 'websocket' &&
                   service.isConnected &&
                   service.connectionMode == ConnectionMode.wifi &&
@@ -179,7 +224,7 @@ class _DeviceConnectionScreenState extends State<DeviceConnectionScreen> {
               (b.protocol == 'bluetooth' &&
                   service.isConnected &&
                   service.connectionMode == ConnectionMode.bluetooth &&
-                  service.selectedDevice?.address == b.macAddress) ||
+                  service.selectedDevice?.remoteId.str == b.macAddress) ||
               (b.protocol == 'websocket' &&
                   service.isConnected &&
                   service.connectionMode == ConnectionMode.wifi &&
@@ -236,7 +281,50 @@ class _DeviceConnectionScreenState extends State<DeviceConnectionScreen> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 16),
+                  
+                  if (activeDeviceName != null) ...[
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      decoration: BoxDecoration(
+                        color: Colors.green.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: Colors.green.withValues(alpha: 0.3)),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.check_circle, color: Colors.green),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  'Terhubung ke:',
+                                  style: TextStyle(fontSize: 12, color: Colors.black54),
+                                ),
+                                Text(
+                                  activeDeviceName,
+                                  style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black87),
+                                ),
+                              ],
+                            ),
+                          ),
+                          TextButton(
+                            onPressed: () {
+                              if (telloService.isConnected) {
+                                telloService.disconnect();
+                              } else {
+                                service.disconnect();
+                              }
+                            },
+                            child: const Text('Putuskan', style: TextStyle(color: Colors.red)),
+                          )
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                  ],
 
                   // Connect New Device Card
                   Container(
@@ -257,17 +345,11 @@ class _DeviceConnectionScreenState extends State<DeviceConnectionScreen> {
                         // Vertical Toggle
                         GestureDetector(
                           onVerticalDragUpdate: (details) {
-                            if (details.delta.dy > 0 && isBluetoothMode) {
-                              // Dragging down -> switch to WiFi
-                              service.setConnectionMode(ConnectionMode.wifi);
-                            } else if (details.delta.dy < 0 && !isBluetoothMode) {
-                              // Dragging up -> switch to Bluetooth
-                              service.setConnectionMode(ConnectionMode.bluetooth);
-                            }
+                            // Simplify toggle by tapping instead, or keeping drag for 3 items might be complex
                           },
                           child: Container(
                             width: 56,
-                            height: 104,
+                            height: 152, // Increased for 3 items
                             padding: const EdgeInsets.all(8),
                             decoration: BoxDecoration(
                               color: const Color(0xFFF4F7FB),
@@ -279,7 +361,7 @@ class _DeviceConnectionScreenState extends State<DeviceConnectionScreen> {
                               AnimatedPositioned(
                                 duration: const Duration(milliseconds: 300),
                                 curve: Curves.easeInOutBack,
-                                top: isBluetoothMode ? 0 : 48,
+                                top: isBluetoothMode ? 0 : (isDroneMode ? 96 : 48),
                                 left: 0,
                                 right: 0,
                                 child: Container(
@@ -327,7 +409,30 @@ class _DeviceConnectionScreenState extends State<DeviceConnectionScreen> {
                                     child: Center(
                                       child: Icon(
                                         Icons.wifi,
-                                        color: !isBluetoothMode
+                                        color: service.connectionMode == ConnectionMode.wifi
+                                            ? Colors.white
+                                            : unselectedIconColor,
+                                        size: 20,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              Positioned(
+                                top: 96,
+                                left: 0,
+                                right: 0,
+                                child: GestureDetector(
+                                  onTap: () => service.setConnectionMode(
+                                    ConnectionMode.drone,
+                                  ),
+                                  child: Container(
+                                    height: 40,
+                                    color: Colors.transparent,
+                                    child: Center(
+                                      child: Icon(
+                                        Icons.flight,
+                                        color: isDroneMode
                                             ? Colors.white
                                             : unselectedIconColor,
                                         size: 20,
@@ -356,7 +461,9 @@ class _DeviceConnectionScreenState extends State<DeviceConnectionScreen> {
                               ),
                               const SizedBox(height: 4),
                               Text(
-                                'Ready to pair a new hardware kit to your workspace.',
+                                isDroneMode
+                                    ? 'Sambungkan WiFi HP ke TELLO-XXXX terlebih dahulu.'
+                                    : 'Ready to pair a new hardware kit to your workspace.',
                                 style: TextStyle(
                                   fontSize: 12,
                                   color: Colors.grey.shade600,
@@ -369,12 +476,13 @@ class _DeviceConnectionScreenState extends State<DeviceConnectionScreen> {
                                 height: 40,
                                 child: ElevatedButton(
                                   onPressed:
-                                      (service.isConnecting &&
-                                          _connectingDeviceId == null)
+                                      ((service.isConnecting && _connectingDeviceId == null) || telloService.isConnecting)
                                       ? null
-                                      : (isBluetoothMode
-                                            ? () => showDeviceSelectionModal(context, onDeviceSaved: _saveDevice)
-                                            : () => showWifiConnectionModal(context, onDeviceSaved: _saveDevice)),
+                                      : (isDroneMode
+                                          ? () => _connectToDrone()
+                                          : (isBluetoothMode
+                                              ? () => showDeviceSelectionModal(context, onDeviceSaved: _saveDevice)
+                                              : () => showWifiConnectionModal(context, onDeviceSaved: _saveDevice))),
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: primaryColor,
                                     foregroundColor: Colors.white,

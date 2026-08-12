@@ -2,11 +2,13 @@ class DeviceProfileModel {
   final String id;
   final String ownerId;
   final String label;
-  final String protocol; // 'websocket' | 'bluetooth'
+  final String protocol; // 'websocket' | 'bluetooth' | 'udp'
   final String? host;
   final int? port;
   final bool useTls;
   final String? macAddress;
+  final String? deviceCategory; // 'drone' | 'iot' | 'general'
+  final int? udpPort;
   final DateTime createdAt;
 
   DeviceProfileModel({
@@ -18,6 +20,8 @@ class DeviceProfileModel {
     this.port,
     this.useTls = false,
     this.macAddress,
+    this.deviceCategory,
+    this.udpPort,
     required this.createdAt,
   });
 
@@ -31,6 +35,8 @@ class DeviceProfileModel {
       port: json['port'] as int?,
       useTls: json['use_tls'] as bool? ?? false,
       macAddress: json['mac_address'] as String?,
+      deviceCategory: json['device_category'] as String?,
+      udpPort: json['udp_port'] as int?,
       createdAt: json['created_at'] != null
           ? DateTime.parse(json['created_at'])
           : DateTime.now(),
@@ -47,6 +53,8 @@ class DeviceProfileModel {
       'port': port,
       'use_tls': useTls,
       'mac_address': macAddress,
+      'device_category': deviceCategory,
+      'udp_port': udpPort,
       'created_at': createdAt.toIso8601String(),
     };
   }

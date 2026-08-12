@@ -7,6 +7,7 @@ class ProjectModel {
   final String deviceType; // 'raspberry_pi' | 'orange_pi'
   final String? moduleCategory;
   final List<Map<String, dynamic>>? blynkConfigJson; // Blynk IoT widget layout configuration
+  final String? moduleCategory; // 'drone' | 'smart_home' | dll
   final DateTime createdAt;
   final DateTime updatedAt;
   final DateTime? deletedAt;
@@ -20,6 +21,7 @@ class ProjectModel {
     required this.deviceType,
     this.moduleCategory,
     this.blynkConfigJson,
+    this.moduleCategory,
     required this.createdAt,
     required this.updatedAt,
     this.deletedAt,
@@ -39,6 +41,7 @@ class ProjectModel {
       blynkConfigJson: (json['blynk_config_json'] as List?)
           ?.map((e) => Map<String, dynamic>.from(e as Map))
           .toList(),
+      moduleCategory: json['module_category'] as String?,
       createdAt: json['created_at'] != null
           ? DateTime.parse(json['created_at'])
           : DateTime.now(),
@@ -61,6 +64,7 @@ class ProjectModel {
       'device_type': deviceType,
       'subject_context': moduleCategory,
       'blynk_config_json': blynkConfigJson,
+      'module_category': moduleCategory,
       'created_at': createdAt.toIso8601String(),
       'updated_at': updatedAt.toIso8601String(),
       'deleted_at': deletedAt?.toIso8601String(),
@@ -76,6 +80,7 @@ class ProjectModel {
     String? deviceType,
     String? moduleCategory,
     List<Map<String, dynamic>>? blynkConfigJson,
+    String? moduleCategory,
     DateTime? createdAt,
     DateTime? updatedAt,
     DateTime? deletedAt,
@@ -89,6 +94,7 @@ class ProjectModel {
       deviceType: deviceType ?? this.deviceType,
       moduleCategory: moduleCategory ?? this.moduleCategory,
       blynkConfigJson: blynkConfigJson ?? this.blynkConfigJson,
+      moduleCategory: moduleCategory ?? this.moduleCategory,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       deletedAt: deletedAt ?? this.deletedAt,

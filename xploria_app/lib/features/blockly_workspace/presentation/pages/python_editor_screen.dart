@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/services/device_connection_service.dart';
+import '../../../../core/services/tello_service.dart';
 
 class PythonEditorScreen extends StatefulWidget {
   final String initialCode;
@@ -43,24 +44,29 @@ class _PythonEditorScreenState extends State<PythonEditorScreen> {
     final code = _codeController.text.trim();
     if (code.isEmpty) return;
 
-    if (!DeviceConnectionService.instance.isConnected) {
+    if (TelloService.instance.isConnected) {
+      TelloService.instance.parseAndQueuePython(code);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Device belum terhubung. Silakan hubungkan terlebih dahulu.'),
-          backgroundColor: Colors.orange,
-        ),
+        const SnackBar(content: Text('Kode dikirim ke Drone Tello!'), duration: Duration(seconds: 1)),
       );
-      context.push('/device-connection');
       return;
     }
 
-    DeviceConnectionService.instance.sendData(code);
+    if (DeviceConnectionService.instance.isConnected) {
+      DeviceConnectionService.instance.sendData(code);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Kode dikirim ke device!'), duration: Duration(seconds: 1)),
+      );
+      return;
+    }
+
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
-        content: Text('Kode dikirim ke device!'),
-        duration: Duration(seconds: 1),
+        content: Text('Device/Drone belum terhubung. Silakan hubungkan terlebih dahulu.'),
+        backgroundColor: Colors.orange,
       ),
     );
+    context.push('/device-connection');
   }
 
   @override
@@ -74,9 +80,12 @@ class _PythonEditorScreenState extends State<PythonEditorScreen> {
         foregroundColor: const Color(0xFF0A122C),
         actions: [
           ListenableBuilder(
-            listenable: DeviceConnectionService.instance,
+            listenable: Listenable.merge([
+              DeviceConnectionService.instance,
+              TelloService.instance,
+            ]),
             builder: (context, _) {
-              final isConnected = DeviceConnectionService.instance.isConnected;
+              final isConnected = DeviceConnectionService.instance.isConnected || TelloService.instance.isConnected;
               return Padding(
                 padding: const EdgeInsets.only(right: 12.0),
                 child: isConnected
@@ -96,13 +105,13 @@ class _PythonEditorScreenState extends State<PythonEditorScreen> {
                             icon: const Icon(Icons.stop, size: 20),
                             label: const Text('Stop', style: TextStyle(fontWeight: FontWeight.bold)),
                             onPressed: () {
-                               DeviceConnectionService.instance.stopCode();
-                               ScaffoldMessenger.of(context).showSnackBar(
-                                 const SnackBar(
-                                   content: Text('Perintah stop dikirim ke device!'),
-                                   duration: Duration(seconds: 1),
-                                 ),
-                               );
+                               if (TelloService.instance.isConnected) {
+                                  TelloService.instance.parseAndQueuePython('tello.stop()');
+                                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Berhenti darurat dikirim ke Tello!'), duration: Duration(seconds: 1)));
+                               } else if (DeviceConnectionService.instance.isConnected) {
+                                  DeviceConnectionService.instance.stopCode();
+                                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Perintah stop dikirim ke device!'), duration: Duration(seconds: 1)));
+                               }
                             },
                           ),
                           const SizedBox(width: 8),
@@ -240,7 +249,12 @@ class _PythonEditorScreenState extends State<PythonEditorScreen> {
                         ),
                         InkWell(
                           onTap: () {
-                            DeviceConnectionService.instance.clearLogs();
+                            if (TelloService.instance.isConnected) {
+                              TelloService.instance.logs.clear();
+                              setState(() {});
+                            } else {
+                              DeviceConnectionService.instance.clearLogs();
+                            }
                           },
                           child: const Icon(Icons.delete_sweep, color: Colors.grey, size: 20),
                         ),
@@ -250,9 +264,14 @@ class _PythonEditorScreenState extends State<PythonEditorScreen> {
                   // Terminal Logs
                   Expanded(
                     child: ListenableBuilder(
-                      listenable: DeviceConnectionService.instance,
+                      listenable: Listenable.merge([
+                        DeviceConnectionService.instance,
+                        TelloService.instance,
+                      ]),
                       builder: (context, _) {
-                        final logs = DeviceConnectionService.instance.terminalLogs;
+                        final logs = TelloService.instance.isConnected 
+                            ? TelloService.instance.logs 
+                            : DeviceConnectionService.instance.terminalLogs;
                         
                         // Auto scroll to bottom when new logs arrive
                         WidgetsBinding.instance.addPostFrameCallback((_) {

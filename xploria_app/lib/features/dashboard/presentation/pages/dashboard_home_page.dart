@@ -136,42 +136,8 @@ class DashboardHomePageState extends State<DashboardHomePage> with AutomaticKeep
                             ),
                           ],
                         ),
-                        Row(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(20),
-                                border: Border.all(color: Colors.grey.shade200),
-                              ),
-                              child: const Row(
-                                children: [
-                                  Text(
-                                    '5',
-                                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                                  ),
-                                  SizedBox(width: 4),
-                                  Text('🔥', style: TextStyle(fontSize: 16)),
-                                ],
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Container(
-                              decoration: BoxDecoration(
-                                color: const Color(0xFF3B5BDB).withValues(alpha: 0.1),
-                                shape: BoxShape.circle,
-                              ),
-                              child: IconButton(
-                                icon: const Icon(Icons.school, color: Color(0xFF3B5BDB), size: 20),
-                                tooltip: 'Simulasi Mode Guru',
-                                onPressed: () {
-                                  context.push('/teacher-dashboard');
-                                },
-                              ),
-                            ),
-                          ],
-                        ),
+                        // v3: Teacher dashboard button dan streak badge dihapus
+                        const SizedBox(),
                       ],
                     ),
                   ),

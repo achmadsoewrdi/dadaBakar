@@ -14,6 +14,15 @@ const myTheme = Blockly.Theme.defineTheme('xploriaTheme', {
     }
 });
 
+// Override Standard Blockly Messages with Kid-Friendly Terms
+Blockly.Msg["CONTROLS_IF_MSG_IF"] = "Jika";
+Blockly.Msg["CONTROLS_IF_MSG_THEN"] = "Maka";
+Blockly.Msg["CONTROLS_IF_MSG_ELSE"] = "Jika Tidak";
+Blockly.Msg["CONTROLS_IF_MSG_ELSEIF"] = "Atau Jika";
+Blockly.Msg["CONTROLS_WHILEUNTIL_OPERATOR_WHILE"] = "Ulangi Selama";
+Blockly.Msg["CONTROLS_WHILEUNTIL_OPERATOR_UNTIL"] = "Ulangi Sampai";
+Blockly.Msg["CONTROLS_REPEAT_TITLE"] = "Ulangi Sebanyak %1 kali";
+
 const workspace = Blockly.inject('blocklyDiv', {
     renderer: 'zelos',
     theme: myTheme,
@@ -93,6 +102,15 @@ workspace.addChangeListener(function (event) {
         notifyFlutter();
     }
 });
+
+// Handle active module category filtering
+window.activeModuleCategory = 'all';
+function setActiveModule(moduleCategory) {
+    window.activeModuleCategory = moduleCategory;
+    if (typeof renderCategories === 'function') {
+        renderCategories();
+    }
+}
 
 // Initialize UI
 document.addEventListener('DOMContentLoaded', function () {

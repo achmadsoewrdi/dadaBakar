@@ -9,7 +9,7 @@ class LearningModuleCreate(BaseModel):
     description: Optional[str] = None
     order_index: int = 0
     category: str = "iot_basic"
-    xp_reward: int = 10
+    block_category: Optional[str] = None
     thumbnail_url: Optional[str] = None
     steps_json: Dict[str, Any]
     is_premium_only: bool = False
@@ -20,7 +20,7 @@ class LearningModuleUpdate(BaseModel):
     description: Optional[str] = None
     order_index: Optional[int] = None
     category: Optional[str] = None
-    xp_reward: Optional[int] = None
+    block_category: Optional[str] = None
     thumbnail_url: Optional[str] = None
     steps_json: Optional[Dict[str, Any]] = None
     is_premium_only: Optional[bool] = None
@@ -34,7 +34,7 @@ class LearningModuleOut(BaseModel):
     description: Optional[str] = None
     order_index: int
     category: str
-    xp_reward: int
+    block_category: Optional[str] = None
     thumbnail_url: Optional[str] = None
     steps_json: Dict[str, Any]
     is_premium_only: bool
@@ -53,4 +53,3 @@ class UserProgressOut(BaseModel):
     module_id: UUID
     completed_steps: Optional[Dict[str, Any]] = None
     completed_at: Optional[datetime] = None
-    xp_earned: int

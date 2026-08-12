@@ -12,6 +12,8 @@ class BlockDefinitionCreate(BaseModel):
     generator_raspi: Optional[str] = None
     generator_orangepi: Optional[str] = None
     generator_esp32: Optional[str] = None
+    generator_tello: Optional[str] = None
+    module_category: Optional[str] = None
     is_premium_only: bool = False
     order_index: int = 0
 
@@ -22,6 +24,8 @@ class BlockDefinitionUpdate(BaseModel):
     generator_raspi: Optional[str] = None
     generator_orangepi: Optional[str] = None
     generator_esp32: Optional[str] = None
+    generator_tello: Optional[str] = None
+    module_category: Optional[str] = None
     is_premium_only: Optional[bool] = None
     order_index: Optional[int] = None
 
@@ -37,6 +41,8 @@ class BlockDefinitionOut(BaseModel):
     generator_raspi: Optional[str] = None
     generator_orangepi: Optional[str] = None
     generator_esp32: Optional[str] = None
+    generator_tello: Optional[str] = None
+    module_category: Optional[str] = None
     is_premium_only: bool
     order_index: int
     created_at: datetime
@@ -51,5 +57,6 @@ class BlockDefinitionSummary(BaseModel):
     category: str
     block_type: str
     label: str
+    module_category: Optional[str] = None
     is_premium_only: bool
     order_index: int

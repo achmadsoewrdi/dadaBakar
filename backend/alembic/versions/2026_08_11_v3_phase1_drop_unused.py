@@ -25,21 +25,20 @@ depends_on: Union[str, Sequence[str], None] = None
 
 def upgrade() -> None:
     # ── GAMIFIKASI ─────────────────────────────────────────────────────────────
-    op.execute("DROP TABLE IF EXISTS user_badges CASCADE")
-    op.execute("DROP TABLE IF EXISTS user_gamification CASCADE")
-    op.execute("DROP TABLE IF EXISTS badges CASCADE")
+    op.drop_table('user_badges')
+    op.drop_table('user_gamification')
+    op.drop_table('badges')
 
     # ── KOLOM DI USERS ─────────────────────────────────────────────────────────
     # Drop FK constraint dulu sebelum drop tabel schools
-    op.execute("ALTER TABLE users DROP CONSTRAINT IF EXISTS fk_users_school")
-    op.execute("ALTER TABLE users DROP CONSTRAINT IF EXISTS users_school_id_fkey")
-    op.execute("ALTER TABLE users DROP COLUMN IF EXISTS school_id")
-    op.execute("ALTER TABLE users DROP COLUMN IF EXISTS onboarding_source")
+    op.drop_constraint('fk_users_school', 'users', type_='foreignkey')
+    op.drop_column('users', 'school_id')
+    op.drop_column('users', 'onboarding_source')
 
     # ── SCHOOL / CLASSROOM ─────────────────────────────────────────────────────
-    op.execute("DROP TABLE IF EXISTS enrollments CASCADE")
-    op.execute("DROP TABLE IF EXISTS classrooms CASCADE")
-    op.execute("DROP TABLE IF EXISTS schools CASCADE")
+    op.drop_table('enrollments')
+    op.drop_table('classrooms')
+    op.drop_table('schools')
 
 
 def downgrade() -> None:

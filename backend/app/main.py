@@ -11,16 +11,13 @@ import app.modules.devices.models
 import app.modules.content.models
 import app.modules.hardware_types.models
 import app.modules.subscriptions.models
-import app.modules.gamification.models
 import app.modules.blocks.models
 
 from app.modules.users.router import router as users_router
 from app.modules.projects.router import router as projects_router
 from app.modules.hardware_types.router import router as hardware_types_router
 from app.modules.blocks.router import router as blocks_router
-from app.modules.gamification.router import router as gamification_router
 from app.modules.content.router import router as content_router
-from app.modules.ai_insights.router import router as ai_insights_router
 from app.modules.hardware_logs.router import router as hardware_logs_router
 from app.modules.devices.router import router as devices_router
 from app.modules.subscriptions.router import router as subscriptions_router
@@ -49,9 +46,7 @@ app.include_router(users_router, prefix=settings.API_V1_STR)
 app.include_router(projects_router, prefix=settings.API_V1_STR)
 app.include_router(hardware_types_router, prefix=settings.API_V1_STR)
 app.include_router(blocks_router, prefix=settings.API_V1_STR)
-app.include_router(gamification_router, prefix=settings.API_V1_STR)
 app.include_router(content_router, prefix=settings.API_V1_STR)
-app.include_router(ai_insights_router, prefix=settings.API_V1_STR)
 app.include_router(hardware_logs_router, prefix=settings.API_V1_STR)
 app.include_router(devices_router, prefix=settings.API_V1_STR)
 app.include_router(subscriptions_router, prefix=settings.API_V1_STR)
