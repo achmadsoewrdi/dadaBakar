@@ -53,7 +53,7 @@ class ProjectApiService {
       'name': name,
       'workspace_xml': workspaceXml,
     };
-    if (moduleCategory != null) body['module_category'] = moduleCategory;
+    if (moduleCategory != null) body['subject_context'] = moduleCategory;
 
     final response = await http
         .post(

@@ -33,6 +33,10 @@ class DashboardHomePageState extends State<DashboardHomePage> with AutomaticKeep
   List<ProjectModel> _projects = [];
   UserModel? _user;
   Color _heroColor = const Color(0xFF005CFF);
+  String _selectedModeValue = 'smart_city';
+  String _selectedModeLabel = 'Smart City';
+
+
 
   @override
   bool get wantKeepAlive => true;
@@ -57,7 +61,7 @@ class DashboardHomePageState extends State<DashboardHomePage> with AutomaticKeep
     }
   }
 
-  Future<void> _addNewProject(String name, String deviceType) async {
+  Future<void> _addNewProject(String name, String moduleCategory) async {
     showDialog(
       context: context, 
       barrierDismissible: false, 
@@ -65,9 +69,8 @@ class DashboardHomePageState extends State<DashboardHomePage> with AutomaticKeep
     );
     try {
       final repo = ProjectRepositoryImpl();
-      final newProj = await repo.createProject(name); 
+      final newProj = await repo.createProject(name, moduleCategory: moduleCategory); 
       if (mounted) context.pop(); 
-      
       if (mounted) {
         await context.push('/blockly', extra: newProj);
         _loadData();
@@ -175,7 +178,17 @@ class DashboardHomePageState extends State<DashboardHomePage> with AutomaticKeep
 
                   // Scrollable Content
                   Expanded(
-                    child: SingleChildScrollView(
+                    child: ShaderMask(
+                      shaderCallback: (Rect bounds) {
+                        return const LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [Colors.transparent, Colors.white, Colors.white, Colors.transparent],
+                          stops: [0.0, 0.05, 0.95, 1.0],
+                        ).createShader(bounds);
+                      },
+                      blendMode: BlendMode.dstIn,
+                      child: SingleChildScrollView(
                       physics: const BouncingScrollPhysics(),
                       padding: const EdgeInsets.fromLTRB(24, 16, 24, 100),
                       child: Column(
@@ -185,9 +198,11 @@ class DashboardHomePageState extends State<DashboardHomePage> with AutomaticKeep
 
                     // Carousel Header
                     DashboardHeroCarousel(
-                      onColorChanged: (color) {
+                      onModeChanged: (color, value, label) {
                         setState(() {
                           _heroColor = color;
+                          _selectedModeValue = value;
+                          _selectedModeLabel = label;
                         });
                       },
                     ),
@@ -238,12 +253,12 @@ class DashboardHomePageState extends State<DashboardHomePage> with AutomaticKeep
                 ),
               ),
             ),
+            ),
           ],
         ),
       ),
     );
   }
-
 
 
   Widget _buildHeroActionCard() {
@@ -293,7 +308,7 @@ class DashboardHomePageState extends State<DashboardHomePage> with AutomaticKeep
                 ),
                 const SizedBox(height: 12),
                 ElevatedButton(
-                  onPressed: () => _addNewProject("New Project", "raspberry_pi"),
+                  onPressed: () => _addNewProject("Proyek $_selectedModeLabel", _selectedModeValue),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: _heroColor,
                     foregroundColor: Colors.white,
@@ -308,7 +323,7 @@ class DashboardHomePageState extends State<DashboardHomePage> with AutomaticKeep
                     children: [
                       Icon(Icons.add, size: 16),
                       SizedBox(width: 4),
-                      Text("New Project", style: TextStyle(fontWeight: FontWeight.bold)),
+                      Text("Tambah Proyek", style: TextStyle(fontWeight: FontWeight.bold)),
                     ],
                   ),
                 ),
@@ -334,9 +349,9 @@ class DashboardHomePageState extends State<DashboardHomePage> with AutomaticKeep
 }
 
 class DashboardHeroCarousel extends StatefulWidget {
-  final Function(Color) onColorChanged;
+  final Function(Color color, String value, String label) onModeChanged;
 
-  const DashboardHeroCarousel({super.key, required this.onColorChanged});
+  const DashboardHeroCarousel({super.key, required this.onModeChanged});
 
   @override
   State<DashboardHeroCarousel> createState() => _DashboardHeroCarouselState();
@@ -351,16 +366,36 @@ class _DashboardHeroCarouselState extends State<DashboardHeroCarousel> {
       'title': 'SMART\nCITY',
       'image': 'assets/images/modules/dashboard/smart_city 1.png',
       'color': const Color(0xFF005CFF),
+      'value': 'smart_city',
+      'label': 'Smart City',
     },
     {
       'title': 'SMART\nAGRICULTURE',
       'image': 'assets/images/modules/dashboard/smart_farm 1.png',
       'color': const Color(0xFF22C55E),
+      'value': 'smart_agriculture',
+      'label': 'Smart Agriculture',
     },
     {
       'title': 'SMART\nHOME',
       'image': 'assets/images/modules/dashboard/smart_home 1.png',
       'color': const Color(0xFF8B5CF6),
+      'value': 'smart_home',
+      'label': 'Smart Home',
+    },
+    {
+      'title': 'SMART\nDRONE',
+      'image': 'assets/images/modules/dashboard/smart_drone.png',
+      'color': const Color(0xFF6B7280),
+      'value': 'drone',
+      'label': 'Smart Drone',
+    },
+    {
+      'title': 'UMUM',
+      'image': 'assets/images/modules/dashboard/umum.png',
+      'color': const Color(0xFFFF8C00),
+      'value': 'all',
+      'label': 'Umum',
     },
   ];
 
@@ -369,7 +404,11 @@ class _DashboardHeroCarouselState extends State<DashboardHeroCarousel> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
-        widget.onColorChanged(_carouselItems[_currentIndex]['color'] as Color);
+        widget.onModeChanged(
+          _carouselItems[_currentIndex]['color'] as Color,
+          _carouselItems[_currentIndex]['value'] as String,
+          _carouselItems[_currentIndex]['label'] as String,
+        );
       }
     });
   }
@@ -412,7 +451,11 @@ class _DashboardHeroCarouselState extends State<DashboardHeroCarousel> {
                 setState(() {
                   _currentIndex = index;
                 });
-                widget.onColorChanged(_carouselItems[index]['color'] as Color);
+                widget.onModeChanged(
+                  _carouselItems[index]['color'] as Color,
+                  _carouselItems[index]['value'] as String,
+                  _carouselItems[index]['label'] as String,
+                );
               }
             },
             itemCount: _carouselItems.length,

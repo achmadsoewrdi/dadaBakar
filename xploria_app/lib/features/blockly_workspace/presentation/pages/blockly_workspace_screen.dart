@@ -263,7 +263,14 @@ class _BlocklyWorkspaceScreenState extends State<BlocklyWorkspaceScreen> {
             // Jika ada xml data, muat saat page finish
             if (_currentProject != null) {
                final xml = _currentProject!.workspaceXml.replaceAll('"', '\\"').replaceAll('\n', '');
-               _controller?.runJavaScript('loadWorkspaceXml("$xml")');
+               final category = _currentProject!.moduleCategory ?? 'all';
+               _controller?.runJavaScript('''
+                 window.activeModuleCategory = "$category";
+                 if (typeof renderCategories === "function") {
+                   renderCategories();
+                 }
+                 loadWorkspaceXml("$xml");
+               ''');
             }
           },
         ),

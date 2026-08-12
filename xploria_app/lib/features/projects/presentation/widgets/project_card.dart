@@ -37,9 +37,9 @@ class ProjectCard extends StatelessWidget {
     return 'just now';
   }
 
-  // Menentukan warna tema berdasarkan mode proyek (Biru = Smart City, Hijau = Smart Agri, Ungu = Smart Living)
+  // Menentukan warna tema berdasarkan mode proyek (Biru = Smart City, Hijau = Smart Agri, Ungu = Smart Living, Abu-abu = Smart Drone, Oren = Umum)
   Color _getThemeColor() {
-    final cat = (project.moduleCategory ?? categoryService.getCategoryForProject(project.id) ?? '').toLowerCase();
+    final cat = (project.moduleCategory ?? categoryService.getCategoryForProject(project.id)).toLowerCase();
     final name = project.name.toLowerCase();
 
     if (cat.contains('city') || cat == 'smart_city' || name.contains('city')) {
@@ -48,6 +48,10 @@ class ProjectCard extends StatelessWidget {
       return const Color(0xFF22C55E); // Green untuk Smart Agriculture
     } else if (cat.contains('home') || cat.contains('living') || cat == 'smart_home' || cat == 'smart_living' || name.contains('living') || name.contains('home') || name.contains('rumah')) {
       return const Color(0xFF8B5CF6); // Purple untuk Smart Living
+    } else if (cat.contains('drone') || cat == 'drone' || name.contains('drone')) {
+      return const Color(0xFF6B7280); // Grey untuk Smart Drone
+    } else if (cat.contains('umum') || cat == 'all' || name.contains('umum')) {
+      return const Color(0xFFFF8C00); // Orange untuk Umum
     }
     return const Color(0xFF005CFF); // Default Blue
   }
@@ -138,7 +142,6 @@ class ProjectCard extends StatelessWidget {
                             'IoT Lab',
                             style: TextStyle(fontSize: 10, color: themeColor, fontWeight: FontWeight.bold),
                           ),
-                          ),
                         ),
                       ],
                     ],
@@ -169,7 +172,6 @@ class ProjectCard extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.only(left: 8.0),
                 child: Icon(Icons.chevron_right_rounded, color: themeColor.withValues(alpha: 0.7), size: 22),
-              ),
               ),
           ],
         ),

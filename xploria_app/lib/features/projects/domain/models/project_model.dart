@@ -5,6 +5,7 @@ class ProjectModel {
   final String workspaceXml;
   final String? generatedCode;
   final String deviceType; // 'raspberry_pi' | 'orange_pi'
+  final String? moduleCategory;
   final List<Map<String, dynamic>>? blynkConfigJson; // Blynk IoT widget layout configuration
   final DateTime createdAt;
   final DateTime updatedAt;
@@ -17,6 +18,7 @@ class ProjectModel {
     required this.workspaceXml,
     this.generatedCode,
     required this.deviceType,
+    this.moduleCategory,
     this.blynkConfigJson,
     required this.createdAt,
     required this.updatedAt,
@@ -33,6 +35,7 @@ class ProjectModel {
           ? (json['generated_code'] as Map)['python'] as String?
           : json['generated_code'] as String?,
       deviceType: json['device_type'] as String? ?? 'raspberry_pi',
+      moduleCategory: json['subject_context'] as String?,
       blynkConfigJson: (json['blynk_config_json'] as List?)
           ?.map((e) => Map<String, dynamic>.from(e as Map))
           .toList(),
@@ -56,6 +59,7 @@ class ProjectModel {
       'workspace_xml': workspaceXml,
       'generated_code': generatedCode,
       'device_type': deviceType,
+      'subject_context': moduleCategory,
       'blynk_config_json': blynkConfigJson,
       'created_at': createdAt.toIso8601String(),
       'updated_at': updatedAt.toIso8601String(),
@@ -70,6 +74,7 @@ class ProjectModel {
     String? workspaceXml,
     String? generatedCode,
     String? deviceType,
+    String? moduleCategory,
     List<Map<String, dynamic>>? blynkConfigJson,
     DateTime? createdAt,
     DateTime? updatedAt,
@@ -82,6 +87,7 @@ class ProjectModel {
       workspaceXml: workspaceXml ?? this.workspaceXml,
       generatedCode: generatedCode ?? this.generatedCode,
       deviceType: deviceType ?? this.deviceType,
+      moduleCategory: moduleCategory ?? this.moduleCategory,
       blynkConfigJson: blynkConfigJson ?? this.blynkConfigJson,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,

@@ -1,5 +1,5 @@
-import 'dart:convert';
 import 'dart:async';
+import 'dart:convert';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_bluetooth_serial/flutter_bluetooth_serial.dart';
@@ -21,6 +21,9 @@ class DeviceConnectionService extends ChangeNotifier {
   ConnectionMode _connectionMode = ConnectionMode.wifi;
   ConnectionMode get connectionMode => _connectionMode;
 
+  final StreamController<Map<String, dynamic>> _telemetryController = StreamController<Map<String, dynamic>>.broadcast();
+  Stream<Map<String, dynamic>> get telemetryStream => _telemetryController.stream;
+
   // Bluetooth State
   BluetoothConnection? _bluetoothConnection;
   List<BluetoothDevice> _devicesList = [];
@@ -36,10 +39,6 @@ class DeviceConnectionService extends ChangeNotifier {
 
   String? _connectedDeviceId;
   String? get connectedDeviceId => _connectedDeviceId;
-
-  // Telemetry Stream
-  final StreamController<Map<String, dynamic>> _telemetryController = StreamController<Map<String, dynamic>>.broadcast();
-  Stream<Map<String, dynamic>> get telemetryStream => _telemetryController.stream;
 
   // Generic State
   bool _isConnected = false;

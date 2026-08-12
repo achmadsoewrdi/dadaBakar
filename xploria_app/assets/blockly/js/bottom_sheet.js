@@ -67,7 +67,6 @@ function renderCategories() {
             if (!hasVisibleBlocks) return;
         }
 
->>>>>>> Stashed changes
         const card = document.createElement('div');
         card.className = 'category-card';
         card.onclick = function() { openCategory(index); };
