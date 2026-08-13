@@ -110,8 +110,16 @@ class _AddWidgetModalState extends State<AddWidgetModal> {
                   _buildTypeOption(BlynkWidgetType.gauge, 'Meteran', Icons.speed_rounded),
                   const SizedBox(width: 8),
                   _buildTypeOption(BlynkWidgetType.toggle, 'Sakelar', Icons.toggle_on_rounded),
-                  const SizedBox(width: 8),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Row(
+                children: [
                   _buildTypeOption(BlynkWidgetType.value, 'Angka', Icons.tag_rounded),
+                  const SizedBox(width: 8),
+                  _buildTypeOption(BlynkWidgetType.speedometer, 'Speedometer', Icons.av_timer_rounded),
+                  const SizedBox(width: 8),
+                  Expanded(child: SizedBox()), // spacer to keep proportions
                 ],
               ),
               const SizedBox(height: 18),

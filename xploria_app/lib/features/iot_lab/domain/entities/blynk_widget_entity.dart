@@ -3,6 +3,7 @@ enum BlynkWidgetType {
   gauge,  // Circular Meter (0 - 100)
   toggle, // ON/OFF Switch
   value,  // Numeric Display Box
+  speedometer, // Smart Dial Speedometer
 }
 
 class BlynkWidgetEntity {

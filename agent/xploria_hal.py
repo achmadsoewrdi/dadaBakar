@@ -271,7 +271,7 @@ class SensorHAL:
         chip, offset = _get_gpio(p)
         self._claim_in(chip, offset, p)
         val = _gpio.gpio_read(chip, offset)
-        return 100 if val == 0 else 0
+        return 100 if val == 1 else 0
 
 
 # =============================================================================

@@ -2,9 +2,10 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
-import 'package:flutter_blue_plus/flutter_blue_plus.dart';
+import 'package:flutter_bluetooth_serial/flutter_bluetooth_serial.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
+import 'package:multicast_dns/multicast_dns.dart';
 import '../../features/device/domain/device_entity.dart';
 import '../../features/device/data/data_sources/device_remote_data_source.dart';
 
@@ -22,8 +23,10 @@ class DeviceConnectionService extends ChangeNotifier {
   ConnectionMode _connectionMode = ConnectionMode.wifi;
   ConnectionMode get connectionMode => _connectionMode;
 
-  final StreamController<Map<String, dynamic>> _telemetryController = StreamController<Map<String, dynamic>>.broadcast();
-  Stream<Map<String, dynamic>> get telemetryStream => _telemetryController.stream;
+  final StreamController<Map<String, dynamic>> _telemetryController =
+      StreamController<Map<String, dynamic>>.broadcast();
+  Stream<Map<String, dynamic>> get telemetryStream =>
+      _telemetryController.stream;
 
   // Bluetooth State
   BluetoothDevice? _selectedDevice;
@@ -32,9 +35,8 @@ class DeviceConnectionService extends ChangeNotifier {
   List<BluetoothDevice> _devicesList = [];
   List<BluetoothDevice> get devicesList => _devicesList;
 
-  StreamSubscription<BluetoothConnectionState>? _btConnectionStateSub;
-  StreamSubscription<List<int>>? _btDataSub;
-  BluetoothCharacteristic? _writeCharacteristic;
+  BluetoothConnection? _bluetoothConnection;
+  StreamSubscription<Uint8List>? _btDataSub;
 
   // Wi-Fi State
   WebSocketChannel? _webSocketChannel;
@@ -66,8 +68,10 @@ class DeviceConnectionService extends ChangeNotifier {
   bool get isLoadingSavedDevices => _isLoadingSavedDevices;
 
   void _initBluetoothEvents() {
-    FlutterBluePlus.adapterState.listen((BluetoothAdapterState state) {
-      if (state == BluetoothAdapterState.off) {
+    FlutterBluetoothSerial.instance
+        .onStateChanged()
+        .listen((BluetoothState state) {
+      if (state == BluetoothState.STATE_OFF) {
         if (_connectionMode == ConnectionMode.bluetooth && _isConnected) {
           disconnect();
           _statusMessage = "Bluetooth dimatikan";
@@ -98,6 +102,20 @@ class DeviceConnectionService extends ChangeNotifier {
     String? macAddress,
   }) async {
     try {
+      if (protocol == 'wifi' && host != null) {
+        final isDuplicate = _savedDevices.any((device) =>
+            device.protocol == 'wifi' && device.host == host);
+        if (isDuplicate) {
+          return "Perangkat Wi-Fi dengan alamat ini sudah tersimpan.";
+        }
+      } else if (protocol == 'bluetooth' && macAddress != null) {
+        final isDuplicate = _savedDevices.any((device) =>
+            device.protocol == 'bluetooth' && device.macAddress == macAddress);
+        if (isDuplicate) {
+          return "Perangkat Bluetooth ini sudah tersimpan.";
+        }
+      }
+
       final newDevice = await _remoteDataSource.saveDevice(
         label: label,
         protocol: protocol,
@@ -147,18 +165,20 @@ class DeviceConnectionService extends ChangeNotifier {
       await Permission.bluetoothConnect.request();
       await Permission.bluetoothScan.request();
 
-      // Mengambil daftar perangkat yang sudah terikat sistem (bonded devices)
-      final systemDevices = await FlutterBluePlus.systemDevices([]);
-      _devicesList = systemDevices.toList();
+      final devices =
+          await FlutterBluetoothSerial.instance.getBondedDevices();
+      _devicesList = devices;
 
       for (var dev in _devicesList) {
-        final nameLower = dev.advName.toLowerCase();
-        if (nameLower.contains('xploria') ||
-            nameLower.contains('orange') ||
-            nameLower.contains('jeruk') ||
-            nameLower.contains('rpi')) {
-          _selectedDevice = dev;
-          break;
+        if (dev.name != null) {
+          final nameLower = dev.name!.toLowerCase();
+          if (nameLower.contains('xploria') ||
+              nameLower.contains('orange') ||
+              nameLower.contains('jeruk') ||
+              nameLower.contains('rpi')) {
+            _selectedDevice = dev;
+            break;
+          }
         }
       }
       notifyListeners();
@@ -178,13 +198,12 @@ class DeviceConnectionService extends ChangeNotifier {
       if (_devicesList.isEmpty) {
         await loadPairedDevices(silent: true);
       }
-      final dev = _devicesList.firstWhere((d) => d.remoteId.str == macAddress);
+      final dev = _devicesList.firstWhere((d) => d.address == macAddress);
       _selectedDevice = dev;
       await connectBluetooth(deviceId: deviceId);
     } catch (e) {
-      // Jika tidak ditemukan di bonded devices, coba gunakan constructor RemoteId langsung
-      _selectedDevice = BluetoothDevice.fromId(macAddress);
-      await connectBluetooth(deviceId: deviceId);
+      _statusMessage = "Perangkat Bluetooth tidak ditemukan di daftar pairing.";
+      notifyListeners();
     }
   }
 
@@ -198,71 +217,64 @@ class DeviceConnectionService extends ChangeNotifier {
     _isConnecting = true;
     _connectedDeviceId = deviceId;
     _statusMessage =
-        "Menghubungkan ke ${_selectedDevice!.advName.isNotEmpty ? _selectedDevice!.advName : _selectedDevice!.remoteId.str}...";
+        "Menghubungkan ke ${_selectedDevice!.name ?? _selectedDevice!.address}...";
     notifyListeners();
 
     try {
-      await _selectedDevice!.connect(
-        timeout: const Duration(seconds: 15),
-        license: License.nonprofit,
+      BluetoothConnection connection = await BluetoothConnection.toAddress(
+        _selectedDevice!.address,
+      ).timeout(const Duration(seconds: 15));
+
+      _bluetoothConnection = connection;
+      _isConnected = true;
+      _isConnecting = false;
+      _statusMessage =
+          "Berhasil terhubung ke ${_selectedDevice!.name ?? _selectedDevice!.address}!";
+      addLog(
+        "Berhasil terhubung ke Bluetooth: ${_selectedDevice!.name ?? _selectedDevice!.address}",
       );
+      notifyListeners();
 
-      // Temukan characteristic untuk write/read (Contoh menggunakan standar NUS - Nordic UART Service)
-      List<BluetoothService> services = await _selectedDevice!
-          .discoverServices();
-      _writeCharacteristic = null;
-      BluetoothCharacteristic? readCharacteristic;
-
-      for (var service in services) {
-        for (var characteristic in service.characteristics) {
-          if (characteristic.properties.write ||
-              characteristic.properties.writeWithoutResponse) {
-            _writeCharacteristic = characteristic;
+      _btDataSub = connection.input!.listen(
+        (Uint8List data) {
+          final decoded = utf8.decode(data).trim();
+          if (decoded.isNotEmpty) {
+            _handleIncomingMessage(decoded);
           }
-          if (characteristic.properties.notify ||
-              characteristic.properties.read) {
-            readCharacteristic = characteristic;
-          }
-        }
-      }
-
-      if (readCharacteristic != null && readCharacteristic.properties.notify) {
-        await readCharacteristic.setNotifyValue(true);
-        _btDataSub = readCharacteristic.lastValueStream.listen((value) {
-          if (value.isNotEmpty) {
-            final decoded = utf8.decode(value).trim();
-            if (decoded.isNotEmpty) {
-              _handleIncomingMessage(decoded);
-            }
-          }
-        });
-      }
-
-      // Memonitor status koneksi
-      _btConnectionStateSub = _selectedDevice!.connectionState.listen((
-        BluetoothConnectionState state,
-      ) {
-        if (state == BluetoothConnectionState.disconnected) {
+        },
+        onDone: () {
           _isConnected = false;
           _statusMessage = "Koneksi Terputus";
           addLog("Koneksi Bluetooth Terputus");
-          _btConnectionStateSub?.cancel();
           _btDataSub?.cancel();
+          _bluetoothConnection = null;
           notifyListeners();
-        }
-      });
-
-      _isConnected = true;
-      _isConnecting = false;
-      _statusMessage = "Berhasil terhubung ke ${_selectedDevice!.advName}!";
-      addLog(
-        "Berhasil terhubung ke Bluetooth: ${_selectedDevice!.remoteId.str}",
+        },
+        onError: (error) {
+          _isConnected = false;
+          _statusMessage = "Koneksi Error: $error";
+          addLog("Koneksi Bluetooth Error: $error");
+          _btDataSub?.cancel();
+          _bluetoothConnection = null;
+          notifyListeners();
+        },
       );
-      notifyListeners();
     } catch (e) {
       _isConnected = false;
       _isConnecting = false;
-      _statusMessage = "Gagal terhubung ke perangkat. $e";
+
+      final errorStr = e.toString().toLowerCase();
+      if (errorStr.contains('read failed') ||
+          errorStr.contains('socket might closed')) {
+        _statusMessage =
+            "Koneksi ditolak. Pastikan perangkat menyala, belum terhubung ke alat lain, dan sudah dipasangkan (paired) dengan HP ini.";
+      } else if (errorStr.contains('timeout')) {
+        _statusMessage =
+            "Waktu koneksi habis. Pastikan perangkat berada di dekat HP Anda.";
+      } else {
+        _statusMessage = "Gagal terhubung ke perangkat. Silakan coba lagi.";
+      }
+
       notifyListeners();
     }
   }
@@ -271,14 +283,16 @@ class DeviceConnectionService extends ChangeNotifier {
     debugPrint("Menerima Balasan: $decoded");
     try {
       final dataJson = jsonDecode(decoded);
-      if (dataJson['type'] == 'output') {
+      if (dataJson['type'] == 'telemetry') {
+        _telemetryController.add(dataJson);
+      } else if (dataJson['type'] == 'output') {
         addLog("[RX] ${dataJson['payload']}");
       } else if (dataJson['type'] == 'error') {
         addLog("[ERROR] ${dataJson['payload']}");
       } else if (dataJson['type'] == 'pong') {
         addLog("[RX] PONG (Koneksi Stabil)");
       } else {
-        addLog("[RX] $decoded"); // fallback
+        addLog("[RX] $decoded");
       }
     } catch (e) {
       addLog("[RX] $decoded");
@@ -304,17 +318,51 @@ class DeviceConnectionService extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final cleanAddress = address.trim();
+      String cleanAddress = address.replaceAll(' ', '');
       final cleanPort = port.trim();
-      String urlStr = cleanAddress;
-      if (!urlStr.startsWith('ws://') && !urlStr.startsWith('wss://')) {
-        urlStr = 'ws://$cleanAddress';
-      }
-      if (cleanPort.isNotEmpty && !urlStr.contains(':$cleanPort')) {
-        urlStr = '$urlStr:$cleanPort';
+
+      // 1. Konversi protocol http/https ke ws/wss jika user mengetikkannya
+      if (cleanAddress.startsWith('http://')) {
+        cleanAddress = cleanAddress.replaceFirst('http://', 'ws://');
+      } else if (cleanAddress.startsWith('https://')) {
+        cleanAddress = cleanAddress.replaceFirst('https://', 'wss://');
+      } else if (!cleanAddress.startsWith('ws://') && !cleanAddress.startsWith('wss://')) {
+        cleanAddress = 'ws://$cleanAddress';
       }
 
-      final wsUrl = Uri.parse(urlStr);
+      final parsedUri = Uri.parse(cleanAddress);
+      String hostToConnect = parsedUri.host;
+
+      // RESOLVE MDNS UNTUK ANDROID
+      if (hostToConnect.endsWith('.local')) {
+        addLog("Mencari IP untuk $hostToConnect via mDNS...");
+        final MDnsClient client = MDnsClient();
+        await client.start();
+        
+        bool found = false;
+        await for (final IPAddressResourceRecord ptr in client.lookup<IPAddressResourceRecord>(
+            ResourceRecordQuery.addressIPv4(hostToConnect))) {
+          hostToConnect = ptr.address.address;
+          found = true;
+          addLog("Berhasil resolve mDNS: $hostToConnect");
+          break;
+        }
+        client.stop();
+        
+        if (!found) {
+          throw Exception("Gagal resolve domain .local, pastikan berada di jaringan Wi-Fi yang sama.");
+        }
+      }
+      
+      // 2. Jika port diisi secara terpisah, masukkan port ke lokasi URI yang benar
+      Uri wsUrl = parsedUri.replace(host: hostToConnect);
+      if (cleanPort.isNotEmpty) {
+        final intPort = int.tryParse(cleanPort);
+        if (intPort != null) {
+          wsUrl = wsUrl.replace(port: intPort);
+        }
+      }
+
       _webSocketChannel = WebSocketChannel.connect(wsUrl);
       await _webSocketChannel!.ready.timeout(const Duration(seconds: 10));
 
@@ -322,7 +370,7 @@ class DeviceConnectionService extends ChangeNotifier {
       _isConnecting = false;
       _connectedIp = address;
       _statusMessage = "Berhasil terhubung ke $address!";
-      addLog("Berhasil terhubung ke WebSocket: $urlStr");
+      addLog("Berhasil terhubung ke WebSocket: $wsUrl");
       notifyListeners();
 
       _webSocketChannel!.stream.listen(
@@ -341,7 +389,7 @@ class DeviceConnectionService extends ChangeNotifier {
               } else if (data['type'] == 'pong') {
                 addLog("[RX] PONG (Koneksi Stabil)");
               } else {
-                addLog("[RX] $msgStr"); // fallback
+                addLog("[RX] $msgStr");
               }
             } catch (e) {
               addLog("[RX] $msgStr");
@@ -364,17 +412,23 @@ class DeviceConnectionService extends ChangeNotifier {
     } catch (e) {
       _isConnected = false;
       _isConnecting = false;
-      _statusMessage = "Gagal konek: $e";
+      final errStr = e.toString();
+      if (errStr.contains('Failed host lookup') && address.contains('.local')) {
+        _statusMessage = "Android tidak mendukung domain .local secara langsung. Gunakan IP Address Wi-Fi Raspberry Pi (contoh: 192.168.x.x).";
+      } else if (errStr.contains('Failed host lookup')) {
+        _statusMessage = "Domain / Hostname tidak ditemukan. Pastikan alamat IP atau domain benar.";
+      } else {
+        _statusMessage = "Gagal konek: $e";
+      }
       notifyListeners();
     }
   }
 
   void disconnect({bool silent = false}) {
     if (_connectionMode == ConnectionMode.bluetooth) {
-      _btConnectionStateSub?.cancel();
       _btDataSub?.cancel();
-      _selectedDevice?.disconnect();
-      _writeCharacteristic = null;
+      _bluetoothConnection?.finish();
+      _bluetoothConnection = null;
     } else {
       _webSocketChannel?.sink.close();
       _webSocketChannel = null;
@@ -403,14 +457,17 @@ class DeviceConnectionService extends ChangeNotifier {
     addLog("[TX] $jsonPayload");
 
     if (_connectionMode == ConnectionMode.bluetooth) {
-      if (_writeCharacteristic != null) {
+      if (_bluetoothConnection != null && _bluetoothConnection!.isConnected) {
         try {
-          await _writeCharacteristic!.write(utf8.encode("$jsonPayload\n"));
+          _bluetoothConnection!.output.add(
+            Uint8List.fromList(utf8.encode("$jsonPayload\n")),
+          );
+          await _bluetoothConnection!.output.allSent;
         } catch (e) {
           addLog("[ERROR] Gagal mengirim data bluetooth: $e");
         }
       } else {
-        addLog("[ERROR] Device tidak mendukung Write Characteristic");
+        addLog("[ERROR] Bluetooth belum tersambung.");
       }
     } else {
       if (_webSocketChannel != null) {
@@ -427,9 +484,12 @@ class DeviceConnectionService extends ChangeNotifier {
     addLog("[TX] $jsonPayload");
 
     if (_connectionMode == ConnectionMode.bluetooth) {
-      if (_writeCharacteristic != null) {
+      if (_bluetoothConnection != null && _bluetoothConnection!.isConnected) {
         try {
-          await _writeCharacteristic!.write(utf8.encode("$jsonPayload\n"));
+          _bluetoothConnection!.output.add(
+            Uint8List.fromList(utf8.encode("$jsonPayload\n")),
+          );
+          await _bluetoothConnection!.output.allSent;
         } catch (e) {
           addLog("[ERROR] Gagal mengirim data bluetooth: $e");
         }
@@ -442,25 +502,26 @@ class DeviceConnectionService extends ChangeNotifier {
   }
 
   void sendCodePayload(Map<String, dynamic> payload) {
+    final String jsonPayload = jsonEncode(payload);
     if (_connectionMode == ConnectionMode.wifi) {
       if (_webSocketChannel != null) {
-        final jsonPayload = jsonEncode(payload);
         _webSocketChannel!.sink.add("$jsonPayload\n");
         addLog("[TX] Dikirim via WiFi");
       } else {
         addLog("[ERROR] WiFi belum tersambung.");
       }
     } else {
-      if (_writeCharacteristic != null) {
-        final jsonPayload = jsonEncode(payload);
+      if (_bluetoothConnection != null && _bluetoothConnection!.isConnected) {
         try {
-          _writeCharacteristic!.write(utf8.encode("$jsonPayload\n"));
+          _bluetoothConnection!.output.add(
+            Uint8List.fromList(utf8.encode("$jsonPayload\n")),
+          );
           addLog("[TX] Dikirim via Bluetooth");
-        } catch(e) {
-            addLog("[ERROR] Gagal mengirim data bluetooth: $e");
+        } catch (e) {
+          addLog("[ERROR] Gagal mengirim data bluetooth: $e");
         }
       } else {
-        addLog("[ERROR] Bluetooth belum tersambung atau write characteristic tidak ditemukan.");
+        addLog("[ERROR] Bluetooth belum tersambung.");
       }
     }
   }

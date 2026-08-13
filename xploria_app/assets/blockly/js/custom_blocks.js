@@ -896,6 +896,27 @@ Blockly.Python['sensor_light_if'] = function(block) {
 };
 
 
+// 📡 BLYNK TELEMETRY
+Blockly.Blocks['blynk_send_telemetry'] = {
+    init: function () {
+        this.appendValueInput("VALUE")
+            .setCheck("Number")
+            .appendField("📡 Kirim Telemetri (Blynk) | Pin:")
+            .appendField(new Blockly.FieldDropdown(ALLOWED_BCM_PINS), "PIN")
+            .appendField("Nilai:");
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour('#005CFF');
+        this.setTooltip("Kirim data sensor ke widget Blynk Canvas (seperti Speedometer, Grafik)");
+    }
+};
+
+Blockly.Python['blynk_send_telemetry'] = function (block) {
+    let pin = block.getFieldValue('PIN');
+    let value = Blockly.Python.valueToCode(block, 'VALUE', Blockly.Python.ORDER_ATOMIC) || '0';
+    return `print(f'{{"type": "telemetry", "pin": "${pin}", "value": ${value}}}')\n`;
+};
+
 // 🎛️ POTENSIOMETER BLOCKS
 Blockly.Blocks['sensor_potentiometer'] = {
     init: function () {
@@ -1515,6 +1536,16 @@ Blockly.JSON['sensor_light_if'] = function(block) {
     };
 };
 
+
+Blockly.JSON['blynk_send_telemetry'] = function(block) {
+    return JSON.stringify({
+        type: 'blynk_send_telemetry',
+        args: {
+            pin: block.getFieldValue('PIN'),
+            value: Blockly.JSON.valueToCode(block, 'VALUE', Blockly.JSON.ORDER_ATOMIC) || 0
+        }
+    }) + ',\n';
+};
 
 Blockly.JSON['sensor_potentiometer'] = function(block) {
     return { type: 'query', cmd: 'sensor_read_analog', args: { pin: parseInt(block.getFieldValue('PIN')) } };

@@ -47,10 +47,11 @@ dependencies:
   http_parser: ^4.1.2
   google_fonts: ^8.2.1
   shared_preferences: ^2.5.3
-  flutter_blue_plus: ^2.3.11
+  flutter_bluetooth_serial: ^0.4.0
   media_kit: ^1.2.6
   media_kit_video: ^2.0.1
   media_kit_libs_video: ^1.0.7
+  multicast_dns: ^0.3.3+1
 dev_dependencies:
   flutter_test:
     sdk: flutter

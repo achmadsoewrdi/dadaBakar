@@ -68,6 +68,7 @@ const BLOCK_CATEGORIES = [
         color: '#2E8B57',
         desc: 'Sensor dan komponen elektronik',
         blocks: [
+            { name: 'Kirim Data ke Blynk Canvas', desc: 'Kirim data sensor (telemetri) ke widget Canvas', xml: '<block type="blynk_send_telemetry"><value name="VALUE"><shadow type="math_number"><field name="NUM">0</field></shadow></value></block>' },
             { name: 'Baca Potensiometer', desc: 'Membaca nilai analog potensiometer', xml: '<block type="sensor_potentiometer"></block>' },
             { name: 'Print Potensiometer', desc: 'Print nilai potensiometer ke layar', xml: '<block type="sensor_potentiometer_print"></block>' },
             { name: 'Jika Potensiometer...', desc: 'Logika percabangan potensiometer', xml: '<block type="sensor_potentiometer_if"></block>' },

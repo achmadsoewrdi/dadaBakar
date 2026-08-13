@@ -7,6 +7,7 @@ import '../widgets/blynk_chart_widget.dart';
 import '../widgets/blynk_gauge_widget.dart';
 import '../widgets/blynk_switch_widget.dart';
 import '../widgets/blynk_value_widget.dart';
+import '../widgets/blynk_speedometer_widget.dart';
 import '../widgets/add_widget_modal.dart';
 import '../../../../core/services/device_connection_service.dart';
 
@@ -440,6 +441,16 @@ class _BlynkCanvasScreenState extends State<BlynkCanvasScreen> {
         );
       case BlynkWidgetType.gauge:
         return BlynkGaugeWidget(
+          title: w.title,
+          pin: w.sensorPin,
+          value: w.currentValueNum,
+          maxValue: w.maxValue,
+          unit: w.unit,
+          themeColor: color,
+          onDelete: onDeleteAction,
+        );
+      case BlynkWidgetType.speedometer:
+        return BlynkSpeedometerWidget(
           title: w.title,
           pin: w.sensorPin,
           value: w.currentValueNum,
