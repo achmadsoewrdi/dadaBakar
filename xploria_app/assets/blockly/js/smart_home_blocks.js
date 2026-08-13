@@ -42,8 +42,11 @@ Blockly.Python['sh_light_toggle'] = function (block) {
     _sh_require_hal();
     const loc = block.getFieldValue('LOCATION');
     const state = block.getFieldValue('STATE');
-    const val = (state === 'ON') ? 'HIGH' : 'LOW';
-    return `led.set_light("${loc}", "${val}")\n`;
+    const val = (state === 'ON') ? 1 : 0;
+    let pinName = "LED1"; // Teras
+    if (loc === "KAMAR" || loc === "RUANG_TAMU") pinName = "LED2";
+    else if (loc === "DAPUR") pinName = "LED3";
+    return `pin.set_digital("${pinName}", ${val})\n`;
 };
 
 Blockly.Blocks['sh_light_color'] = {
@@ -245,7 +248,7 @@ Blockly.Blocks['sh_audio_stop'] = {
 
 Blockly.Python['sh_audio_stop'] = function (block) {
     _sh_require_hal();
-    return `audio.stop_all()\n`;
+    return `pin.set_digital("BUZZER", 0)\n`;
 };
 
 

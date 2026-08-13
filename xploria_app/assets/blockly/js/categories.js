@@ -62,6 +62,28 @@ const BLOCK_CATEGORIES = [
         blocks: []
     },
 
+    {
+        name: 'Hardware Dasar',
+        icon: '🔌',
+        color: '#2E8B57',
+        desc: 'Sensor dan komponen elektronik',
+        blocks: [
+            { name: 'Baca Potensiometer', desc: 'Membaca nilai analog potensiometer', xml: '<block type="sensor_potentiometer"></block>' },
+            { name: 'Print Potensiometer', desc: 'Print nilai potensiometer ke layar', xml: '<block type="sensor_potentiometer_print"></block>' },
+            { name: 'Jika Potensiometer...', desc: 'Logika percabangan potensiometer', xml: '<block type="sensor_potentiometer_if"></block>' },
+            { name: 'Indikator LED Potensiometer', desc: 'Tampilkan putaran Potensiometer pada LED 1, 2, 3', xml: '<block type="esp32_pot_meter"></block>' },
+            { name: 'Alarm Otomatis Gelap', desc: 'Bunyikan Buzzer otomatis saat suasana Gelap', xml: '<block type="esp32_dark_alarm"></block>' },
+            { name: 'Kondisi LDR (Gelap/Terang)', desc: 'Blok ketupat (Boolean) untuk sensor cahaya', xml: '<block type="esp32_ldr_boolean"></block>' },
+            { name: 'Nyalakan Buzzer / LED', desc: 'Blok instan untuk menyalakan komponen', xml: '<block type="esp32_komponen_digital"></block>' },
+            { name: 'Baca Sensor Cahaya (LDR)', desc: 'Membaca intensitas cahaya', xml: '<block type="sensor_light"></block>' },
+            { name: 'Print Cahaya (LDR)', desc: 'Print nilai cahaya ke layar', xml: '<block type="sensor_light_print"></block>' },
+            { name: 'Jika Cahaya (LDR)...', desc: 'Logika percabangan sensor cahaya', xml: '<block type="sensor_light_if"></block>' },
+            { name: 'Nyalakan / Matikan Komponen', desc: 'Atur pin digital (LED, Buzzer) NYALA/MATI', xml: '<block type="pin_set_digital"></block>' },
+            { name: 'Atur Kekuatan (PWM)', desc: 'Atur pin analog (Kecerahan, Kecepatan)', xml: '<block type="pin_set_analog"></block>' },
+            { name: 'Baca Pin Digital', desc: 'Membaca sensor digital (1/0)', xml: '<block type="pin_read_digital"></block>' }
+        ]
+    },
+
     // ----------------------------------------------------
     // 2. SMART HOME / SMART LIVING (KID-FRIENDLY KIT)
     // ----------------------------------------------------
@@ -177,7 +199,8 @@ const BLOCK_CATEGORIES = [
         blocks: [
             { name: 'Bunyikan Sirine Darurat Kota', desc: 'Sirine darurat bencana/bahaya', xml: '<block type="sc_siren_start"></block>', modes: ['smart_city'] },
             { name: 'Nyalakan Lampu Darurat', desc: 'Lampu kilat merah darurat', xml: '<block type="sc_emergency_light"></block>', modes: ['smart_city'] },
-            { name: 'Matikan Sirine & Peringatan', desc: 'Matikan alarm & lampu darurat', xml: '<block type="sc_siren_stop"></block>', modes: ['smart_city'] }
+            { name: 'Matikan Sirine & Peringatan', desc: 'Matikan alarm & lampu darurat', xml: '<block type="sc_siren_stop"></block>', modes: ['smart_city'] },
+            { name: 'Alarm Otomatis Gelap', desc: 'Bunyikan Buzzer otomatis saat suasana Gelap', xml: '<block type="esp32_dark_alarm"></block>', modes: ['smart_city'] }
         ]
     },
     {

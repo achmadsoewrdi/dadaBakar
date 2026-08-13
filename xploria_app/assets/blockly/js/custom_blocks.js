@@ -1,8 +1,20 @@
 const ALLOWED_BCM_PINS = [
-    ["4", "4"], ["5", "5"], ["6", "6"], ["11", "11"], ["12", "12"],
-    ["13", "13"], ["15", "15"], ["16", "16"], ["17", "17"], ["18", "18"],
-    ["19", "19"], ["20", "20"], ["21", "21"], ["22", "22"], ["23", "23"],
-    ["24", "24"], ["25", "25"], ["26", "26"], ["27", "27"]
+    ["LED 1 (GPIO4)", "4"],
+    ["Buzzer (GPIO5)", "5"],
+    ["LED 2 (GPIO13)", "13"],
+    ["LED 3 (GPIO14)", "14"],
+    ["UART RX (GPIO16)", "16"],
+    ["UART TX (GPIO17)", "17"],
+    ["D1 (GPIO18)", "18"],
+    ["D2 (GPIO19)", "19"],
+    ["D3 (GPIO21)", "21"],
+    ["D4 (GPIO22)", "22"],
+    ["D5 (GPIO23)", "23"],
+    ["D6 / LDR DO (GPIO27)", "27"],
+    ["A1 / Potensiometer (GPIO32)", "32"],
+    ["A2 (GPIO33)", "33"],
+    ["A3 (GPIO34)", "34"],
+    ["A4 (GPIO35)", "35"]
 ];
 
 /**
@@ -883,6 +895,84 @@ Blockly.Python['sensor_light_if'] = function(block) {
     return code;
 };
 
+
+// 🎛️ POTENSIOMETER BLOCKS
+Blockly.Blocks['sensor_potentiometer'] = {
+    init: function () {
+        this.appendDummyInput()
+            .appendField("🎛️ Nilai Putaran Potensiometer di")
+            .appendField(new Blockly.FieldDropdown(ALLOWED_BCM_PINS), "PIN");
+        this.setOutput(true, "Number");
+        this.setColour('#2E8B57');
+        this.setTooltip("Membaca nilai putaran potensiometer (0-4095)");
+    }
+};
+
+Blockly.Python['sensor_potentiometer'] = function (block) {
+    _hal_require_sensor();
+    let pin = block.getFieldValue('PIN');
+    return [`sensor.read_analog(${pin})`, Blockly.Python.ORDER_ATOMIC];
+};
+
+Blockly.Blocks['sensor_potentiometer_print'] = {
+    init: function () {
+        this.appendDummyInput()
+            .appendField("🎛️ Print Nilai Potensiometer di")
+            .appendField(new Blockly.FieldDropdown(ALLOWED_BCM_PINS), "PIN");
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour('#8B008B');
+        this.setTooltip("Print nilai putaran potensiometer ke layar");
+    }
+};
+
+Blockly.Python['sensor_potentiometer_print'] = function(block) {
+    _hal_require_sensor();
+    let pin = block.getFieldValue('PIN');
+    return `print(f"[INFO] Nilai Potensiometer: {sensor.read_analog(${pin})}")\n`;
+};
+
+Blockly.Blocks['sensor_potentiometer_if'] = {
+    init: function () {
+        this.appendDummyInput()
+            .appendField("🎛️ Jika Nilai Potensiometer di")
+            .appendField(new Blockly.FieldDropdown(ALLOWED_BCM_PINS), "PIN");
+        this.appendDummyInput()
+            .appendField(new Blockly.FieldDropdown([
+                ["> (Lebih dari)", ">"],
+                ["< (Kurang dari)", "<"],
+                ["= (Sama dengan)", "=="]
+            ]), "OP")
+            .appendField(new Blockly.FieldNumber(2000, 0, 4095), "SETPOINT");
+        this.appendStatementInput("DO_TRUE")
+            .setCheck(null)
+            .appendField("Maka lakukan:");
+        this.appendStatementInput("DO_FALSE")
+            .setCheck(null)
+            .appendField("Jika tidak:");
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour('#FFAB19');
+        this.setTooltip("Percabangan berdasarkan nilai putaran potensiometer");
+    }
+};
+
+Blockly.Python['sensor_potentiometer_if'] = function(block) {
+    _hal_require_sensor();
+    let pin = block.getFieldValue('PIN');
+    let op = block.getFieldValue('OP');
+    let setpoint = block.getFieldValue('SETPOINT');
+    
+    let doTrue = Blockly.Python.statementToCode(block, 'DO_TRUE');
+    let doFalse = Blockly.Python.statementToCode(block, 'DO_FALSE');
+
+    let code = `if sensor.read_analog(${pin}) ${op} ${setpoint}:\n`;
+    code += doTrue || '    pass\n';
+    code += `else:\n`;
+    code += doFalse || '    pass\n';
+    return code;
+};
+
 Blockly.Blocks['sensor_temperature'] = {
     init: function () {
         this.appendDummyInput()
@@ -1425,6 +1515,31 @@ Blockly.JSON['sensor_light_if'] = function(block) {
     };
 };
 
+
+Blockly.JSON['sensor_potentiometer'] = function(block) {
+    return { type: 'query', cmd: 'sensor_read_analog', args: { pin: parseInt(block.getFieldValue('PIN')) } };
+};
+
+Blockly.JSON['sensor_potentiometer_print'] = function(block) {
+    return {
+        type: 'command',
+        cmd: 'sensor_print',
+        args: { sensor: 'potentiometer', pin: parseInt(block.getFieldValue('PIN')) }
+    };
+};
+
+Blockly.JSON['sensor_potentiometer_if'] = function(block) {
+    return {
+        type: 'control',
+        cmd: 'if_sensor',
+        condition: { cmd: 'sensor_read_analog', args: { pin: parseInt(block.getFieldValue('PIN')) } },
+        op: block.getFieldValue('OP'),
+        setpoint: parseFloat(block.getFieldValue('SETPOINT')),
+        do_true: _jsonStatementToList(block, 'DO_TRUE'),
+        do_false: _jsonStatementToList(block, 'DO_FALSE')
+    };
+};
+
 Blockly.JSON['sensor_temperature'] = function(block) {
     return { type: 'query', cmd: 'sensor_read_temperature', args: { pin: parseInt(block.getFieldValue('PIN')) } };
 };
@@ -1852,4 +1967,134 @@ Blockly.Python['serial_begin'] = function (block) {
 };
 Blockly.JSON['serial_begin'] = function (block) {
     return { type: 'command', cmd: 'serial_begin', args: { baud: block.getFieldValue('BAUD') } };
+};
+
+// ==========================================
+// ESP32 PROTOTYPE INSTANT BLOCKS (APPROACH A)
+// ==========================================
+
+Blockly.Blocks['esp32_pot_meter'] = {
+    init: function () {
+        this.appendDummyInput()
+            .appendField("🟢 Indikator LED berdasar Potensiometer");
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour('#32C36C');
+        this.setTooltip("Menyalakan LED 1, 2, atau 3 bergantian sesuai posisi putaran Potensiometer.");
+    }
+};
+
+Blockly.Python['esp32_pot_meter'] = function (block) {
+    _hal_require_sensor();
+    _hal_require_pin();
+    
+    let code = `
+pot_val = sensor.read_analog(32)
+pin.set_digital("LED1", 0)
+pin.set_digital("LED2", 0)
+pin.set_digital("LED3", 0)
+
+if pot_val < 1365:
+    pin.set_digital("LED1", 1)
+elif pot_val < 2730:
+    pin.set_digital("LED2", 1)
+else:
+    pin.set_digital("LED3", 1)
+`;
+    return code;
+};
+
+Blockly.JSON['esp32_pot_meter'] = function(block) {
+    return { type: 'command', cmd: 'esp32_pot_meter', args: {} };
+};
+
+Blockly.Blocks['esp32_dark_alarm'] = {
+    init: function () {
+        this.appendDummyInput()
+            .appendField("🔴 Alarm Otomatis saat Gelap (Buzzer & LDR)");
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour('#E53E3E');
+        this.setTooltip("Membunyikan Buzzer saat LDR mendeteksi suasana gelap.");
+    }
+};
+
+Blockly.Python['esp32_dark_alarm'] = function (block) {
+    _hal_require_sensor();
+    _hal_require_pin();
+    
+    let code = `
+if pin.read_digital(27) == 1:
+    pin.set_digital("BUZZER", 1)
+else:
+    pin.set_digital("BUZZER", 0)
+`;
+    return code;
+};
+
+Blockly.JSON['esp32_dark_alarm'] = function(block) {
+    return { type: 'command', cmd: 'esp32_dark_alarm', args: {} };
+};
+
+// ==========================================
+// ESP32 PROTOTYPE LOGICAL BLOCKS (APPROACH B)
+// ==========================================
+
+Blockly.Blocks['esp32_ldr_boolean'] = {
+    init: function () {
+        this.appendDummyInput()
+            .appendField("Sensor LDR membaca")
+            .appendField(new Blockly.FieldDropdown([
+                ["Gelap 🌙", "GELAP"],
+                ["Terang ☀️", "TERANG"]
+            ]), "STATE");
+        this.setOutput(true, "Boolean");
+        this.setColour('#5b80a5');
+        this.setTooltip("Membaca sensor cahaya, mengembalikan nilai Benar/Salah (True/False)");
+    }
+};
+
+Blockly.Python['esp32_ldr_boolean'] = function (block) {
+    _hal_require_pin();
+    const state = block.getFieldValue('STATE');
+    // Firmware D6_LDR: 1 = Gelap, 0 = Terang
+    const val = (state === 'GELAP') ? '1' : '0';
+    return [`pin.read_digital(27) == ${val}`, Blockly.Python.ORDER_RELATIONAL];
+};
+
+Blockly.JSON['esp32_ldr_boolean'] = function(block) {
+    return { type: 'query', cmd: 'esp32_ldr_boolean', args: {} };
+};
+
+Blockly.Blocks['esp32_komponen_digital'] = {
+    init: function () {
+        this.appendDummyInput()
+            .appendField("Atur")
+            .appendField(new Blockly.FieldDropdown([
+                ["Sirine (Buzzer)", "BUZZER"],
+                ["Lampu Teras (LED 1)", "LED1"],
+                ["Lampu Kamar (LED 2)", "LED2"],
+                ["Lampu Peringatan (LED 3)", "LED3"]
+            ]), "KOMPONEN")
+            .appendField("menjadi")
+            .appendField(new Blockly.FieldDropdown([
+                ["Nyala 🟢", "1"],
+                ["Mati 🔴", "0"]
+            ]), "STATE");
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour('#E53E3E');
+        this.setTooltip("Menyalakan atau mematikan komponen ESP32");
+    }
+};
+
+Blockly.Python['esp32_komponen_digital'] = function (block) {
+    _hal_require_pin();
+    const komp = block.getFieldValue('KOMPONEN');
+    const state = block.getFieldValue('STATE');
+    return `pin.set_digital("${komp}", ${state})\n`;
+};
+
+Blockly.JSON['esp32_komponen_digital'] = function(block) {
+    return { type: 'command', cmd: 'esp32_komponen_digital', args: {} };
 };
