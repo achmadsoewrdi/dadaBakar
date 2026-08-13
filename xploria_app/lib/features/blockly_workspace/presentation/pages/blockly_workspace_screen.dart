@@ -172,6 +172,91 @@ class _BlocklyWorkspaceScreenState extends State<BlocklyWorkspaceScreen> {
     );
   }
 
+  void _confirmAndOpenRemoteControl() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+          backgroundColor: Colors.white,
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF005CFF).withValues(alpha: 0.15),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.videogame_asset, color: Color(0xFF005CFF), size: 36),
+                ),
+                const SizedBox(height: 16),
+                const Text(
+                  'Buka Remote Control?',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w900,
+                    color: Color(0xFF0A122C),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  'Kamu akan masuk ke mode kontrol manual (FPV) untuk menerbangkan drone secara langsung. Yakin ingin melanjutkan?',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: Colors.grey.shade600,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: () => context.pop(),
+                        style: OutlinedButton.styleFrom(
+                          side: BorderSide(color: Colors.grey.shade300),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                        ),
+                        child: Text(
+                          'Batal',
+                          style: TextStyle(color: Colors.grey.shade700, fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: () {
+                          context.pop(); // Close popup
+                          context.push('/drone-controller');
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF005CFF),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                        ),
+                        child: const Text(
+                          'Ya, Buka!',
+                          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   void _navigateToIotLab(ProjectModel project) {
     context.push('/blynk-canvas', extra: {
       'project': project,
@@ -235,6 +320,7 @@ class _BlocklyWorkspaceScreenState extends State<BlocklyWorkspaceScreen> {
     }
 
     _controller = WebViewController()
+      ..clearCache()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
       ..setBackgroundColor(const Color(0x00000000))
       ..addJavaScriptChannel(
@@ -263,11 +349,14 @@ class _BlocklyWorkspaceScreenState extends State<BlocklyWorkspaceScreen> {
             // Jika ada xml data, muat saat page finish
             if (_currentProject != null) {
                final xml = _currentProject!.workspaceXml.replaceAll('"', '\\"').replaceAll('\n', '');
-               _controller?.runJavaScript('loadWorkspaceXml("$xml")');
-               
-               // Set active module category untuk memfilter toolbox
-               final moduleCategory = _currentProject!.moduleCategory ?? 'all';
-               _controller?.runJavaScript('setActiveModule("$moduleCategory")');
+               final category = _currentProject!.moduleCategory ?? 'all';
+               _controller?.runJavaScript('''
+                 window.activeModuleCategory = "$category";
+                 if (typeof renderCategories === "function") {
+                   renderCategories();
+                 }
+                 loadWorkspaceXml("$xml");
+               ''');
             }
           },
         ),
@@ -281,29 +370,6 @@ class _BlocklyWorkspaceScreenState extends State<BlocklyWorkspaceScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       resizeToAvoidBottomInset: false,
-      floatingActionButton: ListenableBuilder(
-        listenable: DeviceConnectionService.instance,
-        builder: (context, _) {
-          if (DeviceConnectionService.instance.connectionMode == ConnectionMode.drone) {
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 64.0, right: 16.0),
-              child: FloatingActionButton.extended(
-                heroTag: 'drone_cam_btn',
-                onPressed: () {
-                  context.push('/drone-controller');
-                },
-                backgroundColor: Colors.blueAccent,
-                icon: const Icon(Icons.videocam, color: Colors.white),
-                label: const Text(
-                  'Kamera',
-                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-                ),
-              ),
-            );
-          }
-          return const SizedBox.shrink();
-        },
-      ),
       appBar: AppBar(
         backgroundColor: AppColors.primary,
         elevation: 0,
@@ -324,21 +390,28 @@ class _BlocklyWorkspaceScreenState extends State<BlocklyWorkspaceScreen> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Flexible(
-                  child: Text(
-                    _projectName,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w900,
-                      fontSize: 18,
-                    ),
-                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Flexible(
+                        child: Text(
+                          _projectName,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w900,
+                            fontSize: 18,
+                          ),
+                        ),
+                      ),
+                      if (_isSaving)
+                         const Padding(
+                           padding: EdgeInsets.only(left: 8.0),
+                           child: SizedBox(width: 12, height: 12, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)),
+                         )
+                    ]
+                  )
                 ),
-                if (_isSaving)
-                  const Padding(
-                    padding: EdgeInsets.only(left: 8.0),
-                    child: SizedBox(width: 12, height: 12, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)),
-                  ),
                 const SizedBox(width: 8),
                 const Icon(Icons.edit, size: 18, color: Colors.white),
               ],
@@ -346,12 +419,19 @@ class _BlocklyWorkspaceScreenState extends State<BlocklyWorkspaceScreen> {
           ),
         ),
         actions: [
-          // Tombol On-Demand Blynk IoT Canvas (dengan Validasi Pop-up)
-          IconButton(
-            icon: const Icon(Icons.sensors_rounded, color: Color(0xFF00E3A2)),
-            tooltip: 'Buka Blynk IoT Canvas',
-            onPressed: _confirmAndCreateIotLab,
-          ),
+          // Tombol On-Demand Blynk IoT Canvas atau Remote Control (dengan Validasi Pop-up)
+          if (_currentProject?.moduleCategory == 'drone')
+            IconButton(
+              icon: const Icon(Icons.videogame_asset, color: Colors.amberAccent),
+              tooltip: 'Buka Remote Control Drone',
+              onPressed: _confirmAndOpenRemoteControl,
+            )
+          else
+            IconButton(
+              icon: const Icon(Icons.sensors_rounded, color: Color(0xFF00E3A2)),
+              tooltip: 'Buka Blynk IoT Canvas',
+              onPressed: _confirmAndCreateIotLab,
+            ),
           // Tombol Lihat Kode Python
           IconButton(
             icon: const Icon(Icons.code, color: Colors.white),
@@ -369,8 +449,7 @@ class _BlocklyWorkspaceScreenState extends State<BlocklyWorkspaceScreen> {
                 TelloService.instance,
               ]),
               builder: (context, _) {
-                final isDeviceConnected = DeviceConnectionService.instance.isConnected || 
-                                          TelloService.instance.isConnected;
+                final isDeviceConnected = DeviceConnectionService.instance.isConnected || TelloService.instance.isConnected;
                 return isDeviceConnected
                     ? ElevatedButton.icon(
                         style: ElevatedButton.styleFrom(
@@ -393,26 +472,21 @@ class _BlocklyWorkspaceScreenState extends State<BlocklyWorkspaceScreen> {
                                 if (widget.onRunCode != null) {
                                   widget.onRunCode!(_state.pythonCode);
                                 }
-
-                                if (DeviceConnectionService.instance.connectionMode == ConnectionMode.drone) {
-                                  // Use Tello Service directly
+                                
+                                if (TelloService.instance.isConnected) {
                                   TelloService.instance.parseAndQueuePython(_state.pythonCode);
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text('Mengirim perintah ke Drone Tello...'),
-                                      duration: Duration(seconds: 2),
-                                    ),
-                                  );
                                 } else {
-                                  // Send payload using the shared connection service
                                   DeviceConnectionService.instance.sendData(_state.pythonCode);
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text('Mengirim kode ke device...'),
-                                      duration: Duration(seconds: 2),
-                                    ),
-                                  );
                                 }
+                                
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text(
+                                      'Mengirim kode ke device...',
+                                    ),
+                                    duration: Duration(seconds: 2),
+                                  ),
+                                );
                               },
                       )
                     : ElevatedButton.icon(

@@ -1,11 +1,20 @@
 /**
- * Block Categories Data Schema (mBlock Style)
- * Xploria v3 - Thematic Kits Architecture
+ * Block Categories Data Schema (Kid-Friendly Architecture)
+ * Xploria v3 - Smart Home, Smart City, Smart Agriculture & Thematic Kit Definitions
  */
 const BLOCK_CATEGORIES = [
     // ----------------------------------------------------
-    // FUNDAMENTAL CATEGORIES (ALWAYS AVAILABLE)
+    // 1. FUNDAMENTAL CATEGORIES (ALWAYS AVAILABLE)
     // ----------------------------------------------------
+    {
+        name: 'Kejadian',
+        icon: '🏁',
+        color: '#FFBF00',
+        desc: 'Pemicu awal program',
+        blocks: [
+            { name: 'Saat Program Dimulai', desc: 'Dijalankan pertama kali', xml: '<block type="event_when_start"></block>' }
+        ]
+    },
     {
         name: 'Dasar',
         icon: '🟢',
@@ -18,22 +27,15 @@ const BLOCK_CATEGORIES = [
         ]
     },
     {
-        name: 'Events',
-        icon: '🏁',
-        color: '#FFBF00',
-        desc: 'Pemicu (Triggers)',
-        blocks: [
-            { name: 'Saat Dimulai', desc: 'Dijalankan saat mulai', xml: '<block type="event_when_start"></block>' }
-        ]
-    },
-    {
-        name: 'Control',
+        name: 'Kontrol',
         icon: '⚙️',
         color: '#FFAB19',
         desc: 'Kontrol alur program',
         blocks: [
+            { name: 'Tunggu (detik)', desc: 'Jeda program', xml: '<block type="delay_seconds"><value name="SECONDS"><shadow type="math_number"><field name="NUM">1</field></shadow></value></block>' },
             { name: 'Ulangi Sebanyak', desc: 'Loop N kali', xml: '<block type="controls_repeat_ext"><value name="TIMES"><shadow type="math_number"><field name="NUM">10</field></shadow></value></block>' },
             { name: 'Ulangi Selama', desc: 'Loop While', xml: '<block type="controls_whileUntil"></block>' },
+            { name: 'Jika...Maka...Jika Tidak', desc: 'Percabangan', xml: '<block type="controls_if"></block>' },
             { name: 'Jika...Maka...Jika Tidak', desc: 'Percabangan', xml: '<block type="controls_if"></block>' }
         ]
     },
@@ -53,147 +55,224 @@ const BLOCK_CATEGORIES = [
     {
         name: 'Variabel',
         icon: '🗃️',
+        icon: '🗃️',
         color: '#FF8C1A',
         desc: 'Penyimpan nilai',
-        blocks: [
-            { name: 'Variabel (Built-in)', desc: 'Variabel Blockly', xml: '<block type="variables_get"></block>' }
-            // Custom Variable Blocks are typically injected dynamically by the toolbox
-        ]
+        isVariableCategory: true,
+        blocks: []
     },
-    
+
     // ----------------------------------------------------
-    // THEMATIC KITS CATEGORIES (SHOWN CONDITIONALLY)
+    // 2. SMART HOME / SMART LIVING (KID-FRIENDLY KIT)
     // ----------------------------------------------------
     {
-        name: 'Drone: Dasar',
+        name: 'Sensor Rumah',
+        icon: '🌡️',
+        color: '#2E8B57',
+        desc: 'Pendeteksi gerakan, asap, suhu & cahaya',
+        modes: ['smart_home', 'smart_living'],
+        blocks: [
+            { name: 'Ada Gerakan Orang?', desc: 'Mendeteksi gerakan orang', xml: '<block type="sh_sensor_motion"></block>', modes: ['smart_home', 'smart_living'] },
+            { name: 'Deteksi Asap / Gas Bahaya', desc: 'Mendeteksi kebocoran gas/asap dapur', xml: '<block type="sh_sensor_gas"></block>', modes: ['smart_home', 'smart_living'] },
+            { name: 'Suasana Rumah Gelap?', desc: 'Mendeteksi suasana malam/gelap', xml: '<block type="sh_sensor_dark"></block>', modes: ['smart_home', 'smart_living'] },
+            { name: 'Suhu Ruangan (°C)', desc: 'Membaca derajat suhu rumah', xml: '<block type="sh_sensor_temperature"></block>', modes: ['smart_home', 'smart_living'] },
+            { name: 'Status Pintu Rumah', desc: 'Mengecek pintu terbuka/terkunci', xml: '<block type="sh_sensor_door"></block>', modes: ['smart_home', 'smart_living'] }
+        ]
+    },
+    {
+        name: 'Lampu Rumah',
+        icon: '💡',
+        color: '#8A2BE2',
+        desc: 'Kontrol lampu teras, kamar & lampu hias',
+        modes: ['smart_home', 'smart_living'],
+        blocks: [
+            { name: 'Nyalakan / Matikan Lampu', desc: 'Sakelar lampu teras/kamar/dapur', xml: '<block type="sh_light_toggle"></block>', modes: ['smart_home', 'smart_living'] },
+            { name: 'Ubah Warna Lampu Hias', desc: 'Warna lampu RGB kamar', xml: '<block type="sh_light_color"></block>', modes: ['smart_home', 'smart_living'] },
+            { name: 'Atur Kecerahan Lampu', desc: 'Mengatur tingkat redup/terang lampu', xml: '<block type="sh_light_brightness"><value name="BRIGHTNESS"><shadow type="math_number"><field name="NUM">100</field></shadow></value></block>', modes: ['smart_home', 'smart_living'] },
+            { name: 'Matikan Semua Lampu Rumah', desc: 'Mematikan seluruh lampu rumah', xml: '<block type="sh_light_turn_off_all"></block>', modes: ['smart_home', 'smart_living'] }
+        ]
+    },
+    {
+        name: 'Bunyi & Alarm',
+        icon: '🔊',
+        color: '#D65CD6',
+        desc: 'Bel pintu & alarm sirine bahaya',
+        modes: ['smart_home', 'smart_living'],
+        blocks: [
+            { name: 'Bunyikan Bel Pintu', desc: 'Suara bel pintu depan', xml: '<block type="sh_audio_doorbell"></block>', modes: ['smart_home', 'smart_living'] },
+            { name: 'Bunyikan Alarm Bahaya', desc: 'Sirine peringatan bahaya', xml: '<block type="sh_audio_alarm"></block>', modes: ['smart_home', 'smart_living'] },
+            { name: 'Matikan Semua Suara & Alarm', desc: 'Matikan bunyi bel dan alarm', xml: '<block type="sh_audio_stop"></block>', modes: ['smart_home', 'smart_living'] }
+        ]
+    },
+    {
+        name: 'Pintu, Gorden & Kipas',
+        icon: '⚙️',
+        color: '#4169E1',
+        desc: 'Kunci pintu otomatis, gorden & kipas',
+        modes: ['smart_home', 'smart_living'],
+        blocks: [
+            { name: 'Pintu Rumah (Buka / Kunci)', desc: 'Kunci pintu servo otomatis', xml: '<block type="sh_door_lock"></block>', modes: ['smart_home', 'smart_living'] },
+            { name: 'Gorden Rumah (Buka / Tutup)', desc: 'Buka/Tutup gorden jendela', xml: '<block type="sh_curtain"></block>', modes: ['smart_home', 'smart_living'] },
+            { name: 'Kipas Angin (Nyalakan / Matikan)', desc: 'Kontrol kipas angin otomatis', xml: '<block type="sh_fan_toggle"></block>', modes: ['smart_home', 'smart_living'] }
+        ]
+    },
+    {
+        name: 'Layar Display',
+        icon: '📺',
+        color: '#8B008B',
+        desc: 'Tampilkan pesan dan tulisan di monitor',
+        modes: ['smart_home', 'smart_living'],
+        blocks: [
+            { name: 'Tampilkan Pesan di Layar', desc: 'Print tulisan ke layar display', xml: '<block type="sh_display_print"><value name="TEXT"><shadow type="text"><field name="TEXT">Selamat Datang!</field></shadow></value></block>', modes: ['smart_home', 'smart_living'] },
+            { name: 'Bersihkan Layar Display', desc: 'Kosongkan layar monitor', xml: '<block type="sh_display_clear"></block>', modes: ['smart_home', 'smart_living'] }
+        ]
+    },
+
+    // ----------------------------------------------------
+    // 3. SMART CITY (KID-FRIENDLY KIT)
+    // ----------------------------------------------------
+    {
+        name: 'Lampu & Lalu Lintas',
+        icon: '🚥',
+        color: '#FFD700',
+        desc: 'Lampu lalu lintas & penerangan jalan umum',
+        modes: ['smart_city'],
+        blocks: [
+            { name: 'Atur Lampu Lalu Lintas', desc: 'Lampu lalu lintas Merah/Kuning/Hijau', xml: '<block type="sc_traffic_light"></block>', modes: ['smart_city'] },
+            { name: 'Lampu Jalan Otomatis', desc: 'Lampu penerangan jalan utama', xml: '<block type="sc_street_light"></block>', modes: ['smart_city'] },
+            { name: 'Warna Lampu Taman Kota', desc: 'Lampu hias taman kota', xml: '<block type="sc_park_light_color"></block>', modes: ['smart_city'] },
+            { name: 'Suasana Jalanan Gelap?', desc: 'Mendeteksi apakah suasana malam/gelap', xml: '<block type="sc_sensor_dark"></block>', modes: ['smart_city'] }
+        ]
+    },
+    {
+        name: 'Parkir & Otomasi Kota',
+        icon: '🅿️',
+        color: '#FF8C00',
+        desc: 'Palang pintu parkir & detektor mobil',
+        modes: ['smart_city'],
+        blocks: [
+            { name: 'Palang Parkir Kota', desc: 'Buka / Tutup palang parkir', xml: '<block type="sc_parking_gate"></block>', modes: ['smart_city'] },
+            { name: 'Ada Mobil Datang?', desc: 'Mendeteksi mobil mendekati parkir', xml: '<block type="sc_sensor_car"></block>', modes: ['smart_city'] },
+            { name: 'Area Parkir Kosong?', desc: 'Mengecek ketersediaan tempat parkir', xml: '<block type="sc_parking_available"></block>', modes: ['smart_city'] }
+        ]
+    },
+    {
+        name: 'Kebersihan & Lingkungan',
+        icon: '🗑️',
+        color: '#2E8B57',
+        desc: 'Tempat sampah pintar, polusi & deteksi banjir',
+        modes: ['smart_city'],
+        blocks: [
+            { name: 'Tempat Sampah Penuh?', desc: 'Mendeteksi kapasitas tempat sampah', xml: '<block type="sc_trash_full"></block>', modes: ['smart_city'] },
+            { name: 'Kualitas Udara Kota', desc: 'Cek tingkat polusi udara', xml: '<block type="sc_air_quality"></block>', modes: ['smart_city'] },
+            { name: 'Deteksi Genangan Air / Hujan', desc: 'Mendeteksi banjir atau hujan deras', xml: '<block type="sc_sensor_flood"></block>', modes: ['smart_city'] }
+        ]
+    },
+    {
+        name: 'Keamanan & Sirine Kota',
+        icon: '🚨',
+        color: '#E53E3E',
+        desc: 'Sirine darurat & lampu peringatan',
+        modes: ['smart_city'],
+        blocks: [
+            { name: 'Bunyikan Sirine Darurat Kota', desc: 'Sirine darurat bencana/bahaya', xml: '<block type="sc_siren_start"></block>', modes: ['smart_city'] },
+            { name: 'Nyalakan Lampu Darurat', desc: 'Lampu kilat merah darurat', xml: '<block type="sc_emergency_light"></block>', modes: ['smart_city'] },
+            { name: 'Matikan Sirine & Peringatan', desc: 'Matikan alarm & lampu darurat', xml: '<block type="sc_siren_stop"></block>', modes: ['smart_city'] }
+        ]
+    },
+    {
+        name: 'Papan Pengumuman Kota',
+        icon: '📢',
+        color: '#8B008B',
+        desc: 'Siarkan pengumuman publik di jalanan',
+        modes: ['smart_city'],
+        blocks: [
+            { name: 'Siarkan Pengumuman di Layar Kota', desc: 'Tampilkan pesan ke layar publik', xml: '<block type="sc_display_announce"><value name="TEXT"><shadow type="text"><field name="TEXT">Lalu Lintas Lancar</field></shadow></value></block>', modes: ['smart_city'] },
+            { name: 'Bersihkan Papan Pengumuman', desc: 'Kosongkan layar publik', xml: '<block type="sc_display_clear"></block>', modes: ['smart_city'] }
+        ]
+    },
+
+    // ----------------------------------------------------
+    // 4. SMART AGRICULTURE (KID-FRIENDLY KIT)
+    // ----------------------------------------------------
+    {
+        name: 'Tanah & Penyiraman',
+        icon: '🌱',
+        color: '#2E8B57',
+        desc: 'Penyiraman otomatis & sensor kebasahan tanah',
+        modes: ['smart_agriculture'],
+        blocks: [
+            { name: 'Apakah Tanah Kering?', desc: 'Mendeteksi saat tanah butuh air', xml: '<block type="sa_soil_dry"></block>', modes: ['smart_agriculture'] },
+            { name: 'Kelembapan Tanah (%)', desc: 'Membaca persen kebasahan tanah', xml: '<block type="sa_soil_moisture"></block>', modes: ['smart_agriculture'] },
+            { name: 'Pompa Air (Siram Tanaman)', desc: 'Pompa penyiraman tanaman otomatis', xml: '<block type="sa_water_pump"></block>', modes: ['smart_agriculture'] }
+        ]
+    },
+    {
+        name: 'Cuaca & Rumah Kaca',
+        icon: '☀️',
+        color: '#3CB371',
+        desc: 'Suhu, kelembapan udara & kipas pendingin',
+        modes: ['smart_agriculture'],
+        blocks: [
+            { name: 'Suhu Rumah Kaca (°C)', desc: 'Membaca derajat panas green house', xml: '<block type="sa_temp"></block>', modes: ['smart_agriculture'] },
+            { name: 'Kelembapan Udara (%)', desc: 'Membaca persen kelembapan udara', xml: '<block type="sa_humidity"></block>', modes: ['smart_agriculture'] },
+            { name: 'Kipas Pendingin Kebun', desc: 'Nyalakan kipas pendingin greenhouse', xml: '<block type="sa_fan"></block>', modes: ['smart_agriculture'] },
+            { name: 'Cuaca Mendung / Redup?', desc: 'Mendeteksi tingkat sinar matahari', xml: '<block type="sa_sensor_cloudy"></block>', modes: ['smart_agriculture'] }
+        ]
+    },
+    {
+        name: 'Lampu Tanaman',
+        icon: '💡',
+        color: '#8A2BE2',
+        desc: 'Lampu tumbuh fotosintesis tanaman',
+        modes: ['smart_agriculture'],
+        blocks: [
+            { name: 'Lampu Tumbuh (Grow Light)', desc: 'Nyalakan lampu khusus fotosintesis', xml: '<block type="sa_grow_light"></block>', modes: ['smart_agriculture'] },
+            { name: 'Ubah Warna Lampu Tanaman', desc: 'Ubah spektrum warna lampu tanaman', xml: '<block type="sa_grow_light_color"></block>', modes: ['smart_agriculture'] },
+            { name: 'Atur Kecerahan Lampu Tanaman', desc: 'Mengatur tingkat intensitas cahaya', xml: '<block type="sa_grow_light_brightness"><value name="BRIGHTNESS"><shadow type="math_number"><field name="NUM">100</field></shadow></value></block>', modes: ['smart_agriculture'] }
+        ]
+    },
+    {
+        name: 'Pengusir Hama & Alarm',
+        icon: '🦝',
+        color: '#E53E3E',
+        desc: 'Suara pengusir hama & sirine kebun',
+        modes: ['smart_agriculture'],
+        blocks: [
+            { name: 'Ada Hewan / Hama Masuk Kebun?', desc: 'Mendeteksi hewan liar/burung di kebun', xml: '<block type="sa_sensor_pest"></block>', modes: ['smart_agriculture'] },
+            { name: 'Bunyikan Suara Pengusir Hama', desc: 'Suara khusus mengusir burung/hama', xml: '<block type="sa_pest_repeller"></block>', modes: ['smart_agriculture'] },
+            { name: 'Bunyikan Sirine Kebun', desc: 'Sirine peringatan gangguan kebun', xml: '<block type="sa_alarm_start"></block>', modes: ['smart_agriculture'] },
+            { name: 'Matikan Alarm Kebun', desc: 'Matikan suara pengusir hama/sirine', xml: '<block type="sa_alarm_stop"></block>', modes: ['smart_agriculture'] }
+        ]
+    },
+    {
+        name: 'Monitor Kebun',
+        icon: '📺',
+        color: '#8B008B',
+        desc: 'Tampilkan pesan status kebun di layar',
+        modes: ['smart_agriculture'],
+        blocks: [
+            { name: 'Tampilkan Status Kebun di Layar', desc: 'Print tulisan status ke monitor', xml: '<block type="sa_display_print"><value name="TEXT"><shadow type="text"><field name="TEXT">Tanah Lembap</field></shadow></value></block>', modes: ['smart_agriculture'] },
+            { name: 'Bersihkan Layar Monitor Kebun', desc: 'Kosongkan layar status kebun', xml: '<block type="sa_display_clear"></block>', modes: ['smart_agriculture'] }
+        ]
+    },
+
+    // ----------------------------------------------------
+    // 5. OTHER MODES (DRONE)
+    // ----------------------------------------------------
+    {
+        name: 'Drone Tello',
         icon: '🚁',
         color: '#FF4D4D',
-        desc: 'Terbang & Mendarat',
-        moduleCategory: 'drone',
+        desc: 'Terbangkan & kendalikan drone',
+        modes: ['drone'],
         blocks: [
-            { name: 'Terbang', desc: 'Takeoff', xml: '<block type="drone_takeoff"></block>' },
-            { name: 'Mendarat', desc: 'Land', xml: '<block type="drone_land"></block>' },
-            { name: 'Berhenti', desc: 'Stop & Hover', xml: '<block type="drone_stop"></block>' }
-        ]
-    },
-    {
-        name: 'Drone: Navigasi',
-        icon: '🧭',
-        color: '#FF4D4D',
-        desc: 'Atur arah terbang',
-        moduleCategory: 'drone',
-        blocks: [
-            { name: 'Gerak Arah', desc: 'Maju/Mundur/Kiri/Kanan', xml: '<block type="drone_move_direction"></block>' },
-            { name: 'Putar Arah', desc: 'Rotasi CW/CCW', xml: '<block type="drone_rotate"></block>' }
-        ]
-    },
-    {
-        name: 'Drone: Akrobat',
-        icon: '🤸',
-        color: '#FF4D4D',
-        desc: 'Gerakan salto 3D',
-        moduleCategory: 'drone',
-        blocks: [
-            { name: 'Salto (Flip)', desc: 'Flip ke 4 arah', xml: '<block type="drone_flip"></block>' }
-        ]
-    },
-    {
-        name: 'Smart City',
-        icon: '🏙️',
-        color: '#FFD700',
-        desc: 'Infrastruktur kota publik',
-        moduleCategory: 'smart_city',
-        blocks: [
-            { name: 'Atur Lampu Lalu Lintas', desc: 'Merah/Kuning/Hijau', xml: '<block type="city_traffic_light"></block>' },
-            { name: 'Atur Lampu Jalan', desc: 'Auto/On/Off', xml: '<block type="city_street_light"></block>' },
-            { name: 'Palang Parkir', desc: 'Buka/Tutup', xml: '<block type="city_parking_gate"></block>' },
-            { name: 'Cek Kapasitas Tempat Sampah', desc: '% Penuh', xml: '<block type="city_trash_level"></block>' },
-            { name: 'Cek Kualitas Udara', desc: 'Level Polusi', xml: '<block type="city_air_quality"></block>' }
-        ]
-    },
-    {
-        name: 'Smart Living',
-        icon: '🏠',
-        color: '#005CFF',
-        desc: 'Otomatisasi rumah pintar',
-        moduleCategory: 'smart_home',
-        blocks: [
-            { name: 'Nyalakan Lampu', desc: 'LED Toggle', xml: '<block type="iot_led_toggle"></block>' },
-            { name: 'Apakah Ada Gerakan', desc: 'Sensor PIR', xml: '<block type="sensor_motion"></block>' }
-            // Asumsikan ada blok pintu/alarm di custom_blocks / smart_home_blocks
-        ]
-    },
-    {
-        name: 'Smart Agriculture',
-        icon: '🌾',
-        color: '#2E8B57',
-        desc: 'Otomatisasi perkebunan',
-        moduleCategory: 'smart_agriculture',
-        blocks: [
-            { name: 'Baca Kelembapan Tanah', desc: 'Moisture (%)', xml: '<block type="agri_soil_moisture"></block>' },
-            { name: 'Pompa Air', desc: 'Siram Tanaman', xml: '<block type="agri_water_pump"></block>' },
-            { name: 'Lampu Tumbuh', desc: 'Grow Light', xml: '<block type="agri_grow_light"></block>' },
-            { name: 'Baca Suhu', desc: 'Suhu (°C)', xml: '<block type="agri_greenhouse_temp"></block>' },
-            { name: 'Baca Kelembapan Udara', desc: 'Humidity (%)', xml: '<block type="agri_greenhouse_humidity"></block>' }
-        ]
-    },
-    {
-        name: 'Smart Mobility',
-        icon: '🚗',
-        color: '#4169E1',
-        desc: 'Kendaraan logistik cerdas',
-        moduleCategory: 'smart_mobility',
-        blocks: [
-            { name: 'Jalankan Kendaraan', desc: 'Maju/Mundur', xml: '<block type="mobility_drive"></block>' },
-            { name: 'Belok Kendaraan', desc: 'Kanan/Kiri', xml: '<block type="mobility_turn"></block>' },
-            { name: 'Rem Darurat', desc: 'Stop Kendaraan', xml: '<block type="mobility_stop"></block>' },
-            { name: 'Cek Garis Hitam', desc: 'Line Follower', xml: '<block type="mobility_check_line"></block>' },
-            { name: 'Jarak Halangan', desc: 'Ultrasonik depan', xml: '<block type="mobility_obstacle_distance"></block>' }
-        ]
-    },
-    {
-        name: 'Smart Industry',
-        icon: '🏭',
-        color: '#708090',
-        desc: 'Otomasi pabrik',
-        moduleCategory: 'smart_industry',
-        blocks: [
-            { name: 'Ban Berjalan', desc: 'Conveyor Belt', xml: '<block type="industry_conveyor"></block>' },
-            { name: 'Hitung Barang Lewat', desc: 'Item Counter', xml: '<block type="industry_item_counter"></block>' },
-            { name: 'Cek Suhu Mesin', desc: 'Cegah Overheat', xml: '<block type="industry_machine_temp"></block>' },
-            { name: 'Tombol Darurat', desc: 'Emergency Stop', xml: '<block type="industry_emergency_stop"></block>' },
-            { name: 'Sirine Pabrik', desc: 'Alarm Pabrik', xml: '<block type="industry_siren"></block>' }
-        ]
-    },
-    {
-        name: 'Smart Society',
-        icon: '🤝',
-        color: '#FF4500',
-        desc: 'Interaksi publik darurat',
-        moduleCategory: 'smart_society',
-        blocks: [
-            { name: 'Tombol SOS', desc: 'Emergency Panic Button', xml: '<block type="society_sos_button"></block>' },
-            { name: 'Siarkan Pesan', desc: 'Broadcast Informasi', xml: '<block type="society_broadcast_message"><value name="MESSAGE"><shadow type="text"><field name="TEXT">Waspada Bencana</field></shadow></value></block>' },
-            { name: 'Cek Keramaian Area', desc: 'Crowd Detection', xml: '<block type="society_crowd_detection"></block>' }
-        ]
-    },
-    
-    // ----------------------------------------------------
-    // HARDWARE RAW CATEGORIES (OPTIONAL/ADVANCED)
-    // ----------------------------------------------------
-    {
-        name: 'Pin',
-        icon: '🔌',
-        color: '#FF6347',
-        desc: 'Kontrol input/output dasar',
-        moduleCategory: 'hardware',
-        blocks: [
-            { name: 'Nyalakan / Matikan Pin', desc: 'Nyala/Mati', xml: '<block type="pin_set_digital"></block>' },
-            { name: 'Baca Status Pin', desc: 'Membaca tombol', xml: '<block type="pin_read_digital"></block>' },
-            { name: 'Atur Kecerahan / Kecepatan', desc: 'PWM 0-255', xml: '<block type="pin_set_analog"><value name="VAL"><shadow type="math_number"><field name="NUM">255</field></shadow></value></block>' },
-            { name: 'Baca Nilai Sensor', desc: 'Membaca potensiometer', xml: '<block type="pin_read_analog"></block>' },
-            { name: 'Atur Pin sebagai Sensor', desc: 'Input Mode', xml: '<block type="pin_mode_input"></block>' },
-            { name: 'Atur Pin sebagai Output', desc: 'Output Mode', xml: '<block type="pin_mode_output"></block>' }
+            { name: 'Terbang', desc: 'Takeoff Drone', xml: '<block type="drone_takeoff"></block>', modes: ['drone'] },
+            { name: 'Mendarat', desc: 'Land Drone', xml: '<block type="drone_land"></block>', modes: ['drone'] },
+            { name: 'Berhenti & Hover', desc: 'Stop Drone', xml: '<block type="drone_stop"></block>', modes: ['drone'] },
+            { name: 'Gerak Arah', desc: 'Gerak maju/mundur/kiri/kanan/naik/turun', xml: '<block type="drone_move_direction"></block>', modes: ['drone'] },
+            { name: 'Rotasi', desc: 'Putar drone', xml: '<block type="drone_rotate"></block>', modes: ['drone'] },
+            { name: 'Salto (Flip)', desc: 'Salto 3D', xml: '<block type="drone_flip"></block>', modes: ['drone'] }
         ]
     }
 ];

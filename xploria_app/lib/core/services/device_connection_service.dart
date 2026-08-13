@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -21,6 +22,9 @@ class DeviceConnectionService extends ChangeNotifier {
   ConnectionMode _connectionMode = ConnectionMode.wifi;
   ConnectionMode get connectionMode => _connectionMode;
 
+  final StreamController<Map<String, dynamic>> _telemetryController = StreamController<Map<String, dynamic>>.broadcast();
+  Stream<Map<String, dynamic>> get telemetryStream => _telemetryController.stream;
+
   // Bluetooth State
   BluetoothDevice? _selectedDevice;
   BluetoothDevice? get selectedDevice => _selectedDevice;
@@ -39,12 +43,6 @@ class DeviceConnectionService extends ChangeNotifier {
 
   String? _connectedDeviceId;
   String? get connectedDeviceId => _connectedDeviceId;
-
-  // Telemetry Stream
-  final StreamController<Map<String, dynamic>> _telemetryController =
-      StreamController<Map<String, dynamic>>.broadcast();
-  Stream<Map<String, dynamic>> get telemetryStream =>
-      _telemetryController.stream;
 
   // Generic State
   bool _isConnected = false;

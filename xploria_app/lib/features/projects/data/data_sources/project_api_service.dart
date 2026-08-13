@@ -44,15 +44,22 @@ class ProjectApiService {
     String name, {
     String workspaceXml =
         '<xml xmlns="https://developers.google.com/blockly/xml"></xml>',
+    String? moduleCategory,
   }) async {
     final url = Uri.parse('$baseUrl/projects/');
     final headers = await _getHeaders();
+
+    final body = <String, dynamic>{
+      'name': name,
+      'workspace_xml': workspaceXml,
+    };
+    if (moduleCategory != null) body['subject_context'] = moduleCategory;
 
     final response = await http
         .post(
           url,
           headers: headers,
-          body: jsonEncode({'name': name, 'workspace_xml': workspaceXml}),
+          body: jsonEncode(body),
         )
         .timeout(const Duration(seconds: 10));
 

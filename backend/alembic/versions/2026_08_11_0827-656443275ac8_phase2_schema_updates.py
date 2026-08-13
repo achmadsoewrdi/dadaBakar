@@ -27,7 +27,7 @@ def upgrade() -> None:
     op.drop_column('learning_modules', 'xp_reward')
     op.add_column('projects', sa.Column('module_category', sa.String(length=50), nullable=True))
     op.drop_column('user_progress', 'xp_earned')
-    op.drop_constraint(op.f('ck_users_role'), 'users', type_='check')
+    op.execute("ALTER TABLE users DROP CONSTRAINT IF EXISTS ck_users_role")
     # ### end Alembic commands ###
 
 

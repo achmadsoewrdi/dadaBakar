@@ -8,8 +8,8 @@ class ProjectRepositoryImpl {
     return _apiService.getProjects();
   }
 
-  Future<ProjectModel> createProject(String name, {String workspaceXml = '<xml xmlns="https://developers.google.com/blockly/xml"></xml>'}) {
-    return _apiService.createProject(name, workspaceXml: workspaceXml);
+  Future<ProjectModel> createProject(String name, {String workspaceXml = '<xml xmlns="https://developers.google.com/blockly/xml"></xml>', String? moduleCategory}) {
+    return _apiService.createProject(name, workspaceXml: workspaceXml, moduleCategory: moduleCategory);
   }
 
   Future<ProjectModel> updateProject(String projectId, {

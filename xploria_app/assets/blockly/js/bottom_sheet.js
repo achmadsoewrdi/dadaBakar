@@ -32,11 +32,39 @@ function renderCategories() {
     sheetTitle.innerText = 'Tambah Blok';
     sheetContent.innerHTML = '';
 
+    const rawMod = window.activeModuleCategory || 'all';
+    const activeMod = (rawMod === 'smart_living') ? 'smart_home' : rawMod;
+
+    const matchesMode = (modesArray) => {
+        if (!modesArray) return true;
+        if (rawMod === 'all' || activeMod === 'all') return true;
+        if (activeMod === 'smart_home' || rawMod === 'smart_living') {
+            return modesArray.includes('smart_home') || modesArray.includes('smart_living');
+        }
+        return modesArray.includes(activeMod) || modesArray.includes(rawMod);
+    };
+
     BLOCK_CATEGORIES.forEach((cat, index) => {
-        // Filter based on active module category
-        const activeMod = window.activeModuleCategory || 'all';
-        if (activeMod !== 'all' && cat.moduleCategory && cat.moduleCategory !== activeMod) {
-            return;
+        // Aturan visibilitas kategori berdasarkan mode proyek:
+        // 1. Jika activeMod === 'all' → Tampilkan SEMUA kategori!
+        // 2. Jika cat.modes ada → Tampilkan HANYA jika cat.modes berisi activeMod
+        // 3. Jika cat.moduleCategory ada → Tampilkan HANYA jika cocok dengan activeMod
+        // 4. Tanpa modes & moduleCategory → Kategori fundamental (selalu tampil)
+        let shouldShow = true;
+        if (activeMod !== 'all') {
+            if (cat.modes) {
+                shouldShow = matchesMode(cat.modes);
+            } else if (cat.moduleCategory) {
+                shouldShow = cat.moduleCategory === activeMod || cat.moduleCategory === rawMod;
+            }
+        }
+
+        if (!shouldShow) return;
+
+        // Cek apakah ada minimal 1 blok yang cocok dengan mode aktif di kategori ini
+        if (cat.blocks && cat.blocks.length > 0 && !cat.isVariableCategory && !cat.isMyBlocksCategory) {
+            const hasVisibleBlocks = cat.blocks.some(b => matchesMode(b.modes));
+            if (!hasVisibleBlocks) return;
         }
 
         const card = document.createElement('div');
@@ -145,8 +173,22 @@ function openCategory(index) {
         return;
     }
 
-    // Normal Categories
+    // Normal Categories (Filter blocks inside category if block.modes is set)
+    const rawMod = window.activeModuleCategory || 'all';
+    const activeMod = (rawMod === 'smart_living') ? 'smart_home' : rawMod;
+    const matchesMode = (modesArray) => {
+        if (!modesArray) return true;
+        if (rawMod === 'all' || activeMod === 'all') return true;
+        if (activeMod === 'smart_home' || rawMod === 'smart_living') {
+            return modesArray.includes('smart_home') || modesArray.includes('smart_living');
+        }
+        return modesArray.includes(activeMod) || modesArray.includes(rawMod);
+    };
+
     cat.blocks.forEach(block => {
+        if (!matchesMode(block.modes)) {
+            return; // Skip block if not meant for current mode
+        }
         const card = createBlockCard(cat, block.name, block.desc, block.xml);
         sheetContent.appendChild(card);
     });

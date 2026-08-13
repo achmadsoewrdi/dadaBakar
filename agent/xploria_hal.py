@@ -37,14 +37,39 @@ except ImportError:
     _gpio = None
     print("[xploria_hal] WARNING: lgpio tidak ditemukan - GPIO tidak akan berfungsi.", file=sys.stderr)
 
-# _PIN_MAP kosong: angka pin di Blockly = BCM GPIO langsung (Raspberry Pi BCM mode)
-_PIN_MAP = {}
+# _PIN_MAP memetakan string dari Blockly ke nomor BCM GPIO Raspberry Pi.
+_PIN_MAP = {
+    # 🏠 Smart Home
+    "TERAS": 17,
+    "KAMAR": 27,
+    "RUANG_TAMU": 22,
+    "DAPUR": 24,
+    "DOOR": 18,
+    "FAN": 23,
+    "CURTAIN": 12,
+    
+    # 🏙️ Smart City (Contoh)
+    "LAMPU_JALAN_1": 5,
+    "LAMPU_JALAN_2": 6,
+    
+    # 🌱 Smart Agriculture (Contoh)
+    "POMPA_AIR": 13,
+    "LAMPU_UV": 19
+}
 _chips = {}
 
 
 def _get_gpio(p):
     """Resolve nomor pin ke chip dan offset lgpio."""
-    gpio = _PIN_MAP.get(int(p), int(p))
+    # Coba ambil dari mapping dulu (bisa string/int), kalau tidak ada, ubah p ke integer
+    gpio = _PIN_MAP.get(p, None)
+    if gpio is None:
+        try:
+            gpio = int(p)
+        except ValueError:
+            # Fallback aman jika belum di-map
+            print(f"[xploria_hal] WARNING: Pin '{p}' belum di-map di _PIN_MAP, fallback ke GPIO 0", file=sys.stderr)
+            gpio = 0
     chip_idx = 1 if gpio >= 352 else 0
     offset = gpio - 352 if chip_idx == 1 else gpio
     if chip_idx not in _chips:

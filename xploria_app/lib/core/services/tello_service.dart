@@ -163,6 +163,18 @@ class TelloService extends ChangeNotifier {
     return await sendCommand('streamoff');
   }
 
+  // Mengirim perintah Remote Control (RC) dari joystick
+  // Nilai -100 hingga 100 untuk roll (kiri/kanan), pitch (maju/mundur), throttle (naik/turun), yaw (putar)
+  void setRC(int roll, int pitch, int throttle, int yaw) {
+    if (_socket == null || !_isConnected) return;
+    
+    // Command format: rc a b c d
+    final cmd = 'rc $roll $pitch $throttle $yaw';
+    
+    // Jangan tunggu response untuk perintah RC karena dikirim secara konstan dan berulang
+    _socket!.send(utf8.encode(cmd), InternetAddress(telloIp), telloPort);
+  }
+
   Future<bool> sendCommand(String cmd) async {
     if (_socket == null) return false;
 
