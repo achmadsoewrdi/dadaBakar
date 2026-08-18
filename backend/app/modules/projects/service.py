@@ -1,6 +1,6 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from uuid import UUID
 from fastapi import HTTPException, status
 from app.modules.projects.models import Project
@@ -72,7 +72,7 @@ async def soft_delete_project(db: AsyncSession, project_id: UUID, owner_id: UUID
     project = result.scalar_one_or_none()
     if not project:
         return False
-    project.deleted_at = datetime.utcnow()
+    project.deleted_at = datetime.now(timezone.utc)
     await db.commit()
     return True
 
@@ -84,7 +84,7 @@ async def restore_project(db: AsyncSession, project_id: UUID, owner_id: UUID) ->
     project = result.scalar_one_or_none()
     if not project or project.deleted_at is None:
         return False
-    if project.deleted_at < datetime.utcnow() - timedelta(days=30):
+    if project.deleted_at < datetime.now(timezone.utc) - timedelta(days=30):
         return False  # Exceeded 30-day restore period
     project.deleted_at = None
     await db.commit()
@@ -102,7 +102,7 @@ async def update_project(db: AsyncSession, project_id: UUID, owner_id: UUID, pro
     for key, value in update_data.items():
         setattr(project, key, value)
     
-    project.updated_at = datetime.utcnow()
+    project.updated_at = datetime.now(timezone.utc)
     await db.commit()
     await db.refresh(project)
     return project

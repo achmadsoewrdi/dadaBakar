@@ -2,8 +2,7 @@ from fastapi import APIRouter, Depends, status, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 import uuid
 
-from app.db.session import get_db
-from app.core.deps import get_current_user
+from app.core.deps import get_db, get_current_user, get_current_active_superuser
 from app.modules.users.models import User
 from app.modules.subscriptions import schemas, service
 
@@ -12,17 +11,18 @@ router = APIRouter(
     tags=["subscriptions"]
 )
 
-@router.post("/", response_model=schemas.SubscriptionOut, status_code=status.HTTP_201_CREATED)
+@router.post("/{user_id}", response_model=schemas.SubscriptionOut, status_code=status.HTTP_201_CREATED)
 async def create_subscription(
+    user_id: uuid.UUID,
     sub_in: schemas.SubscriptionCreate,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_admin: User = Depends(get_current_active_superuser)
 ):
     """
-    Buat atau aktifkan paket langganan baru.
+    (ADMIN ONLY) Buat atau aktifkan paket langganan baru untuk seorang user.
     Otomatis mengubah is_premium di tabel user.
     """
-    return await service.create_subscription(db, current_user.id, sub_in)
+    return await service.create_subscription(db, user_id, sub_in)
 
 @router.get("/me", response_model=schemas.SubscriptionOut)
 async def get_my_subscription(

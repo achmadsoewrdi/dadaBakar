@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from uuid import UUID
 from typing import List
 
-from app.db.session import get_db
+from app.core.deps import get_db
 from app.modules.devices.schemas import DeviceProfileCreate, DeviceProfileOut, DeviceProfileUpdate
 from app.modules.devices import service
 from app.core.deps import get_current_user

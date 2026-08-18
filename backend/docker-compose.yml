@@ -19,6 +19,20 @@ services:
       timeout: 5s
       retries: 5
 
+  backend:
+    build: .
+    container_name: xploria_backend
+    restart: always
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    volumes:
+      - ./uploads:/app/uploads
+    depends_on:
+      db:
+        condition: service_healthy
+
   adminer:
     image: adminer:latest
     container_name: xploria_adminer

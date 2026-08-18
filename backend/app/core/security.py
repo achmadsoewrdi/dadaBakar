@@ -14,34 +14,29 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
     # memverifikasi password
     return pwd_context.verify(plain_password, hashed_password)
 
-def create_access_token(subject: Union[str, Any], expires_delta: timedelta = None) -> str:
-    # membuat jwt access token (token sementara) autentikasi request API
+def _create_token(subject: Union[str, Any], token_type: str, expires_delta: timedelta = None) -> str:
+    """Private helper to create JWT tokens."""
     if expires_delta:
         expire = datetime.now(timezone.utc) + expires_delta
     else:
-        expire = datetime.now(timezone.utc) + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+        if token_type == "access":
+            expire = datetime.now(timezone.utc) + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+        else:
+            expire = datetime.now(timezone.utc) + timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)
 
     to_encode = {
         "exp": expire,
         "sub": str(subject),
-        "type": "access"
+        "type": token_type
     }
-    encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
-    return encoded_jwt
+    return jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
+
+def create_access_token(subject: Union[str, Any], expires_delta: timedelta = None) -> str:
+    # membuat jwt access token (token sementara) autentikasi request API
+    return _create_token(subject, "access", expires_delta)
 
 def create_refresh_token(subject: Union[str, Any], expires_delta: timedelta = None) -> str:
     # membuat jwt refresh token (durasi panjang)
-    if expires_delta:
-        expire = datetime.now(timezone.utc) + expires_delta
-    else:
-        expire = datetime.now(timezone.utc) + timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)
-
-    to_encode = {
-        "exp": expire,
-        "sub": str(subject),
-        "type": "refresh"
-    }
-    encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
-    return encoded_jwt
+    return _create_token(subject, "refresh", expires_delta)
 
         

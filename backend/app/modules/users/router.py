@@ -16,7 +16,7 @@ from app.core.config import settings
 from app.core.deps import get_db, get_current_user
 from app.core.security import create_access_token, create_refresh_token
 from app.modules.users.models import User
-from app.modules.users.schemas import UserCreate, UserLogin, UserOut, Token, GoogleLogin
+from app.modules.users.schemas import UserCreate, UserLogin, UserOut, Token, GoogleLogin, RefreshTokenRequest
 from app.modules.users.service import (
     get_user_by_email,
     create_user,
@@ -55,7 +55,59 @@ async def register_user(
         access_token=access_token,
         refresh_token=refresh_token,
         token_type="bearer",
-        user=new_user
+        user=user
+    )
+
+@router.post("/refresh", response_model=Token)
+async def refresh_access_token(
+    payload: RefreshTokenRequest,
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Endpoint untuk mendapatkan Access Token baru menggunakan Refresh Token.
+    """
+    from jose import jwt, JWTError
+    from sqlalchemy import select
+    from app.modules.users.models import User
+    
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Refresh token tidak valid atau telah kadaluarsa",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+    
+    try:
+        token_payload = jwt.decode(
+            payload.refresh_token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM]
+        )
+        user_id = token_payload.get("sub")
+        token_type = token_payload.get("type")
+
+        if user_id is None or token_type != "refresh":
+            raise credentials_exception
+            
+    except (JWTError, ValueError):
+        raise credentials_exception
+
+    # Cari user di database
+    try:
+        result = await db.execute(select(User).where(User.id == uuid.UUID(user_id)))
+        user = result.scalar_one_or_none()
+    except Exception:
+        raise credentials_exception
+
+    if user is None or not user.is_active:
+        raise credentials_exception
+
+    # Buat Access Token dan Refresh Token baru
+    access_token = create_access_token(subject=user.id)
+    new_refresh_token = create_refresh_token(subject=user.id)
+
+    return Token(
+        access_token=access_token,
+        refresh_token=new_refresh_token,
+        token_type="bearer",
+        user=user
     )
 
 
@@ -204,10 +256,10 @@ async def google_login(
             audience=settings.GOOGLE_CLIENT_ID if settings.GOOGLE_CLIENT_ID else None
         )
     except Exception as e:
-        logger.error("Google login failed: %s", e)
+        logger.error("Google login failed: %s", str(e))
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Token Google tidak valid: {str(e)}"
+            detail="Token Google tidak valid."
         )
 
     google_sub = id_info.get("sub")

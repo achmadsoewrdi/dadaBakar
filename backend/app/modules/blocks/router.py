@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from uuid import UUID
 from typing import Optional
-from app.db.session import get_db
+from app.core.deps import get_db
 from app.modules.blocks.schemas import (
     BlockDefinitionCreate, BlockDefinitionUpdate, BlockDefinitionOut, BlockDefinitionSummary
 )
