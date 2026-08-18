@@ -55,7 +55,7 @@ async def register_user(
         access_token=access_token,
         refresh_token=refresh_token,
         token_type="bearer",
-        user=user
+        user=new_user
     )
 
 @router.post("/refresh", response_model=Token)
