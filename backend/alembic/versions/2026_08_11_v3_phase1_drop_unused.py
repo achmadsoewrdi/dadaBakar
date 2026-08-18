@@ -30,15 +30,15 @@ def upgrade() -> None:
     op.drop_table('badges')
 
     # ── KOLOM DI USERS ─────────────────────────────────────────────────────────
-    # Drop FK constraint dulu sebelum drop tabel schools
-    op.drop_constraint('fk_users_school', 'users', type_='foreignkey')
-    op.drop_column('users', 'school_id')
-    op.drop_column('users', 'onboarding_source')
+    # # Drop FK constraint dulu sebelum drop tabel schools
+    # op.drop_constraint('fk_users_school', 'users', type_='foreignkey')
+    # op.drop_column('users', 'school_id')
+    # op.drop_column('users', 'onboarding_source')
 
-    # ── SCHOOL / CLASSROOM ─────────────────────────────────────────────────────
-    op.drop_table('enrollments')
-    op.drop_table('classrooms')
-    op.drop_table('schools')
+    # # ── SCHOOL / CLASSROOM ─────────────────────────────────────────────────────
+    # op.drop_table('enrollments')
+    # op.drop_table('classrooms')
+    # op.drop_table('schools')
 
 
 def downgrade() -> None:
