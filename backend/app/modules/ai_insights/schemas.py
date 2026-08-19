@@ -1,3 +1,4 @@
+# pyrefly: ignore [missing-import]
 from pydantic import BaseModel, Field
 from typing import Optional, List, Union
 
@@ -35,3 +36,4 @@ class SensorDataAnalysisResponse(BaseModel):
     metrics: MetricsSummary = Field(..., description="Statistik deskriptif data sensor")
     anomalies: List[AnomalyDetail] = Field(default_factory=list, description="Daftar titik data yang terdeteksi anomali")
     recommendations: List[str] = Field(default_factory=list, description="Daftar rekomendasi atau tindakan lanjut")
+    safety_warning: Optional[str] = Field(default=None, description="Peringatan keselamatan laboratorium jika kondisi anomali/kritis terdeteksi")
