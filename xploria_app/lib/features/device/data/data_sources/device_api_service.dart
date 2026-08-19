@@ -11,7 +11,7 @@ class DeviceApiService {
   DeviceApiService._internal();
 
   String get baseUrl {
-    return dotenv.env['BASE_URL'] ?? 'http://127.0.0.1:8000/api/v1';
+    return dotenv.env['BASE_URL'] ?? 'https://xploria-backend.onrender.com/api/v1';
   }
 
   Future<Map<String, String>> _getHeaders() async {

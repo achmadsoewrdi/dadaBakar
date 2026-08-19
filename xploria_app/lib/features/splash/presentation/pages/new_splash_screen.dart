@@ -44,7 +44,7 @@ class _NewSplashScreenState extends State<NewSplashScreen> with SingleTickerProv
         if (isAuthenticated) {
           context.go('/dashboard');
         } else {
-          context.go('/welcome');
+          context.go('/onboarding');
         }
       }
     });

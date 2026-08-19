@@ -10,7 +10,7 @@ class ProjectApiService {
   ProjectApiService._internal();
 
   String get baseUrl {
-    return dotenv.env['BASE_URL'] ?? 'http://10.118.238.177:8000/api/v1';
+    return dotenv.env['BASE_URL'] ?? 'https://xploria-backend.onrender.com/api/v1';
   }
 
   Future<Map<String, String>> _getHeaders() async {

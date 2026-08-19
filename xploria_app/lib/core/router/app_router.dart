@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:xploria_app/features/splash/presentation/pages/new_splash_screen.dart';
+import 'package:xploria_app/features/onboarding/presentation/pages/onboarding_screen.dart';
 import 'package:xploria_app/features/auth/presentation/pages/welcome_screen.dart';
 import 'package:xploria_app/features/auth/presentation/pages/login_screen.dart';
 import 'package:xploria_app/features/auth/presentation/pages/register_screen.dart';
@@ -38,7 +39,8 @@ class AppRouter {
 
       final bool isAuthenticated = authStorage.isAuthenticated;
       final bool isGoingToSplash = state.matchedLocation == '/';
-      final bool isGoingToAuth = state.matchedLocation == '/welcome' ||
+      final bool isGoingToAuth = state.matchedLocation == '/onboarding' ||
+                                 state.matchedLocation == '/welcome' ||
                                  state.matchedLocation == '/login' ||
                                  state.matchedLocation == '/register';
 
@@ -61,6 +63,10 @@ class AppRouter {
       GoRoute(
         path: '/',
         builder: (context, state) => const NewSplashScreen(),
+      ),
+      GoRoute(
+        path: '/onboarding',
+        builder: (context, state) => const OnboardingScreen(),
       ),
       GoRoute(
         path: '/welcome',
