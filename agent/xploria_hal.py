@@ -206,27 +206,50 @@ class SensorHAL:
         self._claim_in(chip, offset, p)
         return _gpio.gpio_read(chip, offset) == 0
 
+    def _ensure_dht(self, p, force_new=False):
+        """Buat atau re-create objek DHT22 untuk pin p."""
+        import adafruit_dht, board
+        if force_new and p in self._dht_pins:
+            try:
+                self._dht_pins[p].exit()
+            except Exception:
+                pass
+            del self._dht_pins[p]
+        if p not in self._dht_pins:
+            self._dht_pins[p] = adafruit_dht.DHT22(getattr(board, f'D{p}'))
+        return self._dht_pins[p]
+
     def read_temperature(self, p):
-        """Baca suhu dari DHT22 (dalam derajat C). Return 0 jika gagal."""
-        try:
-            import adafruit_dht, board
-            if p not in self._dht_pins:
-                self._dht_pins[p] = adafruit_dht.DHT22(getattr(board, f'D{p}'))
-            val = self._dht_pins[p].temperature
-            return val if val is not None else 0
-        except Exception:
-            return 0
+        """Baca suhu dari DHT22 (dalam derajat C). Return None jika gagal."""
+        for attempt in range(3):
+            try:
+                dht = self._ensure_dht(p, force_new=(attempt > 0))
+                val = dht.temperature
+                if val is not None:
+                    return val
+            except RuntimeError as e:
+                print(f"[xploria_hal] DHT22 suhu attempt {attempt+1}: {e}", file=sys.stderr)
+                time.sleep(0.5)
+            except Exception as e:
+                print(f"[xploria_hal] DHT22 suhu ERROR: {e}", file=sys.stderr)
+                return None
+        return None
 
     def read_humidity(self, p):
-        """Baca kelembapan dari DHT22 (dalam %). Return 0 jika gagal."""
-        try:
-            import adafruit_dht, board
-            if p not in self._dht_pins:
-                self._dht_pins[p] = adafruit_dht.DHT22(getattr(board, f'D{p}'))
-            val = self._dht_pins[p].humidity
-            return val if val is not None else 0
-        except Exception:
-            return 0
+        """Baca kelembapan dari DHT22 (dalam %). Return None jika gagal."""
+        for attempt in range(3):
+            try:
+                dht = self._ensure_dht(p, force_new=(attempt > 0))
+                val = dht.humidity
+                if val is not None:
+                    return val
+            except RuntimeError as e:
+                print(f"[xploria_hal] DHT22 humidity attempt {attempt+1}: {e}", file=sys.stderr)
+                time.sleep(0.5)
+            except Exception as e:
+                print(f"[xploria_hal] DHT22 humidity ERROR: {e}", file=sys.stderr)
+                return None
+        return None
 
     def read_ultrasonic(self, trig, echo):
         """Baca jarak ultrasonik HC-SR04 (dalam cm)."""
@@ -272,6 +295,15 @@ class SensorHAL:
         self._claim_in(chip, offset, p)
         val = _gpio.gpio_read(chip, offset)
         return 100 if val == 1 else 0
+
+    def send_telemetry(self, pin, value):
+        """Kirim data sensor ke IoT Lab Canvas via stdout JSON.
+        
+        Contoh: sensor.send_telemetry("4", 30.5)
+        Di IoT Lab, buat widget dengan Pin = "4" untuk menampilkan data.
+        """
+        import json
+        print(json.dumps({"type": "telemetry", "pin": str(pin), "value": value}), flush=True)
 
 
 # =============================================================================

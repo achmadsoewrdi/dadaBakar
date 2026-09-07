@@ -2055,7 +2055,7 @@ Blockly.Python['esp32_dark_alarm'] = function (block) {
     _hal_require_pin();
     
     let code = `
-if pin.read_digital(27) == 1:
+if pin.read_digital(27) == 0:
     pin.set_digital("BUZZER", 1)
 else:
     pin.set_digital("BUZZER", 0)
@@ -2088,8 +2088,8 @@ Blockly.Blocks['esp32_ldr_boolean'] = {
 Blockly.Python['esp32_ldr_boolean'] = function (block) {
     _hal_require_pin();
     const state = block.getFieldValue('STATE');
-    // Firmware D6_LDR: 1 = Gelap, 0 = Terang
-    const val = (state === 'GELAP') ? '1' : '0';
+    // Firmware D6_LDR: 0 = Gelap, 1 = Terang
+    const val = (state === 'GELAP') ? '0' : '1';
     return [`pin.read_digital(27) == ${val}`, Blockly.Python.ORDER_RELATIONAL];
 };
 
